@@ -84,19 +84,142 @@
     #moldura {
       height: 400px;
       width: 400px;
-      border: 45px solid #d41022;
+      border: 46px solid #e10b1e;
       border-radius: 50%;
       position: absolute;
-      top: -45px;
-      left: -45px;
+      top: -46px;
+      left: -46px;
       box-sizing: content-box;
       -webkit-transform: translateZ(400px);
       transform: translateZ(400px);
       box-shadow:
-        0 18px 50px rgba(0, 0, 0, 0.6),
-        0 4px 14px rgba(0, 0, 0, 0.35),
-        inset 0 0 22px rgba(0, 0, 0, 0.85),
-        inset 0 2px 4px rgba(255, 255, 255, 0.4);
+        /* Contorno externo prata metálico cromado (duplo tom de reflexo) */
+        0 0 0 4px #eef2f7,
+        0 0 0 8px #889098,
+        0 0 0 11px #3c4045,
+        /* Brilho e radiação vermelha estúdio projetada sobre as aletas */
+        0 0 35px 8px rgba(240, 15, 25, 0.45),
+        /* Sombra de profundidade física projetada no painel */
+        0 20px 50px rgba(0, 0, 0, 0.7),
+        /* Contorno interno prata metálico cromado (duplo tom) */
+        inset 0 0 0 4px #eef2f7,
+        inset 0 0 0 8px #889098,
+        inset 0 0 0 11px #3c4045,
+        /* Profundidade 3D do túnel interno que desce até o tambor */
+        inset 0 0 28px 12px rgba(0, 0, 0, 0.95),
+        /* Brilho especular no arco superior da moldura de acrílico vermelho */
+        inset 0 4px 6px rgba(255, 255, 255, 0.55);
+    }
+
+    /* Brilho e reflexo curvo de acrílico na moldura */
+    #moldura::after {
+      content: '';
+      position: absolute;
+      top: -46px;
+      left: -46px;
+      width: 492px;
+      height: 492px;
+      border-radius: 50%;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, transparent 40%, rgba(0, 0, 0, 0.25) 100%);
+      -webkit-mask: radial-gradient(circle, transparent 199px, #000 200px);
+      mask: radial-gradient(circle, transparent 199px, #000 200px);
+    }
+
+    /* -------------------------------------------------------------
+       Placa Amarela de Prêmio ("50 MIL REAIS") - Auditório Silvio Santos
+       ------------------------------------------------------------- */
+    .placa-premio {
+      position: absolute;
+      left: 50%;
+      bottom: -68px;
+      width: 124px;
+      height: 74px;
+      margin-left: -62px;
+      -webkit-transform: translateZ(435px);
+      transform: translateZ(435px);
+      background: linear-gradient(180deg, #ffe942 0%, #ffcc00 65%, #f2b400 100%);
+      border: 2px solid #1a1a1a;
+      border-radius: 5px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 6px;
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.65),
+        0 4px 10px rgba(0, 0, 0, 0.4),
+        0 0 0 1.5px #8a7300,
+        inset 0 1px 2px rgba(255, 255, 255, 0.85),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+      z-index: 10;
+      user-select: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .placa-premio:hover {
+      transform: translateZ(440px) scale(1.03);
+      -webkit-transform: translateZ(440px) scale(1.03);
+    }
+
+    /* Brilho acrílico superior da placa */
+    .placa-premio::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 48%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.08) 100%);
+      border-radius: 3px 3px 0 0;
+      pointer-events: none;
+    }
+
+    /* Suporte metálico de fixação na base da placa */
+    .placa-premio::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 22px;
+      height: 8px;
+      background: linear-gradient(90deg, #444, #ccc, #444);
+      border-radius: 0 0 3px 3px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
+      pointer-events: none;
+    }
+
+    .placa-conteudo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      width: 100%;
+    }
+
+    .placa-numero {
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      font-size: 36px;
+      font-weight: 900;
+      color: #050505;
+      line-height: 0.95;
+      letter-spacing: -0.5px;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+    }
+
+    .placa-rotulo {
+      font-family: 'Arial Black', 'Impact', sans-serif;
+      font-size: 11px;
+      font-weight: 900;
+      color: #050505;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+      text-transform: uppercase;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
     }
 
     #piao-bg {
@@ -721,6 +844,16 @@
         </div>
       </div>
 
+      <!-- Placa de Prêmio (50 MIL REAIS) -->
+      <div class="campo">
+        <label>Placa de Prêmio</label>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <input type="text" id="input-placa-valor" value="50" maxlength="6" style="width: 54px; text-align: center; font-weight: 800; font-family: Impact, sans-serif; font-size: 15px; padding: 6px 4px; border: 1px solid #ddd; border-radius: 6px;" title="Valor da placa" />
+          <input type="text" id="input-placa-rotulo" value="MIL REAIS" maxlength="15" style="flex: 1; font-weight: 700; font-size: 11px; padding: 7px 6px; border: 1px solid #ddd; border-radius: 6px; text-transform: uppercase;" title="Rótulo da placa" />
+          <button type="button" id="btn-toggle-placa" class="btn-toggle ativo" style="padding: 6px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer;" title="Mostrar ou ocultar placa">Ver</button>
+        </div>
+      </div>
+
       <!-- Botão de Ação Principal -->
       <div class="campo campo-acao">
         <button type="button" id="girar">Girar Pião [Espaço]</button>
@@ -752,6 +885,13 @@
     </div>
     <div id="moldura"></div>
     <div id="piao-bg"></div>
+    <!-- Placa de Prêmio Clássica do Auditório Silvio Santos -->
+    <div id="placa-premio" class="placa-premio" title="Placa clássica de prêmio do Pião da Casa Própria (50 MIL REAIS)">
+      <div class="placa-conteudo">
+        <span class="placa-numero" id="placa-numero-texto">50</span>
+        <span class="placa-rotulo" id="placa-rotulo-texto">MIL REAIS</span>
+      </div>
+    </div>
   </div>
 
   <!-- Trilha Sonora Clássica do Pião da Casa Própria -->
@@ -1471,10 +1611,63 @@
         })
       }
 
+      // Controle da Placa de Prêmio (50 MIL REAIS)
+      var placaPremioEl = document.getElementById('placa-premio')
+      var placaNumeroTexto = document.getElementById('placa-numero-texto')
+      var placaRotuloTexto = document.getElementById('placa-rotulo-texto')
+      var inputPlacaValor = document.getElementById('input-placa-valor')
+      var inputPlacaRotulo = document.getElementById('input-placa-rotulo')
+      var btnTogglePlaca = document.getElementById('btn-toggle-placa')
+
+      if (inputPlacaValor && placaNumeroTexto) {
+        inputPlacaValor.addEventListener('input', function () {
+          placaNumeroTexto.textContent = this.value || '50'
+        })
+      }
+
+      if (inputPlacaRotulo && placaRotuloTexto) {
+        inputPlacaRotulo.addEventListener('input', function () {
+          placaRotuloTexto.textContent = this.value || 'MIL REAIS'
+        })
+      }
+
+      if (btnTogglePlaca && placaPremioEl) {
+        btnTogglePlaca.addEventListener('click', function () {
+          var visivel = placaPremioEl.style.display !== 'none'
+          if (visivel) {
+            placaPremioEl.style.display = 'none'
+            this.classList.remove('ativo')
+            this.textContent = 'Oculto'
+          } else {
+            placaPremioEl.style.display = 'flex'
+            this.classList.add('ativo')
+            this.textContent = 'Ver'
+          }
+        })
+      }
+
+      if (placaPremioEl) {
+        placaPremioEl.addEventListener('click', function () {
+          if (inputPlacaValor) {
+            inputPlacaValor.focus()
+            inputPlacaValor.select()
+          }
+        })
+      }
+
       // Reset de Configurações
       if (btnResetConfig) {
         btnResetConfig.addEventListener('click', function () {
           resetarConfiguracoes()
+          if (inputPlacaValor) inputPlacaValor.value = '50'
+          if (inputPlacaRotulo) inputPlacaRotulo.value = 'MIL REAIS'
+          if (placaNumeroTexto) placaNumeroTexto.textContent = '50'
+          if (placaRotuloTexto) placaRotuloTexto.textContent = 'MIL REAIS'
+          if (placaPremioEl) placaPremioEl.style.display = 'flex'
+          if (btnTogglePlaca) {
+            btnTogglePlaca.classList.add('ativo')
+            btnTogglePlaca.textContent = 'Ver'
+          }
         })
       }
 
