@@ -52,7 +52,12 @@
     #piao .numero {
       position: absolute;
       height: 100%;
-      border: 5px solid #ffffff;
+      /* Arestas metálicas cromadas / alumínio nas bordas do tambor */
+      border: 5px solid #d0d7de;
+      box-shadow:
+        inset 0 0 0 1px #727a84,
+        inset 0 1px 2px rgba(255, 255, 255, 0.85),
+        0 0 0 1px #3c4248;
       text-align: center;
       display: flex;
       align-items: center;
@@ -60,7 +65,7 @@
       font-family: 'Impact', 'Arial Black', sans-serif;
       font-size: 195px;
       color: #ffffff;
-      background-color: #000000;
+      background-color: #050505;
       box-sizing: border-box;
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
@@ -84,63 +89,44 @@
     #moldura {
       height: 400px;
       width: 400px;
-      border: 46px solid #e10b1e;
+      border: 45px solid #d80f24;
       border-radius: 50%;
       position: absolute;
-      top: -46px;
-      left: -46px;
+      top: -45px;
+      left: -45px;
       box-sizing: content-box;
       -webkit-transform: translateZ(400px);
       transform: translateZ(400px);
       box-shadow:
-        /* Contorno externo prata metálico cromado (duplo tom de reflexo) */
-        0 0 0 4px #eef2f7,
-        0 0 0 8px #889098,
-        0 0 0 11px #3c4045,
-        /* Brilho e radiação vermelha estúdio projetada sobre as aletas */
-        0 0 35px 8px rgba(240, 15, 25, 0.45),
-        /* Sombra de profundidade física projetada no painel */
-        0 20px 50px rgba(0, 0, 0, 0.7),
-        /* Contorno interno prata metálico cromado (duplo tom) */
-        inset 0 0 0 4px #eef2f7,
-        inset 0 0 0 8px #889098,
-        inset 0 0 0 11px #3c4045,
-        /* Profundidade 3D do túnel interno que desce até o tambor */
-        inset 0 0 28px 12px rgba(0, 0, 0, 0.95),
-        /* Brilho especular no arco superior da moldura de acrílico vermelho */
-        inset 0 4px 6px rgba(255, 255, 255, 0.55);
-    }
-
-    /* Brilho e reflexo curvo de acrílico na moldura */
-    #moldura::after {
-      content: '';
-      position: absolute;
-      top: -46px;
-      left: -46px;
-      width: 492px;
-      height: 492px;
-      border-radius: 50%;
-      pointer-events: none;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, transparent 40%, rgba(0, 0, 0, 0.25) 100%);
-      -webkit-mask: radial-gradient(circle, transparent 199px, #000 200px);
-      mask: radial-gradient(circle, transparent 199px, #000 200px);
+        /* Radiação suave de luz vermelha projetada sobre as aletas ao redor */
+        0 0 28px 4px rgba(220, 15, 25, 0.35),
+        /* Sombra de profundidade física do anel projetada na parede */
+        0 18px 48px rgba(0, 0, 0, 0.65),
+        0 4px 14px rgba(0, 0, 0, 0.4),
+        /* Profundidade cilíndrica interna do túnel que desce até o tambor */
+        inset 0 0 25px 8px rgba(0, 0, 0, 0.9),
+        /* Chanfro de luz cilíndrico na borda superior */
+        inset 0 3px 6px rgba(255, 255, 255, 0.4),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.45);
     }
 
     /* -------------------------------------------------------------
        Placa Amarela de Prêmio ("50 MIL REAIS") - Auditório Silvio Santos
+       (Visual autêntico fosco / acetinado de TV sem reflexos estourados)
        ------------------------------------------------------------- */
     .placa-premio {
       position: absolute;
       left: 50%;
       bottom: -68px;
-      width: 124px;
-      height: 74px;
-      margin-left: -62px;
+      width: 122px;
+      height: 72px;
+      margin-left: -61px;
       -webkit-transform: translateZ(435px);
       transform: translateZ(435px);
-      background: linear-gradient(180deg, #ffe942 0%, #ffcc00 65%, #f2b400 100%);
-      border: 2px solid #1a1a1a;
-      border-radius: 5px;
+      /* Amarelo autêntico acetinado suave (redução de saturação e brilho excessivo) */
+      background: linear-gradient(180deg, #f0c51d 0%, #e5b914 100%);
+      border: 2px solid #222222;
+      border-radius: 4px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
@@ -148,11 +134,10 @@
       justify-content: center;
       padding: 4px 6px;
       box-shadow:
-        0 12px 28px rgba(0, 0, 0, 0.65),
-        0 4px 10px rgba(0, 0, 0, 0.4),
-        0 0 0 1.5px #8a7300,
-        inset 0 1px 2px rgba(255, 255, 255, 0.85),
-        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+        0 10px 22px rgba(0, 0, 0, 0.55),
+        0 3px 8px rgba(0, 0, 0, 0.35),
+        inset 0 1px 1px rgba(255, 255, 255, 0.3),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.15);
       z-index: 10;
       user-select: none;
       cursor: pointer;
@@ -160,35 +145,22 @@
     }
 
     .placa-premio:hover {
-      transform: translateZ(440px) scale(1.03);
-      -webkit-transform: translateZ(440px) scale(1.03);
+      transform: translateZ(440px) scale(1.02);
+      -webkit-transform: translateZ(440px) scale(1.02);
     }
 
-    /* Brilho acrílico superior da placa */
-    .placa-premio::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 48%;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.08) 100%);
-      border-radius: 3px 3px 0 0;
-      pointer-events: none;
-    }
-
-    /* Suporte metálico de fixação na base da placa */
+    /* Suporte discreto de fixação na base da placa */
     .placa-premio::after {
       content: '';
       position: absolute;
-      bottom: -8px;
+      bottom: -7px;
       left: 50%;
       transform: translateX(-50%);
-      width: 22px;
-      height: 8px;
-      background: linear-gradient(90deg, #444, #ccc, #444);
-      border-radius: 0 0 3px 3px;
-      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
+      width: 20px;
+      height: 7px;
+      background: #555555;
+      border-radius: 0 0 2px 2px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
       pointer-events: none;
     }
 
@@ -203,23 +175,21 @@
 
     .placa-numero {
       font-family: 'Impact', 'Arial Black', sans-serif;
-      font-size: 36px;
+      font-size: 35px;
       font-weight: 900;
-      color: #050505;
+      color: #111111;
       line-height: 0.95;
       letter-spacing: -0.5px;
-      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
     }
 
     .placa-rotulo {
       font-family: 'Arial Black', 'Impact', sans-serif;
       font-size: 11px;
       font-weight: 900;
-      color: #050505;
+      color: #111111;
       letter-spacing: 0.5px;
-      margin-top: 2px;
+      margin-top: 3px;
       text-transform: uppercase;
-      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
     }
 
     #piao-bg {
