@@ -41,10 +41,10 @@
 
     #piao {
       position: relative;
-      top: 40px;
+      top: 65px;
       margin: 0 auto;
-      height: 330px;
-      width: 200px;
+      height: 270px;
+      width: 165px;
       -webkit-transform-style: preserve-3d;
       transform-style: preserve-3d;
     }
@@ -52,13 +52,13 @@
     #piao .numero {
       position: absolute;
       height: 100%;
-      border: 6px solid #ffffff;
+      border: 5px solid #ffffff;
       text-align: center;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: 'Impact', 'Arial Black', sans-serif;
-      font-size: 240px;
+      font-size: 195px;
       color: #ffffff;
       background-color: #000000;
       box-sizing: border-box;
@@ -84,52 +84,62 @@
     #moldura {
       height: 400px;
       width: 400px;
-      border: 50px solid rgb(200, 0, 0);
-      border-radius: 250px;
+      border: 45px solid #d41022;
+      border-radius: 50%;
       position: absolute;
       top: -45px;
-      left: -50px;
+      left: -45px;
+      box-sizing: content-box;
       -webkit-transform: translateZ(400px);
       transform: translateZ(400px);
       box-shadow:
-        inset -1px -2px 0px 3px rgb(150, 0, 0),
-        inset -1px -2px 10px 10px rgba(0, 0, 0, 0.5),
-        -2px -2px 0px 3px rgb(150, 0, 0),
-        -4px -4px 10px 10px rgba(0, 0, 0, 0.5);
+        0 18px 50px rgba(0, 0, 0, 0.6),
+        0 4px 14px rgba(0, 0, 0, 0.35),
+        inset 0 0 22px rgba(0, 0, 0, 0.85),
+        inset 0 2px 4px rgba(255, 255, 255, 0.4);
     }
 
     #piao-bg {
-      height: 430px;
-      width: 430px;
-      border-radius: 300px;
+      height: 404px;
+      width: 404px;
+      border-radius: 50%;
       position: absolute;
-      top: -10px;
-      left: -10px;
-      background-color: #222222;
+      top: -2px;
+      left: -2px;
+      background: radial-gradient(circle at 50% 50%, #1a1c18 0%, #080907 100%);
       -webkit-transform: translateZ(1px);
       transform: translateZ(1px);
     }
 
-    /* Raios de luz rotacionados de fundo (Auditório de TV) */
+    /* -------------------------------------------------------------
+       Cenografia: Painel Radial de Aletas / Turbina do Auditório
+       (48 aletas perfeitamente simétricas radiating a partir do centro exato)
+       ------------------------------------------------------------- */
     #decoracao {
-      width: 10000px;
-      height: 100%;
-      left: -5000px;
-      margin: 0 50%;
-      position: absolute;
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
       z-index: -1;
-      overflow: hidden;
       pointer-events: none;
-    }
-
-    #decoracao > div {
-      width: 100%;
-      height: 60px;
-      position: absolute;
-      top: 50%;
-      border-bottom: 2px solid rgba(0, 0, 0, 0.7);
-      border-top: 2px solid rgba(0, 0, 0, 0.7);
-      background-color: #ffffff;
+      overflow: hidden;
+      background-color: #1a1d18;
+      background-image:
+        /* Sombra projetada do aro vermelho sobre as aletas (profundidade física realista) */
+        radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.75) 205px, rgba(0, 0, 0, 0.42) 248px, rgba(0, 0, 0, 0.15) 290px, transparent 360px),
+        /* Iluminação suave de holofote superior de estúdio */
+        radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 80%),
+        /* Vinheta sutil nas bordas da tela */
+        radial-gradient(circle at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.22) 100%),
+        /* 48 Aletas radiais perfeitamente simétricas com sulcos escuros e chanfro tridimensional */
+        repeating-conic-gradient(
+          from 0deg at 50% 50%,
+          #e5eae1 0deg,
+          #d6dcd2 3.2deg,
+          #c5ccc1 6.8deg,
+          #161914 6.8deg,
+          #161914 7.5deg
+        );
     }
 
     /* -------------------------------------------------------------
@@ -815,20 +825,11 @@
       var sequenciaAtiva = false
       var anguloAcumulado = 0
       var tempoInicioEspaco = 0
-      var RAIO_CILINDRO = 197.2
+      var RAIO_CILINDRO = 165
 
       // -------------------------------------------------------------
-      // 2. Cenografia: Raios de Estúdio Gerados Dinamicamente
+      // 2. Cenografia: Fundo Radial de 48 Aletas Simétricas (Renderizado via GPU CSS)
       // -------------------------------------------------------------
-      var decoracao = document.getElementById('decoracao')
-      if (decoracao) {
-        for (var d = 0; d < 45; d++) {
-          var raio = document.createElement('div')
-          raio.style.transform = 'rotate(' + (d * 4) + 'deg)'
-          raio.style.webkitTransform = 'rotate(' + (d * 4) + 'deg)'
-          decoracao.appendChild(raio)
-        }
-      }
 
       // -------------------------------------------------------------
       // 3. Funções Auxiliares e Formatação
@@ -851,8 +852,8 @@
       function calcularFontSize(n, width, numero) {
         var rotulo = String(obterRotuloFace(numero))
         var numCaracteres = rotulo.length
-        var base = (width * 0.95) / (numCaracteres > 1 ? 1.6 : 1.0)
-        return Math.min(240, Math.max(28, Math.round(base)))
+        var base = (270 * 0.72) / (numCaracteres > 1 ? 1.4 : 1.0)
+        return Math.min(195, Math.max(32, Math.round(base)))
       }
 
       function limparDestaque() {
@@ -1076,7 +1077,7 @@
         piao.style.webkitTransform = 'rotateY(0deg)'
 
         if (n === 2) {
-          var w2 = 2 * RAIO_CILINDRO
+          var w2 = 165
           var r2 = 1.0
 
           for (var i2 = 0; i2 < 2; i2++) {
@@ -1085,9 +1086,9 @@
             face2.className = 'numero'
             face2.setAttribute('data-num', String(num2))
             face2.textContent = obterRotuloFace(num2)
-            face2.style.width = w2.toFixed(2) + 'px'
+            face2.style.width = w2 + 'px'
             face2.style.left = '50%'
-            face2.style.marginLeft = (-w2 / 2).toFixed(2) + 'px'
+            face2.style.marginLeft = (-w2 / 2) + 'px'
             face2.style.fontSize = calcularFontSize(2, w2, num2) + 'px'
             var anguloFace2 = i2 * 180
             face2.style.transform = 'rotateY(' + anguloFace2 + 'deg) translateZ(' + r2 + 'px)'
@@ -1099,13 +1100,8 @@
 
         var anguloPasso = 360 / n
         var semiAnguloRad = Math.PI / n
-        var w = 2 * RAIO_CILINDRO * Math.sin(semiAnguloRad) + 0.8
+        var w = 2 * RAIO_CILINDRO * Math.sin(semiAnguloRad) + 0.6
         var r = RAIO_CILINDRO * Math.cos(semiAnguloRad)
-
-        if (n === 6) {
-          w = 200
-          r = 170
-        }
 
         for (var i = 0; i < n; i++) {
           var num = i + 1
@@ -1145,72 +1141,96 @@
       }
 
       // -------------------------------------------------------------
-      // 8. Física e Execução de Giros
+      // 8. Física e Execução de Giros (Desaceleração Realista Contínua)
       // -------------------------------------------------------------
-      function executarGiroUnico(n, duracao, callback, forcedWinnerNum) {
+      var animFrameId = null
+
+      function pararAnimacaoAtual() {
+        if (animFrameId) {
+          cancelAnimationFrame(animFrameId)
+          animFrameId = null
+        }
+        piao.style.animation = ''
+        piao.style.webkitAnimation = ''
+      }
+
+      function aplicarRotacao(angulo) {
+        anguloAcumulado = angulo
+        piao.style.transform = 'rotateY(' + angulo + 'deg)'
+        piao.style.webkitTransform = 'rotateY(' + angulo + 'deg)'
+      }
+
+      // Executa desaceleração física suave a partir da velocidade angular atual (omega0 em deg/s)
+      function executarDesaceleracaoFisica(n, omega0, callback, forcedWinnerNum) {
+        pararAnimacaoAtual()
         limparDestaque()
         girando = true
 
         var winnerNum = (typeof forcedWinnerNum === 'number') ? forcedWinnerNum : (Math.floor(Math.random() * n) + 1)
         var winnerIndex = winnerNum - 1
-        var voltas = 3 + Math.floor(Math.random() * 3)
         var anguloPasso = 360 / n
-
         var alvoAngulo = -(winnerIndex * anguloPasso)
-        var voltasOffset = voltas * 360
-        var novoAngulo = anguloAcumulado - voltasOffset - ((anguloAcumulado - alvoAngulo) % 360)
-        if (novoAngulo > anguloAcumulado - voltasOffset) {
-          novoAngulo -= 360
+
+        // Duração alvo e distância angular desejada
+        var T_desejado = Math.max(1.5, 3.2 / velMultiplicador)
+        var p = 2.2 // expoente da curva s(u) = 1 - (1-u)^p: velocidade inicial = (S/T)*p = omega0
+        var S_ideal = (omega0 * T_desejado) / p
+
+        var anguloInicial = anguloAcumulado
+        var diff = (anguloInicial - alvoAngulo) % 360
+        if (diff < 0) diff += 360
+
+        // Encontra o número de voltas que melhor se ajusta à desaceleração natural
+        var voltas = Math.round((S_ideal - diff) / 360)
+        if (voltas < 1) voltas = 1
+        var S_real = voltas * 360 + diff
+        var anguloFinal = anguloInicial - S_real
+
+        // Duração exata calculada para garantir que a velocidade inicial coincida 100% com omega0 (zero tranco / aceleração)
+        var T_real = (p * S_real) / omega0
+        var duracaoMs = T_real * 1000
+
+        var tempoInicio = performance.now()
+
+        function frame(agora) {
+          var decorrido = agora - tempoInicio
+          var u = Math.min(1, Math.max(0, decorrido / duracaoMs))
+
+          // Curva de amortecimento suave: velocidade decresce monotonicamente de omega0 até 0
+          var progresso = 1 - Math.pow(1 - u, p)
+          var anguloAtual = anguloInicial - S_real * progresso
+          aplicarRotacao(anguloAtual)
+
+          if (u < 1) {
+            animFrameId = requestAnimationFrame(frame)
+          } else {
+            animFrameId = null
+            aplicarRotacao(anguloFinal)
+            girando = false
+
+            if (!sequenciaAtiva) {
+              pararMusica()
+            }
+
+            var winnerFaceEl = piao.querySelector('[data-num="' + winnerNum + '"]')
+            destacarVencedor(winnerFaceEl)
+
+            if (callback) callback(winnerNum)
+          }
         }
 
-        var nomeAnim = 'rodando-sorteado'
-        spinStyleEl.textContent =
-          '@-webkit-keyframes ' +
-          nomeAnim +
-          ' { from { -webkit-transform: rotateY(' +
-          anguloAcumulado +
-          'deg); } to { -webkit-transform: rotateY(' +
-          novoAngulo +
-          'deg); } }' +
-          '@keyframes ' +
-          nomeAnim +
-          ' { from { transform: rotateY(' +
-          anguloAcumulado +
-          'deg); } to { transform: rotateY(' +
-          novoAngulo +
-          'deg); } }'
+        animFrameId = requestAnimationFrame(frame)
+      }
 
-        piao.style.animation = ''
-        piao.style.webkitAnimation = ''
-        void piao.offsetWidth
-
-        var anim = nomeAnim + ' ' + duracao + 's cubic-bezier(0.12, 0.85, 0.22, 1) forwards'
-        piao.style.animation = anim
-        piao.style.webkitAnimation = anim
-
+      function executarGiroUnico(n, duracao, callback, forcedWinnerNum) {
+        var velLoop = 0.55 / velMultiplicador
+        var omega0 = 360 / velLoop
         if (audio.paused) {
           tocarMusica()
         } else {
           continuarMusica()
         }
-
-        window.setTimeout(function () {
-          piao.style.animation = ''
-          piao.style.webkitAnimation = ''
-          piao.style.transform = 'rotateY(' + novoAngulo + 'deg)'
-          piao.style.webkitTransform = piao.style.transform
-          anguloAcumulado = novoAngulo
-          girando = false
-
-          if (!sequenciaAtiva) {
-            pararMusica()
-          }
-
-          var winnerFaceEl = piao.querySelector('[data-num="' + winnerNum + '"]')
-          destacarVencedor(winnerFaceEl)
-
-          if (callback) callback(winnerNum)
-        }, duracao * 1000)
+        executarDesaceleracaoFisica(n, omega0, callback, forcedWinnerNum)
       }
 
       function iniciarSequencia(total) {
@@ -1227,7 +1247,6 @@
         var rodadaAtual = 1
         var n = clampIntegrantes(Number(integrantesInput.value))
         var sorteadosNaSequencia = []
-
         var duracaoGiro = Math.max(0.8, 3.6 / velMultiplicador)
         var tempoPausa = Math.max(0.4, 1.4 / velMultiplicador) * 1000
 
@@ -1277,6 +1296,7 @@
       function encerrarSequencia() {
         sequenciaAtiva = false
         pararMusica()
+        pararAnimacaoAtual()
         girarBtn.classList.remove('parar')
         definirPainelAtivo(true)
         atualizarEstadoControles()
@@ -1284,8 +1304,9 @@
 
       function iniciarSegurarEspaco() {
         if (girando || segurandoEspaco || sequenciaAtiva) return
+        pararAnimacaoAtual()
         segurandoEspaco = true
-        tempoInicioEspaco = Date.now()
+        tempoInicioEspaco = performance.now()
         limparDestaque()
         girarBtn.classList.add('segurando')
         girarBtn.textContent = 'Solte para Sortear!'
@@ -1293,21 +1314,19 @@
 
         tocarMusica()
 
-        var velLoop = 0.55 / velMultiplicador
-        spinStyleEl.textContent =
-          '@-webkit-keyframes girando-infinito { from { -webkit-transform: rotateY(' +
-          anguloAcumulado +
-          'deg); } to { -webkit-transform: rotateY(' +
-          (anguloAcumulado - 360) +
-          'deg); } }' +
-          '@keyframes girando-infinito { from { transform: rotateY(' +
-          anguloAcumulado +
-          'deg); } to { transform: rotateY(' +
-          (anguloAcumulado - 360) +
-          'deg); } }'
+        var anguloBase = anguloAcumulado
+        var velLoopMs = (0.55 / velMultiplicador) * 1000
 
-        piao.style.animation = 'girando-infinito ' + velLoop + 's linear infinite'
-        piao.style.webkitAnimation = piao.style.animation
+        // Gira continuamente via requestAnimationFrame para que a posição angular seja sempre 100% precisa
+        function loopGiro(agora) {
+          if (!segurandoEspaco) return
+          var tempoDecorrido = agora - tempoInicioEspaco
+          var anguloAtual = anguloBase - (tempoDecorrido / velLoopMs) * 360
+          aplicarRotacao(anguloAtual)
+          animFrameId = requestAnimationFrame(loopGiro)
+        }
+
+        animFrameId = requestAnimationFrame(loopGiro)
       }
 
       function finalizarSegurarEspaco() {
@@ -1315,21 +1334,17 @@
         segurandoEspaco = false
         girarBtn.classList.remove('segurando')
         girarBtn.textContent = 'Sorteando...'
-        dicaEspaco.innerHTML = '🎯 Desacelerando para a face vencedora...'
+        dicaEspaco.innerHTML = '🎯 Desacelerando suavemente para a face vencedora...'
 
-        piao.style.animation = ''
-        piao.style.webkitAnimation = ''
-
-        var decorrido = (Date.now() - tempoInicioEspaco) / 1000
+        // Transição suave contínua:
+        // A velocidade angular de giro constante era exatamente omega0 = 360 / velLoop.
+        // O freio inicia exatamente nessa velocidade e desacelera monotonicamente até zero.
         var velLoop = 0.55 / velMultiplicador
-        var grausPercorridos = (decorrido / velLoop) * 360
-        anguloAcumulado = anguloAcumulado - (grausPercorridos % 360)
-
+        var omega0 = 360 / velLoop
         var n = clampIntegrantes(Number(integrantesInput.value))
-        var duracaoFreio = Math.max(1.0, 3.2 / velMultiplicador)
 
         definirPainelAtivo(false)
-        executarGiroUnico(n, duracaoFreio, function (winnerNum) {
+        executarDesaceleracaoFisica(n, omega0, function (winnerNum) {
           definirPainelAtivo(true)
         })
       }
