@@ -1,0 +1,1512 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pião — Sorteio de Apresentação</title>
+  <style type="text/css" media="screen">
+    /* -------------------------------------------------------------
+       1. Reset e Layout Geral
+       ------------------------------------------------------------- */
+    html {
+      height: 100%;
+      background-color: #ffffff;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      position: relative;
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* -------------------------------------------------------------
+       2. Palco 3D do Pião
+       ------------------------------------------------------------- */
+    #wrapper {
+      width: 400px;
+      height: 400px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      margin-left: -200px;
+      margin-top: -200px;
+      -webkit-transform-style: preserve-3d;
+      transform-style: preserve-3d;
+    }
+
+    #piao {
+      position: relative;
+      top: 40px;
+      margin: 0 auto;
+      height: 330px;
+      width: 200px;
+      -webkit-transform-style: preserve-3d;
+      transform-style: preserve-3d;
+    }
+
+    #piao .numero {
+      position: absolute;
+      height: 100%;
+      border: 6px solid #ffffff;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      font-size: 240px;
+      color: #ffffff;
+      background-color: #000000;
+      box-sizing: border-box;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      user-select: none;
+      transition: color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #piao .borda-lateral {
+      position: absolute;
+      height: 100%;
+      border: 6px solid #ffffff;
+      background-color: #000000;
+      box-sizing: border-box;
+    }
+
+
+
+    /* -------------------------------------------------------------
+       3. Cenografia: Moldura Vermelha e Profundidade 3D
+       ------------------------------------------------------------- */
+    #moldura {
+      height: 400px;
+      width: 400px;
+      border: 50px solid rgb(200, 0, 0);
+      border-radius: 250px;
+      position: absolute;
+      top: -45px;
+      left: -50px;
+      -webkit-transform: translateZ(400px);
+      transform: translateZ(400px);
+      box-shadow:
+        inset -1px -2px 0px 3px rgb(150, 0, 0),
+        inset -1px -2px 10px 10px rgba(0, 0, 0, 0.5),
+        -2px -2px 0px 3px rgb(150, 0, 0),
+        -4px -4px 10px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    #piao-bg {
+      height: 430px;
+      width: 430px;
+      border-radius: 300px;
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      background-color: #222222;
+      -webkit-transform: translateZ(1px);
+      transform: translateZ(1px);
+    }
+
+    /* Raios de luz rotacionados de fundo (Auditório de TV) */
+    #decoracao {
+      width: 10000px;
+      height: 100%;
+      left: -5000px;
+      margin: 0 50%;
+      position: absolute;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    #decoracao > div {
+      width: 100%;
+      height: 60px;
+      position: absolute;
+      top: 50%;
+      border-bottom: 2px solid rgba(0, 0, 0, 0.7);
+      border-top: 2px solid rgba(0, 0, 0, 0.7);
+      background-color: #ffffff;
+    }
+
+    /* -------------------------------------------------------------
+       4. Botão Flutuante (FAB) quando o Painel está Recolhido
+       ------------------------------------------------------------- */
+    .btn-expandir-drawer {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+      width: 50px;
+      height: 50px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgb(215, 0, 0) 0%, rgb(160, 0, 0) 100%);
+      border: 3px solid #ffd700;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(200, 0, 0, 0.45), 0 0 14px rgba(255, 215, 0, 0.4);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      user-select: none;
+    }
+
+    .btn-expandir-drawer .drawer-icone {
+      font-size: 26px;
+      line-height: 1;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+      transition: transform 0.25s ease;
+    }
+
+    .btn-expandir-drawer:hover {
+      background: linear-gradient(135deg, rgb(235, 20, 20) 0%, rgb(180, 0, 0) 100%);
+      transform: scale(1.12);
+      box-shadow: 0 8px 25px rgba(200, 0, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.7);
+    }
+
+    .btn-expandir-drawer:hover .drawer-icone {
+      transform: rotate(45deg);
+    }
+
+    .btn-expandir-drawer:active {
+      transform: scale(0.95);
+    }
+
+    /* -------------------------------------------------------------
+       5. Painel de Controle Retrátil
+       ------------------------------------------------------------- */
+    #painel {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 90;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.06);
+      width: 250px;
+      font-family: inherit;
+      box-sizing: border-box;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    #painel .painel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    #painel .header-titulo {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #painel .header-titulo h1 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgb(200, 0, 0);
+    }
+
+    #painel .header-acoes {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #painel .btn-reset-config {
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      color: #555;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 7px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    #painel .btn-reset-config:hover {
+      background: #e0e0e0;
+      color: rgb(180, 0, 0);
+      border-color: #bbb;
+    }
+
+    #painel .btn-som {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    #painel .btn-som.ativo {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border-color: #c8e6c9;
+    }
+
+    #painel .btn-som.ativo:hover {
+      background: #c8e6c9;
+    }
+
+    #painel .btn-som.mudo {
+      background: #ffebee;
+      color: #c62828;
+      border-color: #ffcdd2;
+    }
+
+    #painel .btn-som.mudo:hover {
+      background: #ffcdd2;
+    }
+
+    #painel .btn-recolher {
+      background: #eee;
+      border: 1px solid #ccc;
+      color: #444;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    #painel .btn-recolher:hover {
+      background: #ddd;
+      color: rgb(200, 0, 0);
+    }
+
+    #painel .painel-conteudo {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #painel .campo {
+      margin: 0;
+    }
+
+    #painel .campo label {
+      display: block;
+      font-weight: 600;
+      font-size: 11px;
+      color: #555;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    /* Steppers (+ / -) */
+    .stepper-controle {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      background: #f1f1f1;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #ddd;
+    }
+
+    .stepper-controle .btn-step {
+      width: 44px;
+      height: 36px;
+      flex-shrink: 0;
+      border: none;
+      background: #e2e2e2;
+      color: #333;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    .stepper-controle .btn-step:hover:not(:disabled) {
+      background: #d4d4d4;
+      color: rgb(200, 0, 0);
+    }
+
+    .stepper-controle .btn-step:active:not(:disabled) {
+      background: #c8c8c8;
+    }
+
+    .stepper-controle .btn-step:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .stepper-controle input {
+      flex: 1;
+      width: 100%;
+      min-width: 0;
+      border: none;
+      background: transparent;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: #111;
+      cursor: default;
+      outline: none;
+      user-select: none;
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Botões Toggle (Modo, Repetição, Velocidade) */
+    .botoes-toggle,
+    .botoes-vel {
+      display: flex;
+      gap: 3px;
+      background: #f1f1f1;
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+
+    .botoes-toggle .btn-toggle,
+    .botoes-vel .btn-vel {
+      flex: 1;
+      padding: 6px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      color: #666;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .botoes-toggle .btn-toggle:hover:not(.ativo):not(:disabled),
+    .botoes-vel .btn-vel:hover:not(.ativo):not(:disabled) {
+      background: rgba(0, 0, 0, 0.05);
+      color: #111;
+    }
+
+    .botoes-toggle .btn-toggle.ativo,
+    .botoes-vel .btn-vel.ativo {
+      background: rgb(200, 0, 0);
+      color: white;
+      box-shadow: 0 2px 4px rgba(200, 0, 0, 0.3);
+    }
+
+    .botoes-toggle .btn-toggle:disabled,
+    .botoes-vel .btn-vel:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* Botão Girar Principal */
+    #girar {
+      width: 100%;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: white;
+      background: linear-gradient(135deg, rgb(215, 0, 0) 0%, rgb(160, 0, 0) 100%);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(200, 0, 0, 0.35);
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    #girar:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgb(235, 20, 20) 0%, rgb(180, 0, 0) 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(200, 0, 0, 0.45);
+    }
+
+    #girar:active:not(:disabled),
+    #girar.segurando {
+      background: linear-gradient(135deg, rgb(160, 0, 0) 0%, rgb(120, 0, 0) 100%);
+      transform: translateY(1px);
+      box-shadow: 0 2px 6px rgba(200, 0, 0, 0.3);
+    }
+
+    #girar.parar {
+      background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+      animation: pulsar-parar 1s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulsar-parar {
+      0% { filter: brightness(1); }
+      100% { filter: brightness(1.2); }
+    }
+
+    .dica-espaco {
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+      margin-top: 6px;
+      line-height: 1.35;
+    }
+
+    /* -------------------------------------------------------------
+       6. Placar / HUD de Sorteados na Tela
+       ------------------------------------------------------------- */
+    #hud-sorteados {
+      position: fixed;
+      z-index: 80;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+      font-family: inherit;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Posição Base (Horizontal) */
+    #hud-sorteados.pos-bottom {
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(85vw, 680px);
+      max-height: 110px;
+      border-radius: 16px;
+      padding: 10px 16px;
+    }
+
+    /* Posição Lateral (Vertical) */
+    #hud-sorteados.pos-right {
+      top: 20px;
+      bottom: 20px;
+      right: 20px;
+      width: 140px;
+      border-radius: 16px;
+      padding: 14px 10px;
+      transform: none;
+      left: auto;
+      max-height: none;
+    }
+
+    .hud-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
+
+    .hud-titulo {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: rgb(180, 0, 0);
+    }
+
+    .hud-contador {
+      background: #f1f1f1;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+      color: #555;
+    }
+
+    .hud-acoes {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-posicao-hud,
+    .btn-limpar-hud {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #f5f5f5;
+      color: #444;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-posicao-hud:hover,
+    .btn-limpar-hud:hover {
+      background: #e8e8e8;
+      color: rgb(200, 0, 0);
+      border-color: #bbb;
+    }
+
+    .lista-sorteados {
+      display: flex;
+      gap: 8px;
+      overflow: auto;
+      flex: 1;
+      align-items: center;
+    }
+
+    #hud-sorteados.pos-bottom .lista-sorteados {
+      flex-direction: row;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 2px;
+    }
+
+    #hud-sorteados.pos-right .lista-sorteados {
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      align-items: stretch;
+      padding-right: 2px;
+    }
+
+    .badge-sorteado {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #111;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 14px;
+      border: 2px solid #333;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      flex-shrink: 0;
+      animation: badge-surgir 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    #hud-sorteados.pos-right .badge-sorteado {
+      width: 100%;
+      box-sizing: border-box;
+      justify-content: space-between;
+      padding: 8px 10px;
+    }
+
+    .badge-sorteado .ordem-sorteado {
+      font-size: 11px;
+      color: #bbb;
+      font-weight: 600;
+    }
+
+    .badge-sorteado .numero-sorteado {
+      font-size: 18px;
+      color: #ffd700;
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-sorteado.recente {
+      border-color: #ffd700;
+      box-shadow: 0 0 16px rgba(255, 215, 0, 0.8);
+      background: linear-gradient(135deg, #1a0000 0%, #300000 100%);
+    }
+
+    @keyframes badge-surgir {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* -------------------------------------------------------------
+       7. Responsividade
+       ------------------------------------------------------------- */
+    @media (max-width: 768px) {
+      #wrapper {
+        transform: scale(0.75);
+      }
+      #hud-sorteados.pos-bottom {
+        width: 92vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Botão flutuante para reabrir o painel quando recolhido (Ícone maior vermelho/amarelo) -->
+  <button type="button" id="btn-expandir-drawer" class="btn-expandir-drawer" style="display:none;" title="Abrir painel de controles" aria-label="Abrir painel de controles">
+    <span class="drawer-icone">⚙️</span>
+  </button>
+
+  <!-- Painel de Configurações do Sorteio -->
+  <aside id="painel">
+    <div class="painel-header">
+      <div class="header-titulo">
+        <span style="font-size: 16px;">🎯</span>
+        <h1>Sorteio</h1>
+      </div>
+      <div class="header-acoes">
+        <button type="button" id="btn-reset-config" class="btn-reset-config" title="Resetar todas as configurações para o padrão">Reset</button>
+        <button type="button" id="toggle-som" class="btn-som ativo" title="Ligar/Desligar som do Pião">🔊 Som Ligado</button>
+        <button type="button" id="btn-recolher" class="btn-recolher" title="Recolher painel">✕</button>
+      </div>
+    </div>
+
+    <div class="painel-conteudo">
+      <!-- Modo de Sorteio (Números / Letras) -->
+      <div class="campo">
+        <label>Modo de sorteio</label>
+        <div class="botoes-toggle" id="botoes-modo">
+          <button type="button" class="btn-toggle ativo" data-modo="numeros">1 2 3 Números</button>
+          <button type="button" class="btn-toggle" data-modo="letras">A B C Letras</button>
+        </div>
+      </div>
+
+      <!-- Configuração de Faces (2 a 15) com Stepper limpo -->
+      <div class="campo">
+        <label for="integrantes-input">Faces (2 a 15)</label>
+        <div class="stepper-controle">
+          <button type="button" id="btn-menos-faces" class="btn-step" aria-label="Diminuir faces">−</button>
+          <input type="number" id="integrantes-input" min="2" max="15" value="6" readonly />
+          <button type="button" id="btn-mais-faces" class="btn-step" aria-label="Aumentar faces">+</button>
+        </div>
+      </div>
+
+      <!-- Sorteios em Sequência (1 a 50) com Stepper -->
+      <div class="campo">
+        <label for="qtd-sorteios">Sorteios em sequência</label>
+        <div class="stepper-controle">
+          <button type="button" id="btn-menos-sorteios" class="btn-step" aria-label="Diminuir sorteios">−</button>
+          <input type="number" id="qtd-sorteios" min="1" max="50" value="1" readonly />
+          <button type="button" id="btn-mais-sorteios" class="btn-step" aria-label="Aumentar sorteios">+</button>
+        </div>
+      </div>
+
+      <!-- Repetir Números / Letras em Sequência -->
+      <div class="campo">
+        <label>Repetir sorteados</label>
+        <div class="botoes-toggle" id="botoes-repeticao">
+          <button type="button" class="btn-toggle ativo" data-repetir="nao">Não</button>
+          <button type="button" class="btn-toggle" data-repetir="sim">Sim</button>
+        </div>
+      </div>
+
+      <!-- Velocidade de Giro (1x, 2x) -->
+      <div class="campo">
+        <label>Velocidade</label>
+        <div class="botoes-vel" id="botoes-vel">
+          <button type="button" class="btn-vel ativo" data-vel="1">1x</button>
+          <button type="button" class="btn-vel" data-vel="2">2x</button>
+        </div>
+      </div>
+
+      <!-- Botão de Ação Principal -->
+      <div class="campo campo-acao">
+        <button type="button" id="girar">Girar Pião [Espaço]</button>
+        <div class="dica-espaco" id="dica-espaco">💡 Segure <strong>[Espaço]</strong> para girar e solte para sortear!</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- HUD / Placar de Números Sorteados na Tela (Clique para alternar entre Embaixo e Direita) -->
+  <section id="hud-sorteados" class="pos-bottom" style="display:none;" title="Clique no painel para mudar de posição (Inferior / Lateral)">
+    <div class="hud-header">
+      <div class="hud-titulo">
+        <span>🏆</span>
+        <span>Sorteados</span>
+        <span id="hud-contador" class="hud-contador">0</span>
+      </div>
+      <div class="hud-acoes">
+        <button type="button" id="btn-posicao-hud" class="btn-posicao-hud" title="Mover painel para a lateral direita (vertical) ou inferior (horizontal)">➡️ Lateral</button>
+        <button type="button" id="limpar-historico" class="btn-limpar-hud" title="Limpar histórico">Limpar</button>
+      </div>
+    </div>
+    <div id="lista-sorteados" class="lista-sorteados"></div>
+  </section>
+
+  <!-- Palco 3D do Pião -->
+  <div id="wrapper">
+    <div id="piao">
+      <!-- Faces geradas dinamicamente via JavaScript -->
+    </div>
+    <div id="moldura"></div>
+    <div id="piao-bg"></div>
+  </div>
+
+  <!-- Trilha Sonora Clássica do Pião da Casa Própria -->
+  <audio preload="auto" loop="true">
+    <source src="piao-da-casa-propria-soundtrack.mp3" />
+    <source src="piao-da-casa-propria-soundtrack.m4a" />
+    <source src="piao-da-casa-propria-soundtrack.ogg" />
+  </audio>
+
+  <!-- Raios de iluminação do palco (gerados via JS de forma limpa) -->
+  <div id="decoracao"></div>
+
+  <script type="text/javascript">
+    (function () {
+      // -------------------------------------------------------------
+      // 1. Elementos e Estados do Sistema
+      // -------------------------------------------------------------
+      var spinStyleEl = document.getElementById('spin-keyframes')
+      if (!spinStyleEl) {
+        spinStyleEl = document.createElement('style')
+        spinStyleEl.id = 'spin-keyframes'
+        document.head.appendChild(spinStyleEl)
+      }
+
+      var piao = document.querySelector('#piao')
+      var painel = document.querySelector('#painel')
+      var btnExpandirDrawer = document.querySelector('#btn-expandir-drawer')
+      var btnRecolher = document.querySelector('#btn-recolher')
+      var btnResetConfig = document.querySelector('#btn-reset-config')
+
+      // Modo Números / Letras
+      var botoesModo = document.querySelectorAll('#botoes-modo .btn-toggle')
+      var modoSorteio = 'numeros' // 'numeros' ou 'letras'
+
+      // Steppers
+      var btnMenosFaces = document.querySelector('#btn-menos-faces')
+      var btnMaisFaces = document.querySelector('#btn-mais-faces')
+      var integrantesInput = document.querySelector('#integrantes-input')
+
+      var btnMenosSorteios = document.querySelector('#btn-menos-sorteios')
+      var btnMaisSorteios = document.querySelector('#btn-mais-sorteios')
+      var qtdSorteiosInput = document.querySelector('#qtd-sorteios')
+
+      // Velocidade e Repetição
+      var velButtons = document.querySelectorAll('.btn-vel')
+      var botoesRepeticao = document.querySelectorAll('#botoes-repeticao .btn-toggle')
+      var permitirRepeticao = false
+      var velMultiplicador = 1
+
+      // Ações Principais
+      var girarBtn = document.querySelector('#girar')
+      var dicaEspaco = document.querySelector('#dica-espaco')
+
+      // Placar / HUD de Sorteados
+      var hudSorteados = document.querySelector('#hud-sorteados')
+      var hudContador = document.querySelector('#hud-contador')
+      var listaSorteados = document.querySelector('#lista-sorteados')
+      var btnPosicaoHud = document.querySelector('#btn-posicao-hud')
+      var limparHistoricoBtn = document.querySelector('#limpar-historico')
+      var totalSorteadosCont = 0
+      var hudPosicao = 'bottom' // 'bottom' ou 'right'
+
+      // Áudio
+      var audio = document.querySelector('audio')
+      var toggleSomBtn = document.querySelector('#toggle-som')
+      var somHabilitado = true
+
+      // Física do Pião
+      var girando = false
+      var segurandoEspaco = false
+      var sequenciaAtiva = false
+      var anguloAcumulado = 0
+      var tempoInicioEspaco = 0
+      var RAIO_CILINDRO = 197.2
+
+      // -------------------------------------------------------------
+      // 2. Cenografia: Raios de Estúdio Gerados Dinamicamente
+      // -------------------------------------------------------------
+      var decoracao = document.getElementById('decoracao')
+      if (decoracao) {
+        for (var d = 0; d < 45; d++) {
+          var raio = document.createElement('div')
+          raio.style.transform = 'rotate(' + (d * 4) + 'deg)'
+          raio.style.webkitTransform = 'rotate(' + (d * 4) + 'deg)'
+          decoracao.appendChild(raio)
+        }
+      }
+
+      // -------------------------------------------------------------
+      // 3. Funções Auxiliares e Formatação
+      // -------------------------------------------------------------
+      function clampIntegrantes(n) {
+        return Math.min(15, Math.max(2, Math.round(n)))
+      }
+
+      function clampQtdSorteios(q) {
+        return Math.min(50, Math.max(1, Math.round(q)))
+      }
+
+      function obterRotuloFace(numIndex) {
+        if (modoSorteio === 'letras') {
+          return String.fromCharCode(64 + numIndex)
+        }
+        return String(numIndex)
+      }
+
+      function calcularFontSize(n, width, numero) {
+        var rotulo = String(obterRotuloFace(numero))
+        var numCaracteres = rotulo.length
+        var base = (width * 0.95) / (numCaracteres > 1 ? 1.6 : 1.0)
+        return Math.min(240, Math.max(28, Math.round(base)))
+      }
+
+      function limparDestaque() {
+        var faces = piao.querySelectorAll('.numero')
+        for (var i = 0; i < faces.length; i++) {
+          faces[i].classList.remove('vencedor')
+        }
+      }
+
+      function destacarVencedor(winnerFaceEl) {
+        if (!winnerFaceEl) return
+        winnerFaceEl.classList.add('vencedor')
+      }
+
+      // -------------------------------------------------------------
+      // 4. Placar / HUD (Posicionamento e Badges)
+      // -------------------------------------------------------------
+      function definirPosicaoHud(pos) {
+        hudPosicao = pos
+        if (pos === 'right') {
+          hudSorteados.classList.remove('pos-bottom')
+          hudSorteados.classList.add('pos-right')
+          if (btnPosicaoHud) {
+            btnPosicaoHud.textContent = '⬇️ Base'
+            btnPosicaoHud.title = 'Mover painel para a base da tela (horizontal)'
+          }
+          hudSorteados.title = 'Clique no painel para mover para a base da tela (horizontal)'
+        } else {
+          hudSorteados.classList.remove('pos-right')
+          hudSorteados.classList.add('pos-bottom')
+          if (btnPosicaoHud) {
+            btnPosicaoHud.textContent = '➡️ Lateral'
+            btnPosicaoHud.title = 'Mover painel para a lateral direita (vertical)'
+          }
+          hudSorteados.title = 'Clique no painel para mover para a lateral direita (vertical)'
+        }
+      }
+
+      function alternarPosicaoHud() {
+        definirPosicaoHud(hudPosicao === 'bottom' ? 'right' : 'bottom')
+      }
+
+      function adicionarHistorico(rodada, num) {
+        if (!sequenciaAtiva && clampQtdSorteios(Number(qtdSorteiosInput.value)) <= 1) {
+          hudSorteados.style.display = 'none'
+          return
+        }
+
+        hudSorteados.style.display = 'flex'
+        totalSorteadosCont++
+        hudContador.textContent = totalSorteadosCont + (totalSorteadosCont > 1 ? ' sorteados' : ' sorteado')
+
+        var anteriores = listaSorteados.querySelectorAll('.badge-sorteado.recente')
+        for (var i = 0; i < anteriores.length; i++) {
+          anteriores[i].classList.remove('recente')
+        }
+
+        var badge = document.createElement('div')
+        badge.className = 'badge-sorteado recente'
+        var rotulo = obterRotuloFace(num)
+        badge.innerHTML = '<span class="ordem-sorteado">' + rodada + 'º</span><span class="numero-sorteado">' + rotulo + '</span>'
+        listaSorteados.appendChild(badge)
+
+        if (hudPosicao === 'right') {
+          listaSorteados.scrollTop = listaSorteados.scrollHeight
+        } else {
+          listaSorteados.scrollLeft = listaSorteados.scrollWidth
+        }
+      }
+
+      // -------------------------------------------------------------
+      // 5. Controle de Áudio
+      // -------------------------------------------------------------
+      function atualizarBotoesSom() {
+        var texto = somHabilitado ? '🔊 Som Ligado' : '🔇 Som Mudo'
+        var classe = 'btn-som ' + (somHabilitado ? 'ativo' : 'mudo')
+        if (toggleSomBtn) {
+          toggleSomBtn.className = classe
+          toggleSomBtn.innerHTML = texto
+        }
+      }
+
+      function tocarMusica() {
+        if (!somHabilitado || !audio) return
+        audio.currentTime = 0
+        audio.play().catch(function () {})
+      }
+
+      function continuarMusica() {
+        if (!somHabilitado || !audio) return
+        audio.play().catch(function () {})
+      }
+
+      function pararMusica() {
+        if (!audio) return
+        audio.pause()
+      }
+
+      function alternarSom() {
+        somHabilitado = !somHabilitado
+        if (!somHabilitado) {
+          audio.pause()
+        } else if (girando || sequenciaAtiva || segurandoEspaco) {
+          continuarMusica()
+        }
+        atualizarBotoesSom()
+      }
+
+      if (toggleSomBtn) toggleSomBtn.addEventListener('click', alternarSom)
+
+      // -------------------------------------------------------------
+      // 6. Configurações, Steppers e Toggles
+      // -------------------------------------------------------------
+      function definirModoSorteio(modo) {
+        modoSorteio = (modo === 'letras') ? 'letras' : 'numeros'
+        for (var i = 0; i < botoesModo.length; i++) {
+          var btn = botoesModo[i]
+          if (btn.getAttribute('data-modo') === modoSorteio) {
+            btn.classList.add('ativo')
+          } else {
+            btn.classList.remove('ativo')
+          }
+        }
+        var labelFaces = document.querySelector('label[for="integrantes-input"]')
+        if (labelFaces) {
+          labelFaces.textContent = modoSorteio === 'letras' ? 'Faces / Letras (2 a 15)' : 'Faces (2 a 15)'
+        }
+        limparDestaque()
+        construirPiao(clampIntegrantes(Number(integrantesInput.value)))
+      }
+
+      function atualizarEstadoControles() {
+        var n = Number(integrantesInput.value)
+        var q = Number(qtdSorteiosInput.value)
+
+        btnMenosFaces.disabled = (n <= 2)
+        btnMaisFaces.disabled = (n >= 15)
+
+        var maxQtd = permitirRepeticao ? 50 : n
+        btnMenosSorteios.disabled = (q <= 1)
+        btnMaisSorteios.disabled = (q >= maxQtd)
+
+        if (q > 1) {
+          girarBtn.textContent = 'Girar ' + q + ' Sorteios [Espaço]'
+          dicaEspaco.innerHTML = '⚡ Rodará <strong>' + q + '</strong> sorteios seguidos sem parar!'
+        } else {
+          girarBtn.textContent = 'Girar Pião [Espaço]'
+          dicaEspaco.innerHTML = '💡 Segure <strong>[Espaço]</strong> para girar e solte para sortear!'
+        }
+      }
+
+      function definirRepeticao(permitir) {
+        permitirRepeticao = permitir
+        for (var i = 0; i < botoesRepeticao.length; i++) {
+          var btn = botoesRepeticao[i]
+          var val = btn.getAttribute('data-repetir') === 'sim'
+          if (val === permitirRepeticao) {
+            btn.classList.add('ativo')
+          } else {
+            btn.classList.remove('ativo')
+          }
+        }
+
+        var n = clampIntegrantes(Number(integrantesInput.value))
+        var q = clampQtdSorteios(Number(qtdSorteiosInput.value))
+        if (!permitirRepeticao && q > n) {
+          qtdSorteiosInput.value = n
+        }
+        atualizarEstadoControles()
+      }
+
+      function definirPainelAtivo(ativo) {
+        btnMenosFaces.disabled = !ativo
+        btnMaisFaces.disabled = !ativo
+        btnMenosSorteios.disabled = !ativo
+        btnMaisSorteios.disabled = !ativo
+        for (var j = 0; j < velButtons.length; j++) {
+          velButtons[j].disabled = !ativo
+        }
+        for (var k = 0; k < botoesRepeticao.length; k++) {
+          botoesRepeticao[k].disabled = !ativo
+        }
+        for (var m = 0; m < botoesModo.length; m++) {
+          botoesModo[m].disabled = !ativo
+        }
+        if (btnResetConfig) {
+          btnResetConfig.disabled = !ativo
+        }
+        if (ativo) {
+          atualizarEstadoControles()
+        }
+      }
+
+      function atualizarBotoesVel(v) {
+        for (var i = 0; i < velButtons.length; i++) {
+          var btn = velButtons[i]
+          if (Number(btn.getAttribute('data-vel')) === v) {
+            btn.classList.add('ativo')
+          } else {
+            btn.classList.remove('ativo')
+          }
+        }
+      }
+
+      function resetarConfiguracoes() {
+        definirModoSorteio('numeros')
+        definirQuantidadeFaces(6)
+        definirQuantidadeSorteios(1)
+        definirRepeticao(false)
+        velMultiplicador = 1
+        atualizarBotoesVel(1)
+      }
+
+      // -------------------------------------------------------------
+      // 7. Construção Geométrica 3D do Pião
+      // -------------------------------------------------------------
+      function construirPiao(n) {
+        piao.innerHTML = ''
+        anguloAcumulado = 0
+        piao.style.transform = 'rotateY(0deg)'
+        piao.style.webkitTransform = 'rotateY(0deg)'
+
+        if (n === 2) {
+          var w2 = 2 * RAIO_CILINDRO
+          var r2 = 1.0
+
+          for (var i2 = 0; i2 < 2; i2++) {
+            var num2 = i2 + 1
+            var face2 = document.createElement('div')
+            face2.className = 'numero'
+            face2.setAttribute('data-num', String(num2))
+            face2.textContent = obterRotuloFace(num2)
+            face2.style.width = w2.toFixed(2) + 'px'
+            face2.style.left = '50%'
+            face2.style.marginLeft = (-w2 / 2).toFixed(2) + 'px'
+            face2.style.fontSize = calcularFontSize(2, w2, num2) + 'px'
+            var anguloFace2 = i2 * 180
+            face2.style.transform = 'rotateY(' + anguloFace2 + 'deg) translateZ(' + r2 + 'px)'
+            face2.style.webkitTransform = face2.style.transform
+            piao.appendChild(face2)
+          }
+          return
+        }
+
+        var anguloPasso = 360 / n
+        var semiAnguloRad = Math.PI / n
+        var w = 2 * RAIO_CILINDRO * Math.sin(semiAnguloRad) + 0.8
+        var r = RAIO_CILINDRO * Math.cos(semiAnguloRad)
+
+        if (n === 6) {
+          w = 200
+          r = 170
+        }
+
+        for (var i = 0; i < n; i++) {
+          var num = i + 1
+          var face = document.createElement('div')
+          face.className = 'numero'
+          face.setAttribute('data-num', String(num))
+          face.textContent = obterRotuloFace(num)
+          face.style.width = w.toFixed(2) + 'px'
+          face.style.left = '50%'
+          face.style.marginLeft = (-w / 2).toFixed(2) + 'px'
+          face.style.fontSize = calcularFontSize(n, w, num) + 'px'
+          var anguloFace = i * anguloPasso
+          face.style.transform = 'rotateY(' + anguloFace.toFixed(2) + 'deg) translateZ(' + r.toFixed(2) + 'px)'
+          face.style.webkitTransform = face.style.transform
+          piao.appendChild(face)
+        }
+      }
+
+      function definirQuantidadeFaces(n) {
+        var num = clampIntegrantes(n)
+        integrantesInput.value = num
+        var q = clampQtdSorteios(Number(qtdSorteiosInput.value))
+        if (!permitirRepeticao && q > num) {
+          qtdSorteiosInput.value = num
+        }
+        limparDestaque()
+        construirPiao(num)
+        atualizarEstadoControles()
+      }
+
+      function definirQuantidadeSorteios(q) {
+        var n = clampIntegrantes(Number(integrantesInput.value))
+        var maxQ = permitirRepeticao ? 50 : n
+        var num = Math.min(maxQ, Math.max(1, Math.round(q)))
+        qtdSorteiosInput.value = num
+        atualizarEstadoControles()
+      }
+
+      // -------------------------------------------------------------
+      // 8. Física e Execução de Giros
+      // -------------------------------------------------------------
+      function executarGiroUnico(n, duracao, callback, forcedWinnerNum) {
+        limparDestaque()
+        girando = true
+
+        var winnerNum = (typeof forcedWinnerNum === 'number') ? forcedWinnerNum : (Math.floor(Math.random() * n) + 1)
+        var winnerIndex = winnerNum - 1
+        var voltas = 3 + Math.floor(Math.random() * 3)
+        var anguloPasso = 360 / n
+
+        var alvoAngulo = -(winnerIndex * anguloPasso)
+        var voltasOffset = voltas * 360
+        var novoAngulo = anguloAcumulado - voltasOffset - ((anguloAcumulado - alvoAngulo) % 360)
+        if (novoAngulo > anguloAcumulado - voltasOffset) {
+          novoAngulo -= 360
+        }
+
+        var nomeAnim = 'rodando-sorteado'
+        spinStyleEl.textContent =
+          '@-webkit-keyframes ' +
+          nomeAnim +
+          ' { from { -webkit-transform: rotateY(' +
+          anguloAcumulado +
+          'deg); } to { -webkit-transform: rotateY(' +
+          novoAngulo +
+          'deg); } }' +
+          '@keyframes ' +
+          nomeAnim +
+          ' { from { transform: rotateY(' +
+          anguloAcumulado +
+          'deg); } to { transform: rotateY(' +
+          novoAngulo +
+          'deg); } }'
+
+        piao.style.animation = ''
+        piao.style.webkitAnimation = ''
+        void piao.offsetWidth
+
+        var anim = nomeAnim + ' ' + duracao + 's cubic-bezier(0.12, 0.85, 0.22, 1) forwards'
+        piao.style.animation = anim
+        piao.style.webkitAnimation = anim
+
+        if (audio.paused) {
+          tocarMusica()
+        } else {
+          continuarMusica()
+        }
+
+        window.setTimeout(function () {
+          piao.style.animation = ''
+          piao.style.webkitAnimation = ''
+          piao.style.transform = 'rotateY(' + novoAngulo + 'deg)'
+          piao.style.webkitTransform = piao.style.transform
+          anguloAcumulado = novoAngulo
+          girando = false
+
+          if (!sequenciaAtiva) {
+            pararMusica()
+          }
+
+          var winnerFaceEl = piao.querySelector('[data-num="' + winnerNum + '"]')
+          destacarVencedor(winnerFaceEl)
+
+          if (callback) callback(winnerNum)
+        }, duracao * 1000)
+      }
+
+      function iniciarSequencia(total) {
+        sequenciaAtiva = true
+        tocarMusica()
+        listaSorteados.innerHTML = ''
+        totalSorteadosCont = 0
+        hudSorteados.style.display = 'flex'
+        definirPainelAtivo(false)
+        girarBtn.classList.add('parar')
+        girarBtn.textContent = 'Parar Sequência'
+        dicaEspaco.innerHTML = '⚡ Rodando sequência de <strong>' + total + '</strong> sorteios... (Clique em Parar para interromper)'
+
+        var rodadaAtual = 1
+        var n = clampIntegrantes(Number(integrantesInput.value))
+        var sorteadosNaSequencia = []
+
+        var duracaoGiro = Math.max(0.8, 3.6 / velMultiplicador)
+        var tempoPausa = Math.max(0.4, 1.4 / velMultiplicador) * 1000
+
+        function proximo() {
+          if (!sequenciaAtiva || rodadaAtual > total) {
+            encerrarSequencia()
+            return
+          }
+
+          var forcedNum = null
+          if (!permitirRepeticao) {
+            var disponiveis = []
+            for (var c = 1; c <= n; c++) {
+              if (sorteadosNaSequencia.indexOf(c) === -1) {
+                disponiveis.push(c)
+              }
+            }
+            if (disponiveis.length === 0) {
+              encerrarSequencia()
+              return
+            }
+            var idxAleatorio = Math.floor(Math.random() * disponiveis.length)
+            forcedNum = disponiveis[idxAleatorio]
+          }
+
+          executarGiroUnico(n, duracaoGiro, function (numSorteado) {
+            if (!sequenciaAtiva) return
+            sorteadosNaSequencia.push(numSorteado)
+            adicionarHistorico(rodadaAtual, numSorteado)
+            rodadaAtual++
+
+            if (rodadaAtual <= total) {
+              window.setTimeout(function () {
+                if (sequenciaAtiva) proximo()
+              }, tempoPausa)
+            } else {
+              window.setTimeout(function () {
+                encerrarSequencia()
+              }, tempoPausa)
+            }
+          }, forcedNum)
+        }
+
+        proximo()
+      }
+
+      function encerrarSequencia() {
+        sequenciaAtiva = false
+        pararMusica()
+        girarBtn.classList.remove('parar')
+        definirPainelAtivo(true)
+        atualizarEstadoControles()
+      }
+
+      function iniciarSegurarEspaco() {
+        if (girando || segurandoEspaco || sequenciaAtiva) return
+        segurandoEspaco = true
+        tempoInicioEspaco = Date.now()
+        limparDestaque()
+        girarBtn.classList.add('segurando')
+        girarBtn.textContent = 'Solte para Sortear!'
+        dicaEspaco.innerHTML = '🌀 O pião está girando! <strong>Solte a barra de espaço</strong> para desacelerar!'
+
+        tocarMusica()
+
+        var velLoop = 0.55 / velMultiplicador
+        spinStyleEl.textContent =
+          '@-webkit-keyframes girando-infinito { from { -webkit-transform: rotateY(' +
+          anguloAcumulado +
+          'deg); } to { -webkit-transform: rotateY(' +
+          (anguloAcumulado - 360) +
+          'deg); } }' +
+          '@keyframes girando-infinito { from { transform: rotateY(' +
+          anguloAcumulado +
+          'deg); } to { transform: rotateY(' +
+          (anguloAcumulado - 360) +
+          'deg); } }'
+
+        piao.style.animation = 'girando-infinito ' + velLoop + 's linear infinite'
+        piao.style.webkitAnimation = piao.style.animation
+      }
+
+      function finalizarSegurarEspaco() {
+        if (!segurandoEspaco) return
+        segurandoEspaco = false
+        girarBtn.classList.remove('segurando')
+        girarBtn.textContent = 'Sorteando...'
+        dicaEspaco.innerHTML = '🎯 Desacelerando para a face vencedora...'
+
+        piao.style.animation = ''
+        piao.style.webkitAnimation = ''
+
+        var decorrido = (Date.now() - tempoInicioEspaco) / 1000
+        var velLoop = 0.55 / velMultiplicador
+        var grausPercorridos = (decorrido / velLoop) * 360
+        anguloAcumulado = anguloAcumulado - (grausPercorridos % 360)
+
+        var n = clampIntegrantes(Number(integrantesInput.value))
+        var duracaoFreio = Math.max(1.0, 3.2 / velMultiplicador)
+
+        definirPainelAtivo(false)
+        executarGiroUnico(n, duracaoFreio, function (winnerNum) {
+          definirPainelAtivo(true)
+        })
+      }
+
+      function dispararAcao() {
+        if (sequenciaAtiva) {
+          encerrarSequencia()
+          return
+        }
+
+        var qtd = clampQtdSorteios(Number(qtdSorteiosInput.value))
+        if (qtd > 1) {
+          iniciarSequencia(qtd)
+        } else {
+          var n = clampIntegrantes(Number(integrantesInput.value))
+          var duracao = Math.max(1.0, 3.6 / velMultiplicador)
+          definirPainelAtivo(false)
+          girarBtn.textContent = 'Sorteando...'
+          executarGiroUnico(n, duracao, function (winnerNum) {
+            definirPainelAtivo(true)
+          })
+        }
+      }
+
+      // -------------------------------------------------------------
+      // 9. Event Listeners (Teclado, Mouse, Controles e HUD)
+      // -------------------------------------------------------------
+      // Teclado: Barra de Espaço
+      window.addEventListener('keydown', function (e) {
+        if (e.code === 'Space') {
+          if (e.target && e.target.tagName === 'INPUT') return
+          e.preventDefault()
+
+          if (sequenciaAtiva) {
+            encerrarSequencia()
+            return
+          }
+
+          var qtd = clampQtdSorteios(Number(qtdSorteiosInput.value))
+          if (qtd > 1) {
+            if (!girando) iniciarSequencia(qtd)
+          } else {
+            if (!e.repeat) {
+              iniciarSegurarEspaco()
+            }
+          }
+        }
+      })
+
+      window.addEventListener('keyup', function (e) {
+        if (e.code === 'Space') {
+          if (e.target && e.target.tagName === 'INPUT') return
+          e.preventDefault()
+          if (segurandoEspaco) {
+            finalizarSegurarEspaco()
+          }
+        }
+      })
+
+      // Mouse: Botão Girar
+      var mouseSeguradoNoBotao = false
+
+      girarBtn.addEventListener('mousedown', function (e) {
+        if (e.button !== 0) return
+        var qtd = clampQtdSorteios(Number(qtdSorteiosInput.value))
+        if (qtd === 1 && !sequenciaAtiva && !girando) {
+          mouseSeguradoNoBotao = true
+          iniciarSegurarEspaco()
+        }
+      })
+
+      window.addEventListener('mouseup', function () {
+        if (mouseSeguradoNoBotao) {
+          mouseSeguradoNoBotao = false
+          if (segurandoEspaco) {
+            finalizarSegurarEspaco()
+          }
+        }
+      })
+
+      girarBtn.addEventListener('click', function () {
+        if (girando || segurandoEspaco) return
+        dispararAcao()
+      })
+
+      // Steppers
+      btnMenosFaces.addEventListener('click', function () {
+        definirQuantidadeFaces(Number(integrantesInput.value) - 1)
+      })
+
+      btnMaisFaces.addEventListener('click', function () {
+        definirQuantidadeFaces(Number(integrantesInput.value) + 1)
+      })
+
+      btnMenosSorteios.addEventListener('click', function () {
+        definirQuantidadeSorteios(Number(qtdSorteiosInput.value) - 1)
+      })
+
+      btnMaisSorteios.addEventListener('click', function () {
+        definirQuantidadeSorteios(Number(qtdSorteiosInput.value) + 1)
+      })
+
+      // Velocidade
+      for (var j = 0; j < velButtons.length; j++) {
+        velButtons[j].addEventListener('click', function () {
+          velMultiplicador = Number(this.getAttribute('data-vel'))
+          atualizarBotoesVel(velMultiplicador)
+        })
+      }
+
+      // Repetição
+      for (var r = 0; r < botoesRepeticao.length; r++) {
+        botoesRepeticao[r].addEventListener('click', function () {
+          var val = this.getAttribute('data-repetir') === 'sim'
+          definirRepeticao(val)
+        })
+      }
+
+      // Modo de Sorteio (Números / Letras)
+      for (var m = 0; m < botoesModo.length; m++) {
+        botoesModo[m].addEventListener('click', function () {
+          var modo = this.getAttribute('data-modo')
+          definirModoSorteio(modo)
+        })
+      }
+
+      // Reset de Configurações
+      if (btnResetConfig) {
+        btnResetConfig.addEventListener('click', function () {
+          resetarConfiguracoes()
+        })
+      }
+
+      // Painel Retrátil (Recolher / Expandir)
+      if (btnRecolher) {
+        btnRecolher.addEventListener('click', function () {
+          painel.style.display = 'none'
+          if (btnExpandirDrawer) btnExpandirDrawer.style.display = 'flex'
+        })
+      }
+
+      if (btnExpandirDrawer) {
+        btnExpandirDrawer.addEventListener('click', function () {
+          painel.style.display = 'block'
+          btnExpandirDrawer.style.display = 'none'
+        })
+      }
+
+      // Alternar Posição do HUD (Base <-> Lateral)
+      if (btnPosicaoHud) {
+        btnPosicaoHud.addEventListener('click', function (e) {
+          e.stopPropagation()
+          alternarPosicaoHud()
+        })
+      }
+
+      hudSorteados.addEventListener('click', function (e) {
+        if (e.target.closest('#limpar-historico')) return
+        alternarPosicaoHud()
+      })
+
+      // Limpar Histórico do HUD
+      limparHistoricoBtn.addEventListener('click', function (e) {
+        e.stopPropagation()
+        listaSorteados.innerHTML = ''
+        totalSorteadosCont = 0
+        hudSorteados.style.display = 'none'
+      })
+
+      // -------------------------------------------------------------
+      // 10. Inicialização do Pião
+      // -------------------------------------------------------------
+      definirQuantidadeFaces(6)
+      definirQuantidadeSorteios(1)
+      definirRepeticao(false)
+      atualizarBotoesSom()
+    })()
+  </script>
+</body>
+</html>
