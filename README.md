@@ -34,33 +34,31 @@ Projetado especialmente para:
 - **Giro Contínuo**: segure a tecla **[Espaço]** (ou mantenha pressionado o botão do mouse sobre "Girar Pião") para o pião acelerar e rodar em velocidade máxima contínua.
 - **Desaceleração Realista**: ao soltar a tecla, o pião entra em uma curva suave de inércia (`cubic-bezier`), parando exatamente na face sorteada perfeitamente centralizada e nítida.
 
-### 4. ⚡ Sorteios em Sequência (1 a 50)
-- Permite rodar múltiplos sorteios seguidos de forma automática.
-- Ideal para definir a ordem completa de apresentações de uma sala ou grupo de uma só vez.
+### 4. ⚡ Sorteios em Sequência (Sim / Não)
+- **Não**: um único sorteio por giro.
+- **Sim**: sorteia automaticamente todas as faces atuais (a ordem completa do grupo), sem precisar escolher quantidade.
+- Ideal para definir a ordem de apresentações de uma sala de uma só vez.
 
 ### 5. 🔁 Controle de Repetição (Sim / Não)
 - **Sem Repetição**: garante que cada integrante, número ou letra seja sorteado no máximo uma única vez durante a sequência.
 - **Com Repetição**: sorteios totalmente aleatórios e independentes a cada rodada.
 
-### 6. 🚀 Velocidade de Giro (1x e 2x)
-- Alternador rápido entre o ritmo clássico com suspense tradicional (**1x**) ou modo acelerado para eventos dinâmicos (**2x**).
-
-### 7. 🏆 Placar / HUD de Sorteados na Tela
+### 6. 🏆 Placar / HUD de Sorteados na Tela
 - Exibe o histórico de todos os sorteados em badges de alto contraste estilo TV.
 - **Posicionamento flexível**: clique no placar (ou no botão do cabeçalho) para alternar a exibição entre a **base inferior (horizontal)** e a **lateral direita (vertical)**.
 - Botão integrado para limpar o histórico a qualquer momento.
 
-### 8. 🎵 Trilha Sonora Clássica e Áudio Inteligente
+### 7. 🎵 Trilha Sonora Clássica e Áudio Inteligente
 - Reproduz a autêntica trilha musical do Pião da Casa Própria.
 - **Gerenciamento inteligente**: a música toca continuamente durante sequências sem recomeçar abruptamente e encerra automaticamente ao fim do sorteio.
 - Botão liga/desliga integrado no painel.
 
-### 9. 🎛️ Painel Retrátil com Ícone Flutuante (FAB)
+### 8. 🎛️ Painel Retrátil com Ícone Flutuante (FAB)
 - O menu de opções pode ser recolhido a qualquer momento para liberar 100% da visualização para projeções e telões.
 - Quando recolhido, exibe um elegante **botão circular flutuante** em vermelho rubi com borda dourada e ícone **⚙️ ampliado**.
 
-### 10. 🔄 Botão Reset de Configurações
-- Restaura com um único clique todas as opções para o estado padrão (Modo Números, 6 faces, 1 sorteio, sem repetição, velocidade 1x).
+### 9. 🔄 Botão Reset de Configurações
+- Restaura com um único clique todas as opções para o estado padrão (Modo Números, 6 faces, sequência desligada, sem repetição).
 
 ---
 
