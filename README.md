@@ -1,6 +1,6 @@
-# 🌀 Pião da Casa Própria em CSS 3D
+# 🌀 Pião da Casa Própria in CSS 3D
 
-> **Sorteador interativo para apresentações em grupo, dinâmicas de equipe e eventos**, inspirado no lendário quadro de Silvio Santos no SBT.
+> **Interactive draw for group presentations, team activities and events**, inspired by Silvio Santos' legendary game on Brazilian TV (SBT).
 
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)](https://en.wikipedia.org/wiki/HTML5)
 [![CSS3 3D](https://img.shields.io/badge/CSS3-3D_Transforms-1572B6?style=flat-square&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Transforms/Using_CSS_transforms)
@@ -9,98 +9,99 @@
 
 ---
 
-## 📖 Visão Geral
+## 📖 Overview
 
-O **Pião da Casa Própria** recria a experiência clássica do programa de TV utilizando apenas tecnologias web nativas (**HTML5, CSS 3D Transforms e JavaScript puro**, sem frameworks ou bibliotecas pesadas).
+**Pião da Casa Própria** recreates the classic TV game using only native web technologies (**HTML5, CSS 3D transforms and plain JavaScript**, no frameworks or libraries).
 
-Projetado especialmente para:
-- 👥 **Sorteio de integrantes e ordem de apresentação** em trabalhos escolares e acadêmicos;
-- 🎤 **Dinâmicas de eventos, meetups e confraternizações**;
-- 🎁 **Sorteios de brindes, números e equipes**.
+Made for:
+- 👥 **Drawing group members and presentation order** in school and university assignments;
+- 🎤 **Event activities, meetups and parties**;
+- 🎁 **Prize, number and team draws**.
 
 ---
 
-## ✨ Funcionalidades Principais
+## ✨ Features
 
-### 1. 🌀 Gire o pião com o dedo (ou o mouse)
-- **Dois toques** (ou duplo clique) no pião: gira e sorteia.
-- **Arrastar** na horizontal: o pião acompanha o dedo; ao soltar, a velocidade do gesto define a força e o tempo do giro (~1,5 a 6 s). Gestos fracos só realinham, sem sortear.
-- Desaceleração realista até parar exatamente na face sorteada.
+### 1. 🌀 Spin the top with your finger (or mouse)
+- **Double-tap** (or double-click) the top: it spins and draws.
+- **Drag** horizontally: the drum follows your finger; on release, the gesture's speed sets the strength and duration of the spin (~1.5 to 6 s). Weak gestures just realign it without drawing.
+- Realistic deceleration that stops exactly on the drawn face.
 
-### 2. 🎛️ Controles em ícones
-Barra de ícones no topo da tela, sem painel de configurações:
+### 2. 🎛️ Icon controls
+A row of icons at the top of the screen, no settings panel (hover over an icon to see what it does):
 
-| Ícone | Função |
+| Icon | Function |
 | :--- | :--- |
-| **− 6 +** | Quantidade de faces (2 a 15) |
-| **123 / ABC** | Faces com números ou letras |
-| **Não repetir** | Quem já saiu não sai de novo (faces sorteadas ficam apagadas); com todos sorteados, dois toques recomeçam |
-| **Todos** | Liga o modo sequência: sorteia todas as faces, uma de cada vez, sem repetir. Tocar nele durante a sequência para |
-| **Som** | Liga/desliga a trilha |
-| **Tela cheia** | Só no computador |
+| **− 6 +** | Number of faces (2 to 15) |
+| **123 / ABC** | Faces show numbers or letters |
+| **No repeats** | Faces already drawn won't come up again (they are dimmed); when everyone has been drawn, double-tap restarts |
+| **Draw all** | Sequence mode: draws every face, one at a time, without repeats. Tapping it during the sequence stops it |
+| **Sound** | Turns the soundtrack on/off |
+| **Fullscreen** | Desktop only |
 
-Nada é salvo: ao recarregar a página tudo volta ao estado inicial (6 faces, números, um por vez, som ligado).
+Nothing is saved: reloading the page always goes back to the initial state (6 faces, numbers, one at a time, sound on).
 
-### 3. 📐 Tambor 3D realista (2 a 15 faces)
-- **Projeção por face com perspectiva** (equivalente a uma lente de ~85 mm): cada face recebe sua própria transformação, sem depender da ordenação de planos 3D do navegador (`preserve-3d`), o que garante o mesmo resultado no Safari, Chrome e Firefox.
-- **Dimensionamento constante**: para qualquer quantidade de faces, o canto mais externo visível fica sempre à mesma distância do aro vermelho; abaixo de 6 faces, a face mantém a proporção da face de 6.
-- **Iluminação Blinn-Phong** (sombreamento flat): luz principal de cima/esquerda com componentes ambiente, difusa e especular; o reflexo desliza pelas faces durante o giro.
-- **Oclusão ambiente** nas junções dos painéis e junto ao aro, e **sombra de contato** do tambor no disco de fundo.
+### 3. 📐 Realistic 3D drum (2 to 15 faces)
+- **TV look**: like the show, the drum fills the ring's window — the front face's corners sit right behind the red ring and the side faces are cut by it — over an almost black backdrop, with large heavy white numbers. ~85 mm lens perspective: true proportions, little distortion.
+- **Per-face projection**: each face gets its own transform, without relying on the browser's 3D plane sorting (`preserve-3d`), so it renders the same in Safari, Chrome and Firefox.
+- **Constant sizing**: for any number of faces, the front face's corners stay on the ring's inner edge; below 6 faces, each face keeps the proportions of the 6-face drum.
+- **Blinn-Phong lighting** (flat shading): a key light from the upper left with ambient, diffuse and specular terms; the highlight sweeps across the faces while spinning. Every shadow and highlight in the scene follows the same light direction.
+- **Ambient occlusion** at the panel seams and next to the ring, plus a **contact shadow** of the drum on the backdrop.
 
-### 4. 🏆 Sorteados na tela
-- Faixa discreta abaixo do pião com os números na ordem em que saíram (o último em destaque).
-- Copiar a ordem e limpar (com opção de desfazer).
+### 4. 🏆 Results on screen
+- A discreet strip below the top shows the results in the order they came out (the latest highlighted).
+- Copy the order, or reset the results.
 
-### 5. 🎵 Trilha sonora com Web Audio API
-- A trilha é decodificada uma vez e tocada via Web Audio API, liberada no primeiro toque: toca de forma confiável a cada giro, inclusive no iPhone (sessão "playback", não é silenciada pela chave lateral).
+### 5. 🎵 Soundtrack with the Web Audio API
+- The soundtrack is decoded once and played through the Web Audio API, unlocked on the first tap: it plays reliably on every spin, including on iPhone ("playback" audio session, so the silent switch doesn't mute it).
 
 ---
 
-## 🚀 Como Executar
+## 🚀 Running
 
-Por ser uma aplicação 100% estática, nenhuma instalação de dependências ou compilação é necessária. A trilha é carregada via `fetch`, então **é preciso servir os arquivos por HTTP** (abrindo o `index.html` direto do disco o pião funciona, mas sem música):
+It's a 100% static app: no dependencies to install and no build step. The soundtrack is loaded with `fetch`, so **the files must be served over HTTP** (opening `index.html` straight from disk works, but without music):
 
 ```bash
-# Com Python 3
+# With Python 3
 python3 -m http.server 8080
 
-# Ou com Node.js
+# Or with Node.js
 npx serve .
 ```
-Em seguida, acesse no navegador: **`http://localhost:8080`**.
+Then open **`http://localhost:8080`** in the browser.
 
 ---
 
-## ⌨️ Atalhos e Controles
+## ⌨️ Shortcuts and controls
 
-| Ação | Controle |
+| Action | Control |
 | :--- | :--- |
-| **Girar** | Dois toques / duplo clique no pião, **[Enter]** ou **[Espaço]** (segure para mais força) |
-| **Girar com força do gesto** | Arraste o pião na horizontal e solte |
-| **Parar a sequência** | Dois toques no pião, ícone **Todos** ou **[Esc]** |
-| **Ligar / Desligar Som** | Ícone de som ou **[S]** |
-| **Tela cheia** | Ícone de tela cheia ou **[F]** (computador) |
+| **Spin** | Double-tap / double-click the top, **[Enter]** or **[Space]** (hold for more strength) |
+| **Spin with gesture strength** | Drag the top horizontally and release |
+| **Stop the sequence** | Double-tap the top, the **Draw all** icon or **[Esc]** |
+| **Sound on / off** | Sound icon or **[S]** |
+| **Fullscreen** | Fullscreen icon or **[F]** (desktop) |
 
 ---
 
-## 🛠️ Estrutura de Arquivos
+## 🛠️ Files
 
 ```
 piao/
-├── index.html                           # Estrutura HTML5, Estilos CSS 3D e Lógica JS
-├── README.md                            # Documentação completa
-├── piao-da-casa-propria-soundtrack.mp3   # Áudio clássico (MP3)
-├── piao-da-casa-propria-soundtrack.m4a   # Áudio (M4A)
-└── piao-da-casa-propria-soundtrack.ogg   # Áudio (OGG)
+├── index.html                           # HTML5 structure, CSS 3D styles and JS logic
+├── README.md                            # Documentation
+├── piao-da-casa-propria-soundtrack.mp3  # Soundtrack (MP3)
+├── piao-da-casa-propria-soundtrack.m4a  # Soundtrack (M4A)
+└── piao-da-casa-propria-soundtrack.ogg  # Soundtrack (OGG)
 ```
 
-- **Sem dependências externas**: sem React, sem Vue, sem jQuery, sem Tailwind.
-- **CSS 3D Hardware Accelerated**: cálculos de matrizes 3D e rotações com aceleração por GPU.
-- **Sintaxe moderna e compatível**: suporte nativo a Chrome, Safari, Firefox, Edge e navegadores mobile.
+- **No external dependencies**: no React, no Vue, no jQuery, no Tailwind.
+- **GPU-accelerated CSS 3D**: 3D transforms and rotations are composited on the GPU.
+- **Modern, compatible syntax**: works in Chrome, Safari, Firefox, Edge and mobile browsers.
 
 ---
 
-## 📜 Créditos e Referências
+## 📜 Credits and references
 
-- Base conceitual original desenvolvida por [Loop Infinito](http://loopinfinito.com.br/2012/05/13/piao-da-casa-propria-em-css-3d/) (2012).
-- Inspirado no clássico quadro de auditório do **Baú da Felicidade / Sistema Brasileiro de Televisão (SBT)**, apresentado por Silvio Santos.
+- Original concept by [Loop Infinito](http://loopinfinito.com.br/2012/05/13/piao-da-casa-propria-em-css-3d/) (2012).
+- Inspired by the classic segment of **Baú da Felicidade / SBT (Sistema Brasileiro de Televisão)**, hosted by Silvio Santos.
