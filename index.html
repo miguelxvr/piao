@@ -243,6 +243,10 @@
       touch-action: manipulation;
     }
 
+    .btn-flutuante[hidden] {
+      display: none;
+    }
+
     .btn-flutuante:hover {
       background: rgba(0, 0, 0, 0.75);
     }
@@ -1712,7 +1716,9 @@
 
       // ---------- Tela cheia ----------
       var raiz = document.documentElement
-      var suportaTelaCheia = !!((raiz.requestFullscreen || raiz.webkitRequestFullscreen) && (document.fullscreenEnabled || document.webkitFullscreenEnabled))
+      // Só em telas com mouse/trackpad (desktop/notebook): no celular/tablet não faz sentido
+      var telaDeToque = !!(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches)
+      var suportaTelaCheia = !telaDeToque && !!((raiz.requestFullscreen || raiz.webkitRequestFullscreen) && (document.fullscreenEnabled || document.webkitFullscreenEnabled))
       function emTelaCheia() {
         return !!(document.fullscreenElement || document.webkitFullscreenElement)
       }
