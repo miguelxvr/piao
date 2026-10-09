@@ -543,6 +543,12 @@
     }
 
     /* Botões da faixa: mesmo estilo dos ícones do topo, só que no tamanho da faixa */
+    /* Play/stop fixo na borda esquerda, separado da lista por um divisor sutil */
+    .hud-principal {
+      padding-right: calc(var(--hud-h) * 0.14);
+      border-right: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
     .hud-acoes .icone {
       width: calc(var(--hud-h) * 0.72);
       height: calc(var(--hud-h) * 0.72);
@@ -681,9 +687,11 @@
   <div id="anuncio" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
 
   <section id="hud-sorteados" aria-label="Results">
+    <div class="hud-acoes hud-principal">
+      <button type="button" class="icone" id="btn-parar" data-tip="Play" aria-label="Play"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg></button>
+    </div>
     <ol id="lista-sorteados" class="lista-sorteados"></ol>
     <div class="hud-acoes">
-      <button type="button" class="icone" id="btn-parar" data-tip="Play" aria-label="Play"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg></button>
       <button type="button" class="icone" id="btn-copiar" data-tip="Copy sequence" aria-label="Copy sequence"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
       <button type="button" class="icone" id="btn-limpar" data-tip="Reset" aria-label="Reset results"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
     </div>
