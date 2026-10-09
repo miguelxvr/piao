@@ -22,60 +22,41 @@ Projetado especialmente para:
 
 ## ✨ Funcionalidades Principais
 
-### 1. 🔤 Modo de Sorteio: Números ou Letras (Alfabeto)
-- **1 2 3 Números**: sorteio numérico sequencial (1 a 15).
-- **A B C Letras**: sorteio alfabético (**A**, **B**, **C**, **D**... até 15 letras). As faces 3D do pião e o histórico na tela exibem as letras correspondentes com sincronia total.
+### 1. 🌀 Gire o pião com o dedo (ou o mouse)
+- **Dois toques** (ou duplo clique) no pião: gira e sorteia.
+- **Arrastar** na horizontal: o pião acompanha o dedo; ao soltar, a velocidade do gesto define a força e o tempo do giro (~1,5 a 6 s). Gestos fracos só realinham, sem sortear.
+- Desaceleração realista até parar exatamente na face sorteada.
 
-### 2. 📐 Geometria 3D Dinâmica (2 a 15 Faces)
+### 2. 🎛️ Controles em ícones
+Barra de ícones no topo da tela, sem painel de configurações:
+
+| Ícone | Função |
+| :--- | :--- |
+| **− 6 +** | Quantidade de faces (2 a 15) |
+| **123 / ABC** | Faces com números ou letras |
+| **Não repetir** | Quem já saiu não sai de novo (faces sorteadas ficam apagadas); com todos sorteados, dois toques recomeçam |
+| **Todos** | Liga o modo sequência: sorteia todas as faces, uma de cada vez, sem repetir. Tocar nele durante a sequência para |
+| **Som** | Liga/desliga a trilha |
+| **Tela cheia** | Só no computador |
+
+Nada é salvo: ao recarregar a página tudo volta ao estado inicial (6 faces, números, um por vez, som ligado).
+
+### 3. 📐 Geometria 3D Dinâmica (2 a 15 Faces)
 - O pião é um polígono cilíndrico tridimensional gerado via CSS 3D (`preserve-3d`, `translateZ` e `rotateY`).
 - A largura de cada face e o raio de rotação são calculados dinamicamente através de trigonometria precisa ($w = 2R \sin(\frac{\pi}{n})$ e $r = R \cos(\frac{\pi}{n})$), mantendo as proporções estéticas perfeitas em qualquer quantidade de faces.
 
-### 3. ⌨️ Giro Interativo na Cena
-- O botão **Girar Pião** fica sempre visível na base da tela, fora do painel de configuração.
-- **Giro Contínuo**: segure o botão (ou a tecla **[Espaço]** no desktop) para o pião acelerar e rodar em velocidade máxima contínua.
-- **Desaceleração Realista**: ao soltar, o pião desacelera com inércia e para na face sorteada.
+### 4. 🏆 Sorteados na tela
+- Faixa discreta abaixo do pião com os números na ordem em que saíram (o último em destaque).
+- Copiar a ordem e limpar (com opção de desfazer).
 
-### 4. ⚡ Sorteios em Sequência (Sim / Não)
-- **Não**: um único sorteio por giro.
-- **Sim**: sorteia automaticamente todas as faces atuais (a ordem completa do grupo), sem precisar escolher quantidade.
-- Ideal para definir a ordem de apresentações de uma sala de uma só vez.
-
-### 5. 🔁 Controle de Repetição (Sim / Não)
-- **Sem Repetição**: garante que cada integrante, número ou letra seja sorteado no máximo uma única vez durante a sequência.
-- **Com Repetição**: sorteios totalmente aleatórios e independentes a cada rodada.
-
-### 6. 🏆 Placar / HUD de Sorteados na Tela
-- Exibe o histórico de todos os sorteados em badges de alto contraste estilo TV.
-- **Posicionamento flexível**: clique no placar (ou no botão do cabeçalho) para alternar a exibição entre a **base inferior (horizontal)** e a **lateral direita (vertical)**.
-- Botão integrado para limpar o histórico a qualquer momento.
-
-### 7. 🎵 Trilha Sonora Clássica e Áudio Inteligente
-- Reproduz a autêntica trilha musical do Pião da Casa Própria.
-- **Gerenciamento inteligente**: a música toca continuamente durante sequências sem recomeçar abruptamente e encerra automaticamente ao fim do sorteio.
-- Botão liga/desliga integrado no painel.
-
-### 8. 🎛️ Painel Retrátil com Ícone Flutuante (FAB)
-- O menu de opções pode ser recolhido a qualquer momento para liberar 100% da visualização para projeções e telões.
-- Quando recolhido, exibe um elegante **botão circular flutuante** em vermelho rubi com borda dourada e ícone **⚙️ ampliado**.
-
-### 9. 🔄 Botão Reset de Configurações
-- Restaura com um único clique todas as opções para o estado padrão (Modo Números, 6 faces, sequência desligada, sem repetição).
+### 5. 🎵 Trilha sonora com Web Audio API
+- A trilha é decodificada uma vez e tocada via Web Audio API, liberada no primeiro toque: toca de forma confiável a cada giro, inclusive no iPhone (sessão "playback", não é silenciada pela chave lateral).
 
 ---
 
 ## 🚀 Como Executar
 
-Por ser uma aplicação 100% estática, nenhuma instalação de dependências ou compilação é necessária.
-
-### Opção 1: Diretamente no Navegador
-Basta abrir o arquivo `index.html`:
-```bash
-open index.html
-# ou no Linux: xdg-open index.html
-```
-
-### Opção 2: Servidor Local (Recomendado para Áudio)
-Para evitar eventuais políticas de autoplay restritivas de navegadores para arquivos locais (`file://`), você pode iniciar um servidor HTTP simples:
+Por ser uma aplicação 100% estática, nenhuma instalação de dependências ou compilação é necessária. A trilha é carregada via `fetch`, então **é preciso servir os arquivos por HTTP** (abrindo o `index.html` direto do disco o pião funciona, mas sem música):
 
 ```bash
 # Com Python 3
@@ -92,12 +73,11 @@ Em seguida, acesse no navegador: **`http://localhost:8080`**.
 
 | Ação | Controle |
 | :--- | :--- |
-| **Girar Pião** | Botão fixo na base da tela (ou **[Espaço]** no desktop) |
-| **Giro Contínuo com Suspense** | Segure o botão (ou **[Espaço]**) e solte para sortear |
-| **Interromper Sequência** | Toque em **"Parar Sequência"** ou aperte **[Espaço]** |
-| **Mudar Posição do Placar** | Clique em qualquer lugar sobre o placar ou no botão **Lateral / Base** |
-| **Recolher / Abrir Painel** | Clique no botão **✕** para fechar ou no ícone flutuante **⚙️** para reabrir |
-| **Ligar / Desligar Som** | Clique no botão **🔊 Som** no cabeçalho do painel |
+| **Girar** | Dois toques / duplo clique no pião, **[Enter]** ou **[Espaço]** (segure para mais força) |
+| **Girar com força do gesto** | Arraste o pião na horizontal e solte |
+| **Parar a sequência** | Dois toques no pião, ícone **Todos** ou **[Esc]** |
+| **Ligar / Desligar Som** | Ícone de som ou **[S]** |
+| **Tela cheia** | Ícone de tela cheia ou **[F]** (computador) |
 
 ---
 
