@@ -648,7 +648,7 @@
         piao.style.webkitTransform = 'rotateY(0deg)'
         if (n === 2) {
           var w2 = 165
-          var r2 = 1.0
+          var r2 = 24 // afastado do plano do fundo (#piao-bg em translateZ(1px)); com 1px o Safari corta a face
           for (var i2 = 0; i2 < 2; i2++) {
             var num2 = i2 + 1
             var face2 = document.createElement('div')
