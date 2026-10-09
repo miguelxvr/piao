@@ -294,6 +294,8 @@
       --vidro: rgba(0, 0, 0, 0.55);
       --vidro-borda: rgba(255, 255, 255, 0.22);
       --focus-ring: 0 0 0 3px #fff, 0 0 0 6px #1565c0;
+      /* Altura da faixa de resultados: acompanha a altura da tela, com mínimo e máximo */
+      --hud-h: clamp(54px, 9.5vh, 80px);
     }
 
     button {
@@ -322,7 +324,7 @@
     /* Espaço do pião: abaixo da barra de ícones e acima da faixa de sorteados */
     #palco {
       top: calc(64px + env(safe-area-inset-top, 0px));
-      --cta-reserve: calc(82px + env(safe-area-inset-bottom, 0px));
+      --cta-reserve: calc(var(--hud-h) + 32px + env(safe-area-inset-bottom, 0px));
     }
 
     /* ---------- Barras de ícones ---------- */
@@ -359,8 +361,17 @@
       cursor: pointer;
       font: 800 13px/1 system-ui, -apple-system, sans-serif;
       letter-spacing: 0.3px;
-      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
       touch-action: manipulation;
+    }
+
+    /* Apertado (toque/clique): mesmo retorno amarelo em todos os botões */
+    .icone:active:not(:disabled),
+    .icone.apertado {
+      color: var(--ui-gold);
+      border-color: var(--ui-gold);
+      background: rgba(255, 215, 0, 0.2);
+      transform: scale(0.92);
     }
 
     .icone[hidden] {
@@ -439,18 +450,18 @@
       left: 50%;
       transform: translateX(-50%);
       width: max-content;
-      max-width: min(94vw, 680px);
-      height: 50px;
+      max-width: min(94vw, 760px);
+      height: var(--hud-h);
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 0 4px 0 8px;
+      gap: calc(var(--hud-h) * 0.16);
+      padding: 0 calc(var(--hud-h) * 0.14);
       box-sizing: border-box;
       background: rgba(12, 12, 12, 0.62);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 215, 0, 0.35);
-      border-radius: 14px;
+      border-radius: calc(var(--hud-h) * 0.3);
       box-shadow: calc(7px * var(--luz-x)) calc(7px * var(--luz-y)) 20px rgba(0, 0, 0, 0.35);
       color: #fff;
       transition: border-color 0.25s ease, box-shadow 0.25s ease;
@@ -486,21 +497,26 @@
 
     .badge-sorteado {
       display: inline-flex;
-      align-items: baseline;
+      align-items: center;
+      justify-content: center;
+      min-width: calc(var(--hud-h) * 0.62);
+      height: calc(var(--hud-h) * 0.72);
+      box-sizing: border-box;
       background: rgba(0, 0, 0, 0.55);
       color: #fff;
-      padding: 3px 9px;
-      border-radius: 8px;
+      padding: 0 calc(var(--hud-h) * 0.16);
+      border-radius: calc(var(--hud-h) * 0.16);
       border: 1px solid rgba(255, 255, 255, 0.18);
       flex-shrink: 0;
       animation: badge-surgir 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     .badge-sorteado .numero-sorteado {
-      font-size: 20px;
-      line-height: 1.1;
-      font-family: 'Impact', 'Arial Black', sans-serif;
-      letter-spacing: 0.5px;
+      font-size: calc(var(--hud-h) * 0.44);
+      line-height: 1;
+      font-family: 'Helvetica Neue', 'Arial Black', Arial, sans-serif;
+      font-weight: 900;
+      letter-spacing: -0.02em;
     }
 
     .badge-sorteado.recente {
@@ -519,32 +535,14 @@
 
     .hud-acoes {
       display: flex;
-      gap: 2px;
+      gap: calc(var(--hud-h) * 0.1);
       flex-shrink: 0;
     }
 
-    .hud-acoes button {
-      width: 36px;
-      height: 36px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      background: transparent;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      opacity: 0.85;
-    }
-
-    .hud-acoes button:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.12);
-      opacity: 1;
-    }
-
-    .hud-acoes button:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
+    /* Botões da faixa: mesmo estilo dos ícones do topo, só que no tamanho da faixa */
+    .hud-acoes .icone {
+      width: calc(var(--hud-h) * 0.72);
+      height: calc(var(--hud-h) * 0.72);
     }
 
     /* ---------- Dicas ao passar o mouse (só em dispositivos com mouse) ---------- */
@@ -678,8 +676,8 @@
   <section id="hud-sorteados" aria-label="Results" hidden>
     <ol id="lista-sorteados" class="lista-sorteados"></ol>
     <div class="hud-acoes">
-      <button type="button" id="btn-copiar" data-tip="Copy order" aria-label="Copy draw order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-      <button type="button" id="btn-limpar" data-tip="Reset" aria-label="Reset results"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+      <button type="button" class="icone" id="btn-copiar" data-tip="Copy order" aria-label="Copy draw order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      <button type="button" class="icone" id="btn-limpar" data-tip="Reset" aria-label="Reset results"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
     </div>
   </section>
 
@@ -726,6 +724,8 @@
 
       var ICONE_SOM = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>'
       var ICONE_MUDO = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6M16 9l6 6"/></svg>'
+      var ICONE_PARAR = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>'
+      var ICONE_TODOS = btnTodos.innerHTML
       var TITULO_BASE = 'Pião — Spinning Draw'
       var RAIO_CILINDRO = 165
       var VEL_BASE = 360 / 0.55 // graus/s
@@ -1050,6 +1050,10 @@
         btnRoda.disabled = !livre || cfg.modo !== 'unico'
         btnTodos.setAttribute('aria-pressed', String(cfg.modo === 'sequencia'))
         btnTodos.classList.toggle('rodando', sequenciaAtiva)
+        if (btnTodos.getAttribute('data-icone') !== (sequenciaAtiva ? 'parar' : 'todos')) {
+          btnTodos.innerHTML = sequenciaAtiva ? ICONE_PARAR : ICONE_TODOS
+          btnTodos.setAttribute('data-icone', sequenciaAtiva ? 'parar' : 'todos')
+        }
         btnTodos.setAttribute('data-tip', sequenciaAtiva ? 'Stop sequence' : 'Draw all in sequence')
         btnTodos.setAttribute('aria-label', sequenciaAtiva ? 'Stop sequence' : 'Draw all in sequence')
         btnTodos.disabled = !livre && !sequenciaAtiva
@@ -1256,6 +1260,12 @@
         document.title = TITULO_BASE
       }
 
+      // Retorno visual de botão apertado (amarelo), para ações sem outra resposta na tela
+      function piscarApertado(el) {
+        el.classList.add('apertado')
+        window.setTimeout(function () { el.classList.remove('apertado') }, 320)
+      }
+
       // 1st, 2nd, 3rd, 4th … 11th, 12th, 13th, 21st …
       function ordinal(n) {
         var d = n % 100
@@ -1268,7 +1278,7 @@
         var partes = []
         for (var i = 0; i < historico.length; i++) partes.push(ordinal(i + 1) + ' ' + rotulo(historico[i]))
         var texto = 'Draw order: ' + partes.join(', ')
-        var ok = function () { mostrarToast('Order copied') }
+        var ok = function () { piscarApertado(btnCopiar) }
         var falhou = function () { mostrarToast('Could not copy') }
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(texto).then(ok, function () { copiarFallback(texto) ? ok() : falhou() })
@@ -1705,7 +1715,7 @@
 
       // ---------- Ícones ----------
       // Clique de mouse não deixa o foco no ícone: Espaço/Enter continuam girando o pião
-      document.querySelectorAll('.icone, .hud-acoes button').forEach(function (el) {
+      document.querySelectorAll('.icone').forEach(function (el) {
         el.addEventListener('mousedown', function (e) { e.preventDefault() })
       })
       btnMenosFaces.addEventListener('click', function () { definirFaces(cfg.faces - 1) })
