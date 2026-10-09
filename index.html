@@ -176,6 +176,26 @@
         0 calc(4px * var(--escala, 1)) calc(14px * var(--escala, 1)) rgba(0, 0, 0, 0.4);
     }
 
+    /* Área invisível sobre o pião para girá-lo com o dedo / mouse */
+    #area-giro {
+      position: fixed;
+      left: var(--centro-x, 50%);
+      top: var(--centro-y, 50%);
+      width: calc(490px * var(--escala, 1));
+      height: calc(490px * var(--escala, 1));
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      z-index: 2;
+      cursor: grab;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    #area-giro.arrastando {
+      cursor: grabbing;
+    }
+
     #decoracao {
       position: fixed;
       inset: 0;
@@ -913,7 +933,7 @@
     #toast {
       position: fixed;
       left: 50%;
-      bottom: calc(189px + env(safe-area-inset-bottom, 0px));
+      top: calc(68px + env(safe-area-inset-top, 0px));
       transform: translateX(-50%);
       z-index: 120;
       display: flex;
@@ -1093,6 +1113,7 @@
   </audio>
 
   <div id="moldura-sombra" aria-hidden="true"></div>
+  <div id="area-giro" aria-hidden="true" title="Arraste para girar"></div>
   <div id="decoracao"></div>
 
   <script type="text/javascript">
@@ -1155,6 +1176,7 @@
       var anguloAcumulado = 0
       var animFrameId = null
       var ponteiroSegurado = false
+      var arrastando = false
       var musicaDesejada = false
 
       // ---------- Preferências ----------
@@ -1376,6 +1398,8 @@
         return 2.2 + 2.0 * forca
       }
 
+      var arrasteSentidoPositivo = false // só um giro vindo do arraste pode ir no sentido positivo
+
       function executarDesaceleracaoFisica(n, omega0, T_desejado, callback, forcedWinnerNum) {
         pararAnimacaoAtual()
         limparDestaque()
@@ -1383,20 +1407,24 @@
         var winnerNum = (typeof forcedWinnerNum === 'number') ? forcedWinnerNum : (Math.floor(Math.random() * n) + 1)
         var anguloPasso = 360 / n
         var alvoAngulo = -((winnerNum - 1) * anguloPasso)
+        // sentido: velocidade positiva (arrastar para a direita) gira para o outro lado
+        var sentido = omega0 > 0 && arrasteSentidoPositivo ? 1 : -1
+        arrasteSentidoPositivo = false
+        omega0 = Math.abs(omega0)
         var p = 2.2
         var S_ideal = (omega0 * T_desejado) / p
         var anguloInicial = anguloAcumulado
-        var diff = (anguloInicial - alvoAngulo) % 360
+        var diff = (sentido < 0 ? (anguloInicial - alvoAngulo) : (alvoAngulo - anguloInicial)) % 360
         if (diff < 0) diff += 360
         var voltas = Math.round((S_ideal - diff) / 360)
         if (voltas < 1) voltas = 1
         var S_real = voltas * 360 + diff
-        var anguloFinal = anguloInicial - S_real
+        var anguloFinal = anguloInicial + sentido * S_real
         var duracaoMs = ((p * S_real) / omega0) * 1000
         var tempoInicio = performance.now()
         function frame(agora) {
           var u = Math.min(1, Math.max(0, (agora - tempoInicio) / duracaoMs))
-          aplicarRotacao(anguloInicial - S_real * (1 - Math.pow(1 - u, p)))
+          aplicarRotacao(anguloInicial + sentido * S_real * (1 - Math.pow(1 - u, p)))
           if (u < 1) {
             animFrameId = requestAnimationFrame(frame)
           } else {
@@ -1611,7 +1639,7 @@
 
       // ---------- Alterações de configuração ----------
       function emRepouso() {
-        return !(girando || sequenciaAtiva || segurando)
+        return !(girando || sequenciaAtiva || segurando || arrastando)
       }
 
       function zerarSeNecessario() {
@@ -1826,7 +1854,7 @@
       }
 
       // ---------- Sequência ----------
-      function iniciarSequencia() {
+      function iniciarSequencia(primeiroGiro) {
         if (!emRepouso()) return
         var total = cfg.faces
         var n = cfg.faces
@@ -1854,7 +1882,14 @@
           }
           var forcedNum = sortearEntre(disponiveis)
           continuarMusica()
-          executarDesaceleracaoFisica(n, VEL_BASE, duracaoGiro(0.5), function (num) {
+          var omegaGiro = VEL_BASE, tempoGiro = duracaoGiro(0.5)
+          if (primeiroGiro) {
+            omegaGiro = primeiroGiro.omega
+            tempoGiro = primeiroGiro.tempo
+            arrasteSentidoPositivo = primeiroGiro.omega > 0
+            primeiroGiro = null
+          }
+          executarDesaceleracaoFisica(n, omegaGiro, tempoGiro, function (num) {
             if (!sequenciaAtiva || meuId !== idSequencia) return
             adicionarHistorico(num)
             mostrarResultado(num, historico.length + 'º sorteado')
@@ -1927,6 +1962,134 @@
         if (segurando || ponteiroSegurado) return
         dispararAcao()
       })
+
+      // ---------- Girar o pião com o dedo / mouse ----------
+      // O pião é um cilindro em torno do eixo vertical: arrastar na horizontal gira o "rolo".
+      // A face acompanha o dedo; ao soltar, a velocidade dos últimos ~100 ms (como o
+      // VelocityTracker do Android) vira a velocidade inicial e define o tempo de giro.
+      var areaGiro = $('#area-giro')
+      var JANELA_VELOCIDADE_MS = 100
+      var VEL_MIN_SORTEIO = 400   // graus/s: abaixo disso não sorteia, só realinha
+      var VEL_MAX = 3000          // graus/s
+      var TEMPO_MIN = 1.5, TEMPO_MAX = 6 // segundos
+      var arraste = null
+
+      function grausPorPixel() {
+        var escala = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--escala')) || 1
+        return 180 / (Math.PI * RAIO_CILINDRO * escala)
+      }
+
+      // Velocidade no instante final por mínimos quadrados de 2ª ordem (a + b·t + c·t²; v = b)
+      function velocidadeFinal(amostras) {
+        if (amostras.length < 2) return 0
+        var tf = amostras[amostras.length - 1].t
+        if (amostras.length === 2) {
+          var dt = (tf - amostras[0].t) / 1000
+          return dt > 0 ? (amostras[1].a - amostras[0].a) / dt : 0
+        }
+        var S0 = 0, S1 = 0, S2 = 0, S3 = 0, S4 = 0, Y0 = 0, Y1 = 0, Y2 = 0
+        for (var i = 0; i < amostras.length; i++) {
+          var t = (amostras[i].t - tf) / 1000
+          var y = amostras[i].a
+          var t2 = t * t
+          S0 += 1; S1 += t; S2 += t2; S3 += t2 * t; S4 += t2 * t2
+          Y0 += y; Y1 += y * t; Y2 += y * t2
+        }
+        // Resolve [S0 S1 S2; S1 S2 S3; S2 S3 S4]·[a b c] = [Y0 Y1 Y2] (regra de Cramer para b)
+        var det = S0 * (S2 * S4 - S3 * S3) - S1 * (S1 * S4 - S3 * S2) + S2 * (S1 * S3 - S2 * S2)
+        if (Math.abs(det) < 1e-12) {
+          var dt2 = (tf - amostras[0].t) / 1000
+          return dt2 > 0 ? (amostras[amostras.length - 1].a - amostras[0].a) / dt2 : 0
+        }
+        var detB = S0 * (Y1 * S4 - S3 * Y2) - Y0 * (S1 * S4 - S3 * S2) + S2 * (S1 * Y2 - Y1 * S2)
+        return detB / det
+      }
+
+      function tempoPelaVelocidade(v) {
+        if (reduzirMovimento) return 1.2
+        var f = (v - VEL_MIN_SORTEIO) / (VEL_MAX - VEL_MIN_SORTEIO)
+        return TEMPO_MIN + Math.min(1, Math.max(0, f)) * (TEMPO_MAX - TEMPO_MIN)
+      }
+
+      function podeArrastar() {
+        if (!emRepouso()) return false
+        if (cfg.modo === 'unico') return !(rodaAtiva() && restantesNaRoda().length === 0)
+        return true
+      }
+
+      function alinharFaceMaisProxima() {
+        var passo = 360 / cfg.faces
+        var inicio = anguloAcumulado
+        var alvo = Math.round(inicio / passo) * passo
+        if (Math.abs(alvo - inicio) < 0.01) return
+        var t0 = performance.now(), dur = 260
+        pararAnimacaoAtual()
+        function frame(agora) {
+          var u = Math.min(1, (agora - t0) / dur)
+          aplicarRotacao(inicio + (alvo - inicio) * (1 - Math.pow(1 - u, 3)))
+          if (u < 1) animFrameId = requestAnimationFrame(frame)
+          else animFrameId = null
+        }
+        animFrameId = requestAnimationFrame(frame)
+      }
+
+      areaGiro.addEventListener('pointerdown', function (e) {
+        if (e.pointerType === 'mouse' && e.button !== 0) return
+        if (!podeArrastar()) return
+        e.preventDefault()
+        liberarAudioIOS()
+        pararAnimacaoAtual()
+        limparDestaque()
+        try { areaGiro.setPointerCapture(e.pointerId) } catch (err) {}
+        var agora = performance.now()
+        arraste = { id: e.pointerId, x0: e.clientX, a0: anguloAcumulado, k: grausPorPixel(), amostras: [{ t: agora, a: anguloAcumulado }] }
+        arrastando = true
+        areaGiro.classList.add('arrastando')
+        definirPainelAtivo(false)
+        atualizarSeletor()
+      })
+
+      areaGiro.addEventListener('pointermove', function (e) {
+        if (!arraste || e.pointerId !== arraste.id) return
+        var agora = performance.now()
+        var a = arraste.a0 + (e.clientX - arraste.x0) * arraste.k
+        aplicarRotacao(a)
+        arraste.amostras.push({ t: agora, a: a })
+        while (arraste.amostras.length > 2 && agora - arraste.amostras[0].t > JANELA_VELOCIDADE_MS) arraste.amostras.shift()
+      })
+
+      function soltarArraste(e, cancelado) {
+        if (!arraste || (e && e.pointerId !== arraste.id)) return
+        var agora = performance.now()
+        var recentes = arraste.amostras.filter(function (s) { return agora - s.t <= JANELA_VELOCIDADE_MS })
+        var v = cancelado ? 0 : velocidadeFinal(recentes)
+        arraste = null
+        arrastando = false
+        areaGiro.classList.remove('arrastando')
+        var modulo = Math.min(VEL_MAX, Math.abs(v))
+        if (modulo < VEL_MIN_SORTEIO) {
+          alinharFaceMaisProxima()
+          definirPainelAtivo(true)
+          atualizarTudo()
+          return
+        }
+        var omega = (v < 0 ? -1 : 1) * modulo
+        var tempo = tempoPelaVelocidade(modulo)
+        if (cfg.modo === 'unico') {
+          prepararGiro()
+          tocarMusica()
+          arrasteSentidoPositivo = omega > 0
+          executarDesaceleracaoFisica(cfg.faces, omega, tempo, aoTerminarGiroUnico, vencedorForcado())
+          atualizarBotao()
+        } else {
+          iniciarSequencia({ omega: omega, tempo: tempo })
+        }
+      }
+
+      areaGiro.addEventListener('pointerup', function (e) { soltarArraste(e, false) })
+      areaGiro.addEventListener('pointercancel', function (e) { soltarArraste(e, true) })
+      areaGiro.addEventListener('lostpointercapture', function (e) { soltarArraste(e, false) })
+      areaGiro.addEventListener('contextmenu', function (e) { e.preventDefault() })
 
       // ---------- Teclado ----------
       function ehCampoTexto(el) {
