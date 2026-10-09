@@ -8,16 +8,12 @@
     :root {
       --bg-1: #f1f1ef;
       --bg-2: #d1d0cb;
-      --panel-bg: rgba(255,255,255,0.96);
-      --panel-border: rgba(0,0,0,0.08);
-      --text-soft: #555;
       --metal: #d0d7de;
       --metal-shadow: #727a84;
       --face-1: #0d0d0f;
       --face-2: #050505;
       --face-text: #ffffff;
       --frame-red: #d80f24;
-      --red-cta: rgb(200,0,0);
       --red-cta-2: rgb(160,0,0);
       --scene-1: #1a1d18;
       --piao-bg: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 22%, rgba(0,0,0,0.12) 46%, rgba(0,0,0,0.8) 100%), linear-gradient(180deg, #1d1d1b 0%, #090909 100%);
@@ -485,6 +481,7 @@
       font-weight: 600;
       border-radius: 12px;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      pointer-events: none;
     }
 
     #toast[hidden],
@@ -502,6 +499,31 @@
       border: 1px solid rgba(255, 215, 0, 0.5);
       border-radius: 8px;
       cursor: pointer;
+      pointer-events: auto;
+    }
+
+    /* Telas bem estreitas (ex.: 320px): ícones um pouco menores para as barras não se encostarem */
+    @media (max-width: 359px) {
+      .barra {
+        gap: 4px;
+      }
+      .barra-esq {
+        left: max(8px, env(safe-area-inset-left, 0px));
+      }
+      .barra-dir {
+        right: max(8px, env(safe-area-inset-right, 0px));
+      }
+      .icone {
+        width: 40px;
+        height: 40px;
+      }
+      .faces {
+        height: 40px;
+      }
+      .faces .icone {
+        width: 32px;
+        height: 38px;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -596,7 +618,6 @@
       var segurando = false
       var sequenciaAtiva = false
       var idSequencia = 0
-      var totalSequencia = 0
       var ultimaSequenciaCompleta = false
       var anguloAcumulado = 0
       var animFrameId = null
@@ -609,10 +630,6 @@
       // ---------- Rótulos ----------
       function rotulo(num) {
         return cfg.rotulos === 'letras' ? String.fromCharCode(64 + num) : String(num)
-      }
-
-      function textoIntervalo() {
-        return rotulo(1) + '–' + rotulo(cfg.faces)
       }
 
       // ---------- Construção do pião 3D (inalterado) ----------
@@ -668,11 +685,6 @@
           piao.appendChild(face)
         }
         aplicarForaDaRoda()
-      }
-
-      function limparDestaque() {
-        var faces = piao.querySelectorAll('.numero.vencedor')
-        for (var i = 0; i < faces.length; i++) faces[i].classList.remove('vencedor')
       }
 
       // ---------- Roda (quem já saiu) ----------
@@ -870,11 +882,6 @@
         return { modo: cfg.modo, faces: cfg.faces, rotulos: cfg.rotulos, naoRepetir: cfg.tirarDaRoda, som: cfg.som, girando: girando, sequencia: sequenciaAtiva, emRepouso: emRepouso(), historico: historico.slice(), angulo: anguloAcumulado }
       }
 
-      // O código reaproveitado chama estes nomes; todos só redesenham os ícones
-      var atualizarBotao = atualizarTudo
-      var atualizarSeletor = atualizarTudo
-      function definirPainelAtivo() { atualizarTudo() }
-
       // ---------- Alterações ----------
       function zerarSeNecessario() {
         if (historico.length) {
@@ -891,7 +898,6 @@
         if (novo === cfg.faces) return
         cfg.faces = novo
         zerarSeNecessario()
-        limparDestaque()
         construirPiao(cfg.faces)
         atualizarTudo()
       }
@@ -899,7 +905,6 @@
       function alternarRotulos() {
         if (!emRepouso()) return
         cfg.rotulos = cfg.rotulos === 'letras' ? 'numeros' : 'letras'
-        limparDestaque()
         construirPiao(cfg.faces)
         renderizarHistorico()
         atualizarTudo()
@@ -949,7 +954,6 @@
 
       function executarDesaceleracaoFisica(n, omega0, T_desejado, callback, forcedWinnerNum) {
         pararAnimacaoAtual()
-        limparDestaque()
         girando = true
         var winnerNum = (typeof forcedWinnerNum === 'number') ? forcedWinnerNum : (Math.floor(Math.random() * n) + 1)
         var anguloPasso = 360 / n
@@ -979,8 +983,6 @@
             aplicarRotacao(anguloFinal)
             girando = false
             if (!sequenciaAtiva) pararMusica()
-            var winnerFaceEl = piao.querySelector('[data-num="' + winnerNum + '"]')
-            if (winnerFaceEl) winnerFaceEl.classList.add('vencedor')
             if (callback) callback(winnerNum)
           }
         }
@@ -1026,12 +1028,12 @@
         btnCopiar.disabled = historico.length === 0
       }
 
-      function limparHistorico(silencioso) {
+      function limparHistorico() {
         historico = []
         ultimaSequenciaCompleta = false
         renderizarHistorico()
         aplicarForaDaRoda()
-        if (!silencioso) document.title = TITULO_BASE
+        document.title = TITULO_BASE
       }
 
       function copiarOrdem() {
@@ -1147,7 +1149,7 @@
 
       function prepararGiro() {
         aplicarForaDaRoda()
-        definirPainelAtivo(false)
+        atualizarTudo()
       }
 
       function iniciarSegurar() {
@@ -1155,12 +1157,11 @@
         liberarAudioIOS()
         pararAnimacaoAtual()
         prepararGiro()
-        limparDestaque()
         segurando = true
         tempoInicioSegurar = performance.now()
         forcaAtual = 0
         tocarMusica()
-        atualizarBotao()
+        atualizarTudo()
         var ultimo = tempoInicioSegurar
         function loopGiro(agora) {
           if (!segurando) return
@@ -1180,7 +1181,7 @@
         forcaAtual = forcaDe(performance.now() - tempoInicioSegurar)
         var omega = VEL_BASE * (0.55 + 0.45 * forcaAtual)
         executarDesaceleracaoFisica(cfg.faces, omega, duracaoGiro(forcaAtual), aoTerminarGiroUnico, vencedorForcado())
-        atualizarBotao()
+        atualizarTudo()
       }
 
       function girarUmaVez() {
@@ -1188,13 +1189,12 @@
         prepararGiro()
         tocarMusica()
         executarDesaceleracaoFisica(cfg.faces, VEL_BASE * 0.8, duracaoGiro(0.5), aoTerminarGiroUnico, vencedorForcado())
-        atualizarBotao()
+        atualizarTudo()
       }
 
       function recomecarRoda() {
         if (!emRepouso()) return
         limparHistorico()
-        limparDestaque()
         atualizarTudo()
         mostrarToast('Roda recomeçada')
       }
@@ -1206,7 +1206,6 @@
         var n = cfg.faces
         var meuId = ++idSequencia
         sequenciaAtiva = true
-        totalSequencia = total
         ultimaSequenciaCompleta = false
         esconderToast()
         tocarMusica()
@@ -1239,12 +1238,12 @@
             if (!sequenciaAtiva || meuId !== idSequencia) return
             adicionarHistorico(num)
             mostrarResultado(num, historico.length + 'º sorteado')
-            atualizarBotao()
+            atualizarTudo()
             window.setTimeout(function () {
               if (sequenciaAtiva && meuId === idSequencia) proximo()
             }, tempoPausa)
           }, forcedNum)
-          atualizarBotao()
+          atualizarTudo()
         }
         proximo()
       }
@@ -1340,14 +1339,12 @@
         e.preventDefault()
         liberarAudioIOS()
         pararAnimacaoAtual()
-        limparDestaque()
         try { areaGiro.setPointerCapture(e.pointerId) } catch (err) {}
         var agora = performance.now()
         arraste = { id: e.pointerId, x0: e.clientX, a0: anguloAcumulado, k: grausPorPixel(), amostras: [{ t: agora, a: anguloAcumulado }] }
         arrastando = true
         areaGiro.classList.add('arrastando')
-        definirPainelAtivo(false)
-        atualizarSeletor()
+        atualizarTudo()
       })
 
       areaGiro.addEventListener('pointermove', function (e) {
@@ -1370,7 +1367,6 @@
         var modulo = Math.min(VEL_MAX, Math.abs(v))
         if (modulo < VEL_MIN_SORTEIO) {
           alinharFaceMaisProxima()
-          definirPainelAtivo(true)
           atualizarTudo()
           return
         }
@@ -1381,7 +1377,7 @@
           tocarMusica()
           arrasteSentidoPositivo = omega > 0
           executarDesaceleracaoFisica(cfg.faces, omega, tempo, aoTerminarGiroUnico, vencedorForcado())
-          atualizarBotao()
+          atualizarTudo()
         } else {
           iniciarSequencia({ omega: omega, tempo: tempo })
         }
@@ -1467,6 +1463,11 @@
         else if (k === 'f') alternarTelaCheia()
       })
 
+      // Se a janela perde o foco com o Espaço segurado, o keyup nunca chega: solta o giro
+      window.addEventListener('blur', function () {
+        if (segurando) finalizarSegurar()
+      })
+
       window.addEventListener('keyup', function (e) {
         if (e.code !== 'Space' && e.key !== ' ') return
         if (segurando) {
@@ -1538,7 +1539,7 @@
         var vv = window.visualViewport
         var viewW = vv && vv.width ? vv.width : window.innerWidth
         var viewH = vv && vv.height ? vv.height : window.innerHeight
-        var ctaReserve = 189
+        var ctaReserve = 82
         try {
           var raw = window.getComputedStyle(palco).getPropertyValue('--cta-reserve')
           if (raw) {
@@ -1570,10 +1571,9 @@
       }
 
       // Sombra e raios do fundo acompanham o centro e a escala reais da moldura
-      var decoracao = document.getElementById('decoracao')
       var wrapperPiao = document.getElementById('wrapper')
       function centralizarFundo() {
-        if (!decoracao || !wrapperPiao) return
+        if (!wrapperPiao) return
         var r = wrapperPiao.getBoundingClientRect()
         if (!r.width) return
         var raiz = document.documentElement.style
