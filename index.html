@@ -745,62 +745,6 @@
       max-width: 100%;
     }
 
-    /* ---------- Selo de resultado ---------- */
-    #resultado-selo {
-      position: fixed;
-      left: 50%;
-      top: calc(72px + env(safe-area-inset-top, 0px));
-      z-index: 95;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 26px 8px 18px;
-      background: linear-gradient(135deg, var(--red-cta) 0%, var(--red-cta-2) 100%);
-      border: 3px solid var(--ui-gold);
-      border-radius: 999px;
-      color: #fff;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 215, 0, 0.5);
-      pointer-events: none;
-      opacity: 0;
-      visibility: hidden;
-    }
-
-    #resultado-selo.visivel {
-      visibility: visible;
-      animation: selo-pop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-
-    #resultado-selo.saindo {
-      visibility: visible;
-      animation: selo-sair 0.3s ease forwards;
-    }
-
-    #resultado-selo .selo-rotulo {
-      font-size: 13px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-    }
-
-    #resultado-selo .selo-valor {
-      font-family: 'Impact', 'Arial Black', sans-serif;
-      font-size: 54px;
-      line-height: 1;
-      color: var(--ui-gold);
-      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
-    }
-
-    @keyframes selo-pop {
-      0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
-      100% { opacity: 1; transform: translateX(-50%) scale(1); }
-    }
-
-    @keyframes selo-sair {
-      0% { opacity: 1; transform: translateX(-50%) scale(1); }
-      100% { opacity: 0; transform: translateX(-50%) scale(0.85); }
-    }
-
     /* Faces já sorteadas ("tirar da roda") */
     #piao .numero.fora {
       color: rgba(255, 255, 255, 0.22);
@@ -821,13 +765,6 @@
       color: #fff;
       border-radius: 14px;
       transition: border-color 0.25s ease, box-shadow 0.25s ease;
-    }
-
-    #hud-sorteados[hidden] {
-      display: none;
-    }
-
-    #hud-sorteados.pos-bottom {
       bottom: calc(146px + env(safe-area-inset-bottom, 0px));
       left: 50%;
       transform: translateX(-50%);
@@ -840,13 +777,8 @@
       padding: 0 6px 0 12px;
     }
 
-    #hud-sorteados.pos-right {
-      top: calc(72px + env(safe-area-inset-top, 0px));
-      bottom: calc(206px + env(safe-area-inset-bottom, 0px));
-      right: max(12px, env(safe-area-inset-right, 0px));
-      width: 132px;
-      flex-direction: column;
-      padding: 8px;
+    #hud-sorteados[hidden] {
+      display: none;
     }
 
     #hud-sorteados.completo {
@@ -862,13 +794,13 @@
       flex-shrink: 0;
     }
 
-    #hud-sorteados.pos-bottom .hud-header {
+    #hud-sorteados .hud-header {
       display: contents;
     }
 
-    #hud-sorteados.pos-bottom .hud-titulo { order: 1; }
-    #hud-sorteados.pos-bottom .lista-sorteados { order: 2; }
-    #hud-sorteados.pos-bottom .hud-acoes { order: 3; }
+    #hud-sorteados .hud-titulo { order: 1; }
+    #hud-sorteados .lista-sorteados { order: 2; }
+    #hud-sorteados .hud-acoes { order: 3; }
 
     .hud-titulo {
       display: flex;
@@ -884,7 +816,7 @@
       white-space: nowrap;
     }
 
-    #hud-sorteados.pos-bottom .hud-titulo-texto {
+    #hud-sorteados .hud-titulo-texto {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -943,19 +875,12 @@
       display: none;
     }
 
-    #hud-sorteados.pos-bottom .lista-sorteados {
+    #hud-sorteados .lista-sorteados {
       flex: 0 1 auto;
       flex-direction: row;
       overflow-x: auto;
       overflow-y: hidden;
       height: 100%;
-    }
-
-    #hud-sorteados.pos-right .lista-sorteados {
-      flex-direction: column;
-      overflow-y: auto;
-      overflow-x: hidden;
-      align-items: stretch;
     }
 
     .badge-sorteado {
@@ -970,11 +895,6 @@
       border: 1px solid rgba(255, 255, 255, 0.18);
       flex-shrink: 0;
       animation: badge-surgir 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    #hud-sorteados.pos-right .badge-sorteado {
-      justify-content: space-between;
-      padding: 5px 9px;
     }
 
     .badge-sorteado .ordem-sorteado {
@@ -1069,9 +989,6 @@
         padding-bottom: env(safe-area-inset-bottom, 0px);
         animation: gaveta-subir 0.25s ease;
       }
-      #resultado-selo .selo-valor {
-        font-size: 44px;
-      }
     }
 
     @keyframes gaveta-subir {
@@ -1088,14 +1005,8 @@
     @media (prefers-reduced-motion: reduce) {
       #girar.parar,
       .badge-sorteado,
-      #painel,
-      #resultado-selo.visivel,
-      #resultado-selo.saindo {
+      #painel {
         animation: none !important;
-      }
-      #resultado-selo.visivel {
-        opacity: 1;
-        transform: translateX(-50%);
       }
     }
   </style>
@@ -1192,17 +1103,12 @@
     <div class="dica" id="dica"></div>
   </div>
 
-  <div id="resultado-selo" aria-hidden="true">
-    <span class="selo-rotulo" id="selo-rotulo">Sorteado</span>
-    <span class="selo-valor" id="selo-valor"></span>
-  </div>
   <div id="anuncio" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
 
-  <section id="hud-sorteados" class="pos-bottom" aria-labelledby="hud-titulo" hidden>
+  <section id="hud-sorteados" aria-labelledby="hud-titulo" hidden>
     <div class="hud-header">
       <h2 class="hud-titulo" id="hud-titulo"><span aria-hidden="true">🏆</span> <span class="hud-titulo-texto">Sorteados</span> <span id="hud-progresso" class="hud-progresso">0</span></h2>
       <div class="hud-acoes">
-        <button type="button" id="btn-posicao-hud" class="btn-icone" title="Mover para a lateral" aria-label="Mover para a lateral">➡️</button>
         <button type="button" id="btn-copiar" class="btn-icone" title="Copiar ordem" aria-label="Copiar ordem dos sorteados">📋</button>
         <button type="button" id="btn-limpar" class="btn-icone" title="Limpar histórico" aria-label="Limpar histórico">🗑️</button>
       </div>
@@ -1261,14 +1167,10 @@
       var girarTexto = $('#girar-texto')
       var forcaBar = $('#forca')
       var dica = $('#dica')
-      var selo = $('#resultado-selo')
-      var seloRotulo = $('#selo-rotulo')
-      var seloValor = $('#selo-valor')
       var anuncio = $('#anuncio')
       var hud = $('#hud-sorteados')
       var hudProgresso = $('#hud-progresso')
       var listaSorteados = $('#lista-sorteados')
-      var btnPosicaoHud = $('#btn-posicao-hud')
       var btnCopiar = $('#btn-copiar')
       var btnLimpar = $('#btn-limpar')
       var toast = $('#toast')
@@ -1283,7 +1185,7 @@
       var MIN_FACES = 2, MAX_FACES = 15, MIN_GIROS = 2, MAX_GIROS = 30
       var reduzirMovimento = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
 
-      var PADRAO = { modo: 'unico', faces: 6, rotulos: 'numeros', giros: 10, tirarDaRoda: false, som: true, hud: 'bottom' }
+      var PADRAO = { modo: 'unico', faces: 6, rotulos: 'numeros', giros: 10, tirarDaRoda: false, som: true }
       var cfg = carregarPrefs()
 
       // Estado de execução
@@ -1314,7 +1216,6 @@
             if (typeof salvo.giros === 'number') c.giros = limitar(salvo.giros, MIN_GIROS, MAX_GIROS)
             if (typeof salvo.tirarDaRoda === 'boolean') c.tirarDaRoda = salvo.tirarDaRoda
             if (typeof salvo.som === 'boolean') c.som = salvo.som
-            if (salvo.hud === 'right' || salvo.hud === 'bottom') c.hud = salvo.hud
           }
         } catch (e) {}
         return c
@@ -1558,28 +1459,10 @@
       }
 
       // ---------- Resultado ----------
-      var seloTimer = null
-      function mostrarResultado(num, prefixo, duracaoMs) {
+      function mostrarResultado(num, prefixo) {
         var r = rotulo(num)
-        seloRotulo.textContent = prefixo
-        seloValor.textContent = r
-        selo.classList.remove('saindo', 'visivel')
-        void selo.offsetWidth
-        selo.classList.add('visivel')
-        if (seloTimer) window.clearTimeout(seloTimer)
-        seloTimer = window.setTimeout(function () {
-          selo.classList.remove('visivel')
-          selo.classList.add('saindo')
-          seloTimer = window.setTimeout(function () { selo.classList.remove('saindo') }, 320)
-        }, duracaoMs || 1600)
         anuncio.textContent = prefixo + ': ' + r
         document.title = '🎯 ' + r + ' — Pião'
-      }
-
-      function esconderResultado() {
-        if (seloTimer) window.clearTimeout(seloTimer)
-        seloTimer = null
-        selo.classList.remove('visivel', 'saindo')
       }
 
       // ---------- Histórico ----------
@@ -1611,11 +1494,7 @@
         var anteriores = listaSorteados.querySelectorAll('.recente')
         for (var i = 0; i < anteriores.length; i++) anteriores[i].classList.remove('recente')
         listaSorteados.appendChild(criarBadge(historico.length, num, true))
-        if (cfg.hud === 'right') {
-          listaSorteados.scrollTop = listaSorteados.scrollHeight
-        } else {
-          listaSorteados.scrollLeft = listaSorteados.scrollWidth
-        }
+        listaSorteados.scrollLeft = listaSorteados.scrollWidth
         atualizarHud()
       }
 
@@ -1634,17 +1513,6 @@
         renderizarHistorico()
         aplicarForaDaRoda()
         if (!silencioso) document.title = TITULO_BASE
-      }
-
-      function definirPosicaoHud(pos) {
-        cfg.hud = pos === 'right' ? 'right' : 'bottom'
-        hud.classList.toggle('pos-right', cfg.hud === 'right')
-        hud.classList.toggle('pos-bottom', cfg.hud !== 'right')
-        var proximo = cfg.hud === 'right' ? 'Mover para a base' : 'Mover para a lateral'
-        btnPosicaoHud.textContent = cfg.hud === 'right' ? '⬇️' : '➡️'
-        btnPosicaoHud.title = proximo
-        btnPosicaoHud.setAttribute('aria-label', proximo)
-        salvarPrefs()
       }
 
       function copiarOrdem() {
@@ -1870,7 +1738,6 @@
         limparHistorico()
         limparDestaque()
         construirPiao(cfg.faces)
-        definirPosicaoHud(cfg.hud)
         atualizarTudo()
         mostrarToast('↺ Configurações restauradas')
       }
@@ -1963,7 +1830,6 @@
 
       function prepararGiro() {
         jaUsou = true
-        esconderResultado()
         aplicarForaDaRoda()
         definirPainelAtivo(false)
       }
@@ -2031,7 +1897,6 @@
         totalSequencia = total
         ultimaSequenciaCompleta = false
         jaUsou = true
-        esconderResultado()
         esconderToast()
         tocarMusica()
         historico = []
@@ -2058,7 +1923,7 @@
           executarDesaceleracaoFisica(n, VEL_BASE, duracaoGiro(0.5), function (num) {
             if (!sequenciaAtiva || meuId !== idSequencia) return
             adicionarHistorico(num)
-            mostrarResultado(num, historico.length + 'º sorteado', tempoPausa - 100)
+            mostrarResultado(num, historico.length + 'º sorteado')
             atualizarBotao()
             window.setTimeout(function () {
               if (sequenciaAtiva && meuId === idSequencia) proximo()
@@ -2243,9 +2108,6 @@
         btnTelaCheia.hidden = true
       }
 
-      btnPosicaoHud.addEventListener('click', function () {
-        definirPosicaoHud(cfg.hud === 'right' ? 'bottom' : 'right')
-      })
       btnCopiar.addEventListener('click', copiarOrdem)
       btnLimpar.addEventListener('click', function () {
         if (!historico.length || !emRepouso()) return
@@ -2331,7 +2193,6 @@
       // ---------- Início ----------
       construirPiao(cfg.faces)
       definirSom(cfg.som)
-      definirPosicaoHud(cfg.hud)
       atualizarBotaoTelaCheia()
       atualizarTudo()
       if (window.innerWidth >= 1100) abrirPainel()
