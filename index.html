@@ -1167,7 +1167,6 @@
       var animFrameId = null
       var ponteiroSegurado = false
       var musicaDesejada = false
-      var audioLiberado = false
 
       // ---------- Preferências ----------
       function carregarPrefs() {
@@ -1299,66 +1298,67 @@
       }
 
       // ---------- Áudio ----------
+      // No iOS/Safari, play() só é garantido dentro de um gesto "de verdade" (touchend/click/tecla)
+      // e o ciclo pause → currentTime = 0 → play() entre giros é instável. Por isso, depois do
+      // primeiro gesto o elemento fica tocando em loop MUDO; cada giro só volta ao início e desmuta.
+      var PAUSA_OCIOSA_MS = 3 * 60 * 1000
+      var pausaOciosaTimer = null
+
+      function agendarPausaOciosa() {
+        if (pausaOciosaTimer) window.clearTimeout(pausaOciosaTimer)
+        pausaOciosaTimer = window.setTimeout(function () {
+          if (audio && !musicaDesejada) audio.pause()
+        }, PAUSA_OCIOSA_MS)
+      }
+
+      // Chamado em todo gesto do usuário: garante o elemento rodando (mudo, se não for hora de tocar)
       function liberarAudioIOS() {
-        if (!audio || audioLiberado) return
-        audioLiberado = true
-        var estavaMutado = audio.muted
-        var volumeAnterior = audio.volume
-        audio.muted = true
-        audio.volume = 0
+        if (!audio || !cfg.som) return
+        agendarPausaOciosa()
+        if (!audio.paused) return
+        audio.muted = !musicaDesejada
         var promessa = audio.play()
-        if (promessa && typeof promessa.then === 'function') {
-          promessa.then(function () {
-            // Se a música foi pedida enquanto o desbloqueio estava pendente, não interrompe
-            if (!musicaDesejada) {
-              audio.pause()
-              audio.currentTime = 0
-            }
-            audio.muted = estavaMutado
-            audio.volume = volumeAnterior || 1
-          }).catch(function () {
-            audioLiberado = false
-            audio.muted = estavaMutado
-            audio.volume = volumeAnterior || 1
-          })
-        } else {
-          if (!musicaDesejada) {
-            audio.pause()
-            audio.currentTime = 0
-          }
-          audio.muted = estavaMutado
-          audio.volume = volumeAnterior || 1
-        }
+        if (promessa && promessa.catch) promessa.catch(function () {})
       }
 
       function tocarMusica() {
         if (!cfg.som || !audio) return
         musicaDesejada = true
-        liberarAudioIOS()
         try { audio.currentTime = 0 } catch (e) {}
         audio.muted = false
-        audio.play().catch(function () {})
+        liberarAudioIOS()
       }
 
       function continuarMusica() {
         if (!cfg.som || !audio) return
         musicaDesejada = true
-        liberarAudioIOS()
         audio.muted = false
-        audio.play().catch(function () {})
+        liberarAudioIOS()
       }
 
       function pararMusica() {
         musicaDesejada = false
         if (!audio) return
-        audio.pause()
+        if (cfg.som) {
+          audio.muted = true // continua rodando mudo para o próximo giro não depender de gesto
+          agendarPausaOciosa()
+        } else {
+          audio.pause()
+        }
+      }
+
+      function pararAudioDeVez() {
+        if (pausaOciosaTimer) window.clearTimeout(pausaOciosaTimer)
+        pausaOciosaTimer = null
+        if (audio) audio.pause()
       }
 
       function definirSom(ligado) {
         cfg.som = !!ligado
         salvarPrefs()
         if (!cfg.som) {
-          pararMusica()
+          musicaDesejada = false
+          pararAudioDeVez()
         } else if (girando || sequenciaAtiva || segurando) {
           continuarMusica()
         }
@@ -2100,10 +2100,14 @@
         }, 5000)
       })
 
-      // Primeiro toque em qualquer lugar libera áudio no iOS/Chrome
-      document.addEventListener('pointerdown', function () {
-        liberarAudioIOS()
-      }, { once: true, passive: true })
+      // Todo gesto real (no iOS: touchend/click/tecla) mantém o áudio liberado e, se um giro
+      // já começou sem som (play recusado no pointerdown), faz a música entrar agora
+      ;['touchend', 'pointerup', 'click', 'keydown'].forEach(function (tipo) {
+        document.addEventListener(tipo, liberarAudioIOS, { capture: true, passive: true })
+      })
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) pararAudioDeVez()
+      })
 
       // ---------- Escala do palco (inalterado) ----------
       var palco = document.getElementById('palco')
