@@ -83,7 +83,7 @@
       top: 65px;
       margin: 0 auto;
       height: 270px;
-      width: 165px;
+      width: 400px; /* contém as faces mais largas (3 faces = 286px); com 165px o WebKit pode recortá-las */
       -webkit-transform-style: preserve-3d;
       transform-style: preserve-3d;
     }
@@ -1526,14 +1526,6 @@
       // ---------- Escala do palco (inalterado) ----------
       var palco = document.getElementById('palco')
       var STAGE_TOTAL = 490
-      var supportsZoom = (function () {
-        try {
-          return typeof CSS !== 'undefined' && CSS.supports && CSS.supports('zoom', '1')
-        } catch (e) {
-          return false
-        }
-      })()
-
       function ajustarEscalaPalco() {
         if (!palco) return
         var vv = window.visualViewport
@@ -1555,15 +1547,10 @@
         var availH = Math.max(200, viewH - ctaReserve - RESERVA_TOPO - 8)
         var scale = Math.min(1, availW / STAGE_TOTAL, availH / STAGE_TOTAL)
         scale = Math.max(0.42, Math.round(scale * 1000) / 1000)
-        if (supportsZoom) {
-          palco.style.zoom = String(scale)
-          palco.style.transform = ''
-          palco.style.webkitTransform = ''
-        } else {
-          palco.style.zoom = ''
-          palco.style.transform = 'scale(' + scale + ')'
-          palco.style.webkitTransform = 'scale(' + scale + ')'
-        }
+        // Só transform: no WebKit/Safari, zoom num ancestral com preserve-3d calcula errado
+        // os limites das camadas 3D e recorta as faces mais largas (com poucas faces)
+        palco.style.transform = 'scale(' + scale + ')'
+        palco.style.webkitTransform = 'scale(' + scale + ')'
         palco.style.transformOrigin = 'center center'
         palco.style.webkitTransformOrigin = 'center center'
         palco.setAttribute('data-scale', String(scale))
