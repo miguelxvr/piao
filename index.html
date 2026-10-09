@@ -441,7 +441,7 @@
       position: fixed;
       z-index: 80;
       bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-      left: max(12px, env(safe-area-inset-left, 0px)); /* alinhado à esquerda, como a barra de ícones */
+      right: max(12px, env(safe-area-inset-right, 0px)); /* alinhado à direita, como os ícones do lado direito */
       width: max-content;
       max-width: calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
       height: var(--hud-h);
@@ -543,10 +543,14 @@
     }
 
     /* Botões da faixa: mesmo estilo dos ícones do topo, só que no tamanho da faixa */
-    /* Play/stop fixo na borda esquerda, separado da lista por um divisor sutil */
+    /* Ordem: reset · copiar | resultados | play/stop — o play fica fixo na borda direita
+       (não anda com a lista) e o reset fica no extremo oposto */
+    .hud-acoes { order: 1; }
+    .lista-sorteados { order: 2; }
     .hud-principal {
-      padding-right: calc(var(--hud-h) * 0.14);
-      border-right: 1px solid rgba(255, 255, 255, 0.14);
+      order: 3;
+      padding-left: calc(var(--hud-h) * 0.14);
+      border-left: 1px solid rgba(255, 255, 255, 0.14);
     }
 
     .hud-acoes .icone {
@@ -589,6 +593,11 @@
       .hud-acoes [data-tip]:hover::after {
         top: auto;
         bottom: calc(100% + 8px);
+      }
+      .hud-principal [data-tip]:hover::after {
+        left: auto;
+        right: 0;
+        transform: none;
       }
     }
 
@@ -643,7 +652,7 @@
         right: max(8px, env(safe-area-inset-right, 0px));
       }
       #hud-sorteados {
-        left: max(8px, env(safe-area-inset-left, 0px));
+        right: max(8px, env(safe-area-inset-right, 0px));
         max-width: calc(100vw - 16px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
       }
       .icone {
@@ -692,8 +701,8 @@
     </div>
     <ol id="lista-sorteados" class="lista-sorteados"></ol>
     <div class="hud-acoes">
-      <button type="button" class="icone" id="btn-copiar" data-tip="Copy sequence" aria-label="Copy sequence"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
       <button type="button" class="icone" id="btn-limpar" data-tip="Reset" aria-label="Reset results"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+      <button type="button" class="icone" id="btn-copiar" data-tip="Copy sequence" aria-label="Copy sequence"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
     </div>
   </section>
 
