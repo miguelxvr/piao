@@ -226,26 +226,25 @@
       position: fixed;
       top: max(12px, env(safe-area-inset-top, 0px));
       z-index: 100;
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      line-height: 1;
-      background: linear-gradient(135deg, var(--red-cta) 0%, var(--red-cta-2) 100%);
       color: #fff;
-      border: 3px solid var(--ui-gold);
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.22);
       border-radius: 50%;
       cursor: pointer;
-      box-shadow: 0 6px 20px rgba(200, 0, 0, 0.45), 0 0 14px rgba(255, 215, 0, 0.35);
-      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+      transition: background 0.15s ease, transform 0.15s ease;
       touch-action: manipulation;
     }
 
     .btn-flutuante:hover {
-      transform: scale(1.08);
+      background: rgba(0, 0, 0, 0.75);
     }
 
     .btn-flutuante:active {
@@ -270,9 +269,7 @@
     }
 
     #btn-som[aria-pressed="false"] {
-      background: linear-gradient(135deg, #555 0%, #333 100%);
-      border-color: #999;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+      color: rgba(255, 255, 255, 0.55);
     }
 
     body.painel-aberto #btn-config {
@@ -650,16 +647,6 @@
       border-color: var(--ui-gold);
     }
 
-    .modo-btn.tem-ajuste[aria-checked="true"]::after {
-      content: " ▾";
-      font-size: 10px;
-      color: var(--ui-gold);
-    }
-
-    .modo-btn.tem-ajuste[aria-expanded="true"]::after {
-      content: " ▴";
-    }
-
     .modo-btn:disabled {
       cursor: not-allowed;
       opacity: 0.55;
@@ -1000,17 +987,17 @@
   </style>
 </head>
 <body>
-  <button type="button" id="btn-config" class="btn-flutuante" aria-controls="painel" aria-expanded="false" title="Configurações (C)" aria-label="Abrir configurações">⚙️<span class="badge-faces" id="badge-faces" aria-hidden="true">6</span></button>
+  <button type="button" id="btn-config" class="btn-flutuante" aria-controls="painel" aria-expanded="false" title="Configurações (C)" aria-label="Abrir configurações"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="badge-faces" id="badge-faces" aria-hidden="true">6</span></button>
 
   <div class="acoes-topo">
-    <button type="button" id="btn-tela-cheia" class="btn-flutuante" aria-pressed="false" title="Tela cheia (F)" aria-label="Tela cheia">⛶</button>
-    <button type="button" id="btn-som" class="btn-flutuante" aria-pressed="true" title="Som (S)" aria-label="Som">🔊</button>
+    <button type="button" id="btn-tela-cheia" class="btn-flutuante" aria-pressed="false" title="Tela cheia (F)" aria-label="Tela cheia"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+    <button type="button" id="btn-som" class="btn-flutuante" aria-pressed="true" title="Som (S)" aria-label="Som"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg></button>
   </div>
 
   <aside id="painel" aria-labelledby="painel-titulo" hidden>
     <div class="painel-header">
       <h2 id="painel-titulo">Configurações</h2>
-      <button type="button" id="btn-fechar-painel" class="btn-icone" title="Fechar (Esc)" aria-label="Fechar configurações">✕</button>
+      <button type="button" id="btn-fechar-painel" class="btn-icone" title="Fechar (Esc)" aria-label="Fechar configurações"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
 
     <div class="painel-conteudo">
@@ -1085,8 +1072,8 @@
     <div class="hud-header">
       <h2 class="sr-only" id="hud-titulo">Sorteados</h2>
       <div class="hud-acoes">
-        <button type="button" id="btn-copiar" class="btn-icone" title="Copiar ordem" aria-label="Copiar ordem dos sorteados">📋</button>
-        <button type="button" id="btn-limpar" class="btn-icone" title="Limpar histórico" aria-label="Limpar histórico">🗑️</button>
+        <button type="button" id="btn-copiar" class="btn-icone" title="Copiar ordem" aria-label="Copiar ordem dos sorteados"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <button type="button" id="btn-limpar" class="btn-icone" title="Limpar histórico" aria-label="Limpar histórico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
       </div>
     </div>
     <ol id="lista-sorteados" class="lista-sorteados"></ol>
@@ -1156,6 +1143,8 @@
       var toastAcao = $('#toast-acao')
       var audio = $('#trilha-piao')
 
+      var ICONE_SOM = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>'
+      var ICONE_MUDO = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6M16 9l6 6"/></svg>'
       var TITULO_BASE = 'Pião — Sorteio de Apresentação'
       var CHAVE_PREFS = 'piao:prefs:v2'
       var RAIO_CILINDRO = 165
@@ -1374,7 +1363,7 @@
           continuarMusica()
         }
         btnSom.setAttribute('aria-pressed', String(cfg.som))
-        btnSom.textContent = cfg.som ? '🔊' : '🔇'
+        btnSom.innerHTML = cfg.som ? ICONE_SOM : ICONE_MUDO
         btnSom.setAttribute('aria-label', cfg.som ? 'Som ligado' : 'Som desligado')
         btnSom.title = (cfg.som ? 'Som ligado' : 'Som desligado') + ' (S)'
         swSom.setAttribute('aria-checked', String(cfg.som))
@@ -1439,7 +1428,7 @@
       function mostrarResultado(num, prefixo) {
         var r = rotulo(num)
         anuncio.textContent = prefixo + ': ' + r
-        document.title = '🎯 ' + r + ' — Pião'
+        document.title = r + ' — Pião'
       }
 
       // ---------- Histórico ----------
@@ -1487,7 +1476,7 @@
         var partes = []
         for (var i = 0; i < historico.length; i++) partes.push((i + 1) + 'º ' + rotulo(historico[i]))
         var texto = 'Ordem do sorteio: ' + partes.join(', ')
-        var ok = function () { mostrarToast('📋 Ordem copiada') }
+        var ok = function () { mostrarToast('Ordem copiada') }
         var falhou = function () { mostrarToast('Não foi possível copiar') }
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(texto).then(ok, function () { copiarFallback(texto) ? ok() : falhou() })
@@ -1647,10 +1636,10 @@
         return !(girando || sequenciaAtiva || segurando)
       }
 
-      function zerarSeNecessario(motivo) {
+      function zerarSeNecessario() {
         if (historico.length) {
           limparHistorico()
-          mostrarToast('Histórico zerado (' + motivo + ')')
+          mostrarToast('Histórico zerado')
         } else {
           ultimaSequenciaCompleta = false
         }
@@ -1660,7 +1649,7 @@
         if (!emRepouso() || modo === cfg.modo) return
         cfg.modo = modo
         salvarPrefs()
-        zerarSeNecessario('modo alterado')
+        zerarSeNecessario()
         aplicarForaDaRoda()
         atualizarTudo()
       }
@@ -1671,7 +1660,7 @@
         if (novo === cfg.faces) return
         cfg.faces = novo
         salvarPrefs()
-        zerarSeNecessario('faces alteradas')
+        zerarSeNecessario()
         limparDestaque()
         construirPiao(cfg.faces)
         atualizarTudo()
@@ -1722,7 +1711,7 @@
         limparDestaque()
         construirPiao(cfg.faces)
         atualizarTudo()
-        mostrarToast('↺ Configurações restauradas')
+        mostrarToast('Configurações restauradas')
       }
 
       function cancelarRestaurar() {
@@ -1804,7 +1793,7 @@
         adicionarHistorico(num)
         mostrarResultado(num, 'Sorteado')
         if (rodaAtiva() && restantesNaRoda().length === 0) {
-          mostrarToast('🎉 Todos foram sorteados!', 'Recomeçar', recomecarRoda, 5000)
+          mostrarToast('Todos foram sorteados', 'Recomeçar', recomecarRoda, 5000)
         }
         atualizarTudo()
       }
@@ -1863,7 +1852,7 @@
         limparHistorico()
         limparDestaque()
         atualizarTudo()
-        mostrarToast('🔄 Roda recomeçada: todos de volta')
+        mostrarToast('Roda recomeçada')
       }
 
       // ---------- Sequência ----------
@@ -1922,8 +1911,8 @@
         girando = false
         ultimaSequenciaCompleta = !!completa
         if (estavaAtiva) {
-          if (completa) mostrarToast('🎉 Sequência completa!')
-          else mostrarToast('⏸ Sequência interrompida em ' + historico.length + ' de ' + totalSequencia)
+          if (completa) mostrarToast('Sequência completa')
+          else mostrarToast('Sequência interrompida')
         }
         atualizarTudo()
       }
@@ -2101,7 +2090,7 @@
         var backupCompleta = ultimaSequenciaCompleta
         limparHistorico()
         atualizarTudo()
-        mostrarToast('🗑️ Histórico limpo', 'Desfazer', function () {
+        mostrarToast('Histórico limpo', 'Desfazer', function () {
           if (!emRepouso()) return
           historico = backup
           ultimaSequenciaCompleta = backupCompleta
