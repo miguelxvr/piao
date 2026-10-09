@@ -441,10 +441,9 @@
       position: fixed;
       z-index: 80;
       bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-      left: 50%;
-      transform: translateX(-50%);
+      left: max(12px, env(safe-area-inset-left, 0px)); /* alinhado à esquerda, como a barra de ícones */
       width: max-content;
-      max-width: min(94vw, 760px);
+      max-width: calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
       height: var(--hud-h);
       display: flex;
       align-items: center;
@@ -636,6 +635,10 @@
       }
       .barra-dir {
         right: max(8px, env(safe-area-inset-right, 0px));
+      }
+      #hud-sorteados {
+        left: max(8px, env(safe-area-inset-left, 0px));
+        max-width: calc(100vw - 16px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
       }
       .icone {
         width: 40px;
