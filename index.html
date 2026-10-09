@@ -786,7 +786,7 @@
       flex-direction: row;
       align-items: center;
       gap: 8px;
-      padding: 0 6px 0 12px;
+      padding: 0 4px 0 8px;
     }
 
     #hud-sorteados[hidden] {
@@ -810,38 +810,8 @@
       display: contents;
     }
 
-    #hud-sorteados .hud-titulo { order: 1; }
     #hud-sorteados .lista-sorteados { order: 2; }
     #hud-sorteados .hud-acoes { order: 3; }
-
-    .hud-titulo {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin: 0;
-      flex-shrink: 0;
-      font-size: 12px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: var(--ui-gold);
-      white-space: nowrap;
-    }
-
-    #hud-sorteados .hud-titulo-texto {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-    }
-
-    .hud-progresso {
-      font-size: 13px;
-      color: #fff;
-      text-transform: none;
-      letter-spacing: 0;
-    }
 
     .hud-acoes {
       display: flex;
@@ -907,12 +877,6 @@
       border: 1px solid rgba(255, 255, 255, 0.18);
       flex-shrink: 0;
       animation: badge-surgir 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .badge-sorteado .ordem-sorteado {
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.7);
-      font-weight: 600;
     }
 
     .badge-sorteado .numero-sorteado {
@@ -1102,7 +1066,7 @@
 
   <section id="hud-sorteados" aria-labelledby="hud-titulo" hidden>
     <div class="hud-header">
-      <h2 class="hud-titulo" id="hud-titulo"><span aria-hidden="true">🏆</span> <span class="hud-titulo-texto">Sorteados</span> <span id="hud-progresso" class="hud-progresso">0</span></h2>
+      <h2 class="sr-only" id="hud-titulo">Sorteados</h2>
       <div class="hud-acoes">
         <button type="button" id="btn-copiar" class="btn-icone" title="Copiar ordem" aria-label="Copiar ordem dos sorteados">📋</button>
         <button type="button" id="btn-limpar" class="btn-icone" title="Limpar histórico" aria-label="Limpar histórico">🗑️</button>
@@ -1166,7 +1130,6 @@
       var forcaBar = $('#forca')
       var anuncio = $('#anuncio')
       var hud = $('#hud-sorteados')
-      var hudProgresso = $('#hud-progresso')
       var listaSorteados = $('#lista-sorteados')
       var btnCopiar = $('#btn-copiar')
       var btnLimpar = $('#btn-limpar')
@@ -1462,14 +1425,6 @@
       }
 
       // ---------- Histórico ----------
-      function totalEsperado() {
-        if (sequenciaAtiva || ultimaSequenciaCompleta) return totalSequencia
-        if (cfg.modo === 'sequencia') return cfg.faces
-        if (cfg.modo === 'repeticao') return cfg.giros
-        if (rodaAtiva()) return cfg.faces
-        return 0
-      }
-
       function renderizarHistorico() {
         listaSorteados.innerHTML = ''
         for (var i = 0; i < historico.length; i++) {
@@ -1481,7 +1436,7 @@
       function criarBadge(ordem, num, recente) {
         var li = document.createElement('li')
         li.className = 'badge-sorteado' + (recente ? ' recente' : '')
-        li.innerHTML = '<span class="ordem-sorteado">' + ordem + 'º</span><span class="numero-sorteado">' + rotulo(num) + '</span>'
+        li.innerHTML = '<span class="sr-only">' + ordem + 'º: </span><span class="numero-sorteado">' + rotulo(num) + '</span>'
         return li
       }
 
@@ -1496,8 +1451,6 @@
 
       function atualizarHud() {
         hud.hidden = historico.length === 0 && !sequenciaAtiva
-        var total = totalEsperado()
-        hudProgresso.textContent = total ? (historico.length + ' de ' + total) : String(historico.length)
         hud.classList.toggle('completo', ultimaSequenciaCompleta || (rodaAtiva() && historico.length > 0 && restantesNaRoda().length === 0))
         btnLimpar.disabled = sequenciaAtiva || girando || historico.length === 0
         btnCopiar.disabled = historico.length === 0
