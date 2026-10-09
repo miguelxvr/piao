@@ -64,6 +64,10 @@
       justify-content: center;
       font-family: 'Impact', 'Arial Black', sans-serif;
       font-size: 195px;
+      line-height: 0.9;
+      letter-spacing: -0.08em;
+      white-space: nowrap;
+      overflow: hidden;
       color: #ffffff;
       background-color: #050505;
       box-sizing: border-box;
@@ -80,8 +84,6 @@
       background-color: #000000;
       box-sizing: border-box;
     }
-
-
 
     /* -------------------------------------------------------------
        3. Cenografia: Moldura Vermelha e Profundidade 3D
@@ -818,9 +820,9 @@
       <div class="campo">
         <label>Placa de Prêmio</label>
         <div style="display: flex; gap: 6px; align-items: center;">
-          <input type="text" id="input-placa-valor" value="50" maxlength="6" style="width: 54px; text-align: center; font-weight: 800; font-family: Impact, sans-serif; font-size: 15px; padding: 6px 4px; border: 1px solid #ddd; border-radius: 6px;" title="Valor da placa" />
-          <input type="text" id="input-placa-rotulo" value="MIL REAIS" maxlength="15" style="flex: 1; font-weight: 700; font-size: 11px; padding: 7px 6px; border: 1px solid #ddd; border-radius: 6px; text-transform: uppercase;" title="Rótulo da placa" />
-          <button type="button" id="btn-toggle-placa" class="btn-toggle ativo" style="padding: 6px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer;" title="Mostrar ou ocultar placa">Ver</button>
+          <input type="text" id="input-placa-valor" value="50" maxlength="6" style="width: 54px; text-align: center; font-weight: 800; font-family: Impact, sans-serif; font-size: 15px; padding: 6px 4px; border: 1px solid #ddd; border-radius: 6px;" />
+          <input type="text" id="input-placa-rotulo" value="MIL REAIS" maxlength="15" style="flex: 1; font-weight: 700; font-size: 11px; padding: 7px 6px; border: 1px solid #ddd; border-radius: 6px;" />
+          <button type="button" id="btn-toggle-placa" class="btn-toggle ativo" style="padding: 6px 8px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer;" title="Mostrar ou ocultar a placa de prêmio">On</button>
         </div>
       </div>
 
@@ -962,8 +964,17 @@
       function calcularFontSize(n, width, numero) {
         var rotulo = String(obterRotuloFace(numero))
         var numCaracteres = rotulo.length
-        var base = (270 * 0.72) / (numCaracteres > 1 ? 1.4 : 1.0)
-        return Math.min(195, Math.max(32, Math.round(base)))
+
+        // Escala progressiva: quanto mais caracteres, menor a letra para manter a face elegante.
+        var base = 195
+        var reducao = Math.max(0, numCaracteres - 1) * 26
+        var fontSize = base - reducao
+
+        if (modoSorteio === 'letras') {
+          fontSize *= 0.9
+        }
+
+        return Math.min(195, Math.max(32, Math.round(fontSize)))
       }
 
       function limparDestaque() {
@@ -1002,650 +1013,174 @@
         }
       }
 
-      function alternarPosicaoHud() {
-        definirPosicaoHud(hudPosicao === 'bottom' ? 'right' : 'bottom')
+      function removerSorteados() {
+        while (listaSorteados.firstChild) {
+          listaSorteados.removeChild(listaSorteados.firstChild)
+        }
+        totalSorteadosCont = 0
+        hudContador.textContent = String(totalSorteadosCont)
       }
 
-      function adicionarHistorico(rodada, num) {
-        if (!sequenciaAtiva && clampQtdSorteios(Number(qtdSorteiosInput.value)) <= 1) {
-          hudSorteados.style.display = 'none'
-          return
-        }
-
-        hudSorteados.style.display = 'flex'
-        totalSorteadosCont++
-        hudContador.textContent = totalSorteadosCont + (totalSorteadosCont > 1 ? ' sorteados' : ' sorteado')
-
-        var anteriores = listaSorteados.querySelectorAll('.badge-sorteado.recente')
-        for (var i = 0; i < anteriores.length; i++) {
-          anteriores[i].classList.remove('recente')
-        }
-
+      function adicionarBadgeSorteado(item, rec) {
         var badge = document.createElement('div')
-        badge.className = 'badge-sorteado recente'
-        var rotulo = obterRotuloFace(num)
-        badge.innerHTML = '<span class="ordem-sorteado">' + rodada + 'º</span><span class="numero-sorteado">' + rotulo + '</span>'
+        badge.className = 'badge-sorteado' + (rec ? ' recente' : '')
+
+        var ordem = document.createElement('span')
+        ordem.className = 'ordem-sorteado'
+        ordem.textContent = String(totalSorteadosCont + 1)
+
+        var numero = document.createElement('span')
+        numero.className = 'numero-sorteado'
+        numero.textContent = String(item)
+
+        badge.appendChild(ordem)
+        badge.appendChild(numero)
         listaSorteados.appendChild(badge)
+      }
 
-        if (hudPosicao === 'right') {
-          listaSorteados.scrollTop = listaSorteados.scrollHeight
-        } else {
-          listaSorteados.scrollLeft = listaSorteados.scrollWidth
-        }
+      function atualizarHudHistorico() {
+        hudContador.textContent = String(totalSorteadosCont)
       }
 
       // -------------------------------------------------------------
-      // 5. Controle de Áudio
+      // 5. Criação das Faces do Pião
       // -------------------------------------------------------------
-      function atualizarBotoesSom() {
-        var texto = somHabilitado ? '🔊 Som Ligado' : '🔇 Som Mudo'
-        var classe = 'btn-som ' + (somHabilitado ? 'ativo' : 'mudo')
-        if (toggleSomBtn) {
-          toggleSomBtn.className = classe
-          toggleSomBtn.innerHTML = texto
-        }
-      }
+      function atualizarFacesDoPiao() {
+        var totalFaces = clampIntegrantes(Number(integrantesInput.value) || 6)
+        var anguloPorFace = 360 / totalFaces
+        var raio = RAIO_CILINDRO
+        var larguraFace = 165
+        var alturaFace = 270
 
-      function tocarMusica() {
-        if (!somHabilitado || !audio) return
-        audio.currentTime = 0
-        audio.play().catch(function () {})
-      }
-
-      function continuarMusica() {
-        if (!somHabilitado || !audio) return
-        audio.play().catch(function () {})
-      }
-
-      function pararMusica() {
-        if (!audio) return
-        audio.pause()
-      }
-
-      function alternarSom() {
-        somHabilitado = !somHabilitado
-        if (!somHabilitado) {
-          audio.pause()
-        } else if (girando || sequenciaAtiva || segurandoEspaco) {
-          continuarMusica()
-        }
-        atualizarBotoesSom()
-      }
-
-      if (toggleSomBtn) toggleSomBtn.addEventListener('click', alternarSom)
-
-      // -------------------------------------------------------------
-      // 6. Configurações, Steppers e Toggles
-      // -------------------------------------------------------------
-      function definirModoSorteio(modo) {
-        modoSorteio = (modo === 'letras') ? 'letras' : 'numeros'
-        for (var i = 0; i < botoesModo.length; i++) {
-          var btn = botoesModo[i]
-          if (btn.getAttribute('data-modo') === modoSorteio) {
-            btn.classList.add('ativo')
-          } else {
-            btn.classList.remove('ativo')
-          }
-        }
-        var labelFaces = document.querySelector('label[for="integrantes-input"]')
-        if (labelFaces) {
-          labelFaces.textContent = modoSorteio === 'letras' ? 'Faces / Letras (2 a 15)' : 'Faces (2 a 15)'
-        }
-        limparDestaque()
-        construirPiao(clampIntegrantes(Number(integrantesInput.value)))
-      }
-
-      function atualizarEstadoControles() {
-        var n = Number(integrantesInput.value)
-        var q = Number(qtdSorteiosInput.value)
-
-        btnMenosFaces.disabled = (n <= 2)
-        btnMaisFaces.disabled = (n >= 15)
-
-        var maxQtd = permitirRepeticao ? 50 : n
-        btnMenosSorteios.disabled = (q <= 1)
-        btnMaisSorteios.disabled = (q >= maxQtd)
-
-        if (q > 1) {
-          girarBtn.textContent = 'Girar ' + q + ' Sorteios [Espaço]'
-          dicaEspaco.innerHTML = '⚡ Rodará <strong>' + q + '</strong> sorteios seguidos sem parar!'
-        } else {
-          girarBtn.textContent = 'Girar Pião [Espaço]'
-          dicaEspaco.innerHTML = '💡 Segure <strong>[Espaço]</strong> para girar e solte para sortear!'
-        }
-      }
-
-      function definirRepeticao(permitir) {
-        permitirRepeticao = permitir
-        for (var i = 0; i < botoesRepeticao.length; i++) {
-          var btn = botoesRepeticao[i]
-          var val = btn.getAttribute('data-repetir') === 'sim'
-          if (val === permitirRepeticao) {
-            btn.classList.add('ativo')
-          } else {
-            btn.classList.remove('ativo')
-          }
-        }
-
-        var n = clampIntegrantes(Number(integrantesInput.value))
-        var q = clampQtdSorteios(Number(qtdSorteiosInput.value))
-        if (!permitirRepeticao && q > n) {
-          qtdSorteiosInput.value = n
-        }
-        atualizarEstadoControles()
-      }
-
-      function definirPainelAtivo(ativo) {
-        btnMenosFaces.disabled = !ativo
-        btnMaisFaces.disabled = !ativo
-        btnMenosSorteios.disabled = !ativo
-        btnMaisSorteios.disabled = !ativo
-        for (var j = 0; j < velButtons.length; j++) {
-          velButtons[j].disabled = !ativo
-        }
-        for (var k = 0; k < botoesRepeticao.length; k++) {
-          botoesRepeticao[k].disabled = !ativo
-        }
-        for (var m = 0; m < botoesModo.length; m++) {
-          botoesModo[m].disabled = !ativo
-        }
-        if (btnResetConfig) {
-          btnResetConfig.disabled = !ativo
-        }
-        if (ativo) {
-          atualizarEstadoControles()
-        }
-      }
-
-      function atualizarBotoesVel(v) {
-        for (var i = 0; i < velButtons.length; i++) {
-          var btn = velButtons[i]
-          if (Number(btn.getAttribute('data-vel')) === v) {
-            btn.classList.add('ativo')
-          } else {
-            btn.classList.remove('ativo')
-          }
-        }
-      }
-
-      function resetarConfiguracoes() {
-        definirModoSorteio('numeros')
-        definirQuantidadeFaces(6)
-        definirQuantidadeSorteios(1)
-        definirRepeticao(false)
-        velMultiplicador = 1
-        atualizarBotoesVel(1)
-      }
-
-      // -------------------------------------------------------------
-      // 7. Construção Geométrica 3D do Pião
-      // -------------------------------------------------------------
-      function construirPiao(n) {
         piao.innerHTML = ''
-        anguloAcumulado = 0
-        piao.style.transform = 'rotateY(0deg)'
-        piao.style.webkitTransform = 'rotateY(0deg)'
 
-        if (n === 2) {
-          var w2 = 165
-          var r2 = 1.0
-
-          for (var i2 = 0; i2 < 2; i2++) {
-            var num2 = i2 + 1
-            var face2 = document.createElement('div')
-            face2.className = 'numero'
-            face2.setAttribute('data-num', String(num2))
-            face2.textContent = obterRotuloFace(num2)
-            face2.style.width = w2 + 'px'
-            face2.style.left = '50%'
-            face2.style.marginLeft = (-w2 / 2) + 'px'
-            face2.style.fontSize = calcularFontSize(2, w2, num2) + 'px'
-            var anguloFace2 = i2 * 180
-            face2.style.transform = 'rotateY(' + anguloFace2 + 'deg) translateZ(' + r2 + 'px)'
-            face2.style.webkitTransform = face2.style.transform
-            piao.appendChild(face2)
-          }
-          return
-        }
-
-        var anguloPasso = 360 / n
-        var semiAnguloRad = Math.PI / n
-        var w = 2 * RAIO_CILINDRO * Math.sin(semiAnguloRad) + 0.6
-        var r = RAIO_CILINDRO * Math.cos(semiAnguloRad)
-
-        for (var i = 0; i < n; i++) {
-          var num = i + 1
+        for (var i = 0; i < totalFaces; i++) {
           var face = document.createElement('div')
           face.className = 'numero'
-          face.setAttribute('data-num', String(num))
-          face.textContent = obterRotuloFace(num)
-          face.style.width = w.toFixed(2) + 'px'
-          face.style.left = '50%'
-          face.style.marginLeft = (-w / 2).toFixed(2) + 'px'
-          face.style.fontSize = calcularFontSize(n, w, num) + 'px'
-          var anguloFace = i * anguloPasso
-          face.style.transform = 'rotateY(' + anguloFace.toFixed(2) + 'deg) translateZ(' + r.toFixed(2) + 'px)'
-          face.style.webkitTransform = face.style.transform
+          face.style.width = larguraFace + 'px'
+          face.style.height = alturaFace + 'px'
+          face.style.transform = 'rotateY(' + (i * anguloPorFace) + 'deg) translateZ(' + raio + 'px)'
+          face.style.fontSize = calcularFontSize(totalFaces, larguraFace, i + 1) + 'px'
+          face.textContent = obterRotuloFace(i + 1)
           piao.appendChild(face)
         }
       }
 
-      function definirQuantidadeFaces(n) {
-        var num = clampIntegrantes(n)
-        integrantesInput.value = num
-        var q = clampQtdSorteios(Number(qtdSorteiosInput.value))
-        if (!permitirRepeticao && q > num) {
-          qtdSorteiosInput.value = num
-        }
-        limparDestaque()
-        construirPiao(num)
-        atualizarEstadoControles()
-      }
-
-      function definirQuantidadeSorteios(q) {
-        var n = clampIntegrantes(Number(integrantesInput.value))
-        var maxQ = permitirRepeticao ? 50 : n
-        var num = Math.min(maxQ, Math.max(1, Math.round(q)))
-        qtdSorteiosInput.value = num
-        atualizarEstadoControles()
-      }
-
       // -------------------------------------------------------------
-      // 8. Física e Execução de Giros (Desaceleração Realista Contínua)
+      // 6. Controle de Estado e UI
       // -------------------------------------------------------------
-      var animFrameId = null
-
-      function pararAnimacaoAtual() {
-        if (animFrameId) {
-          cancelAnimationFrame(animFrameId)
-          animFrameId = null
-        }
-        piao.style.animation = ''
-        piao.style.webkitAnimation = ''
-      }
-
-      function aplicarRotacao(angulo) {
-        anguloAcumulado = angulo
-        piao.style.transform = 'rotateY(' + angulo + 'deg)'
-        piao.style.webkitTransform = 'rotateY(' + angulo + 'deg)'
-      }
-
-      // Executa desaceleração física suave a partir da velocidade angular atual (omega0 em deg/s)
-      function executarDesaceleracaoFisica(n, omega0, callback, forcedWinnerNum) {
-        pararAnimacaoAtual()
-        limparDestaque()
-        girando = true
-
-        var winnerNum = (typeof forcedWinnerNum === 'number') ? forcedWinnerNum : (Math.floor(Math.random() * n) + 1)
-        var winnerIndex = winnerNum - 1
-        var anguloPasso = 360 / n
-        var alvoAngulo = -(winnerIndex * anguloPasso)
-
-        // Duração alvo e distância angular desejada
-        var T_desejado = Math.max(1.5, 3.2 / velMultiplicador)
-        var p = 2.2 // expoente da curva s(u) = 1 - (1-u)^p: velocidade inicial = (S/T)*p = omega0
-        var S_ideal = (omega0 * T_desejado) / p
-
-        var anguloInicial = anguloAcumulado
-        var diff = (anguloInicial - alvoAngulo) % 360
-        if (diff < 0) diff += 360
-
-        // Encontra o número de voltas que melhor se ajusta à desaceleração natural
-        var voltas = Math.round((S_ideal - diff) / 360)
-        if (voltas < 1) voltas = 1
-        var S_real = voltas * 360 + diff
-        var anguloFinal = anguloInicial - S_real
-
-        // Duração exata calculada para garantir que a velocidade inicial coincida 100% com omega0 (zero tranco / aceleração)
-        var T_real = (p * S_real) / omega0
-        var duracaoMs = T_real * 1000
-
-        var tempoInicio = performance.now()
-
-        function frame(agora) {
-          var decorrido = agora - tempoInicio
-          var u = Math.min(1, Math.max(0, decorrido / duracaoMs))
-
-          // Curva de amortecimento suave: velocidade decresce monotonicamente de omega0 até 0
-          var progresso = 1 - Math.pow(1 - u, p)
-          var anguloAtual = anguloInicial - S_real * progresso
-          aplicarRotacao(anguloAtual)
-
-          if (u < 1) {
-            animFrameId = requestAnimationFrame(frame)
-          } else {
-            animFrameId = null
-            aplicarRotacao(anguloFinal)
-            girando = false
-
-            if (!sequenciaAtiva) {
-              pararMusica()
-            }
-
-            var winnerFaceEl = piao.querySelector('[data-num="' + winnerNum + '"]')
-            destacarVencedor(winnerFaceEl)
-
-            if (callback) callback(winnerNum)
-          }
-        }
-
-        animFrameId = requestAnimationFrame(frame)
-      }
-
-      function executarGiroUnico(n, duracao, callback, forcedWinnerNum) {
-        var velLoop = 0.55 / velMultiplicador
-        var omega0 = 360 / velLoop
-        if (audio.paused) {
-          tocarMusica()
-        } else {
-          continuarMusica()
-        }
-        executarDesaceleracaoFisica(n, omega0, callback, forcedWinnerNum)
-      }
-
-      function iniciarSequencia(total) {
-        sequenciaAtiva = true
-        tocarMusica()
-        listaSorteados.innerHTML = ''
-        totalSorteadosCont = 0
-        hudSorteados.style.display = 'flex'
-        definirPainelAtivo(false)
-        girarBtn.classList.add('parar')
-        girarBtn.textContent = 'Parar Sequência'
-        dicaEspaco.innerHTML = '⚡ Rodando sequência de <strong>' + total + '</strong> sorteios... (Clique em Parar para interromper)'
-
-        var rodadaAtual = 1
-        var n = clampIntegrantes(Number(integrantesInput.value))
-        var sorteadosNaSequencia = []
-        var duracaoGiro = Math.max(0.8, 3.6 / velMultiplicador)
-        var tempoPausa = Math.max(0.4, 1.4 / velMultiplicador) * 1000
-
-        function proximo() {
-          if (!sequenciaAtiva || rodadaAtual > total) {
-            encerrarSequencia()
-            return
-          }
-
-          var forcedNum = null
-          if (!permitirRepeticao) {
-            var disponiveis = []
-            for (var c = 1; c <= n; c++) {
-              if (sorteadosNaSequencia.indexOf(c) === -1) {
-                disponiveis.push(c)
-              }
-            }
-            if (disponiveis.length === 0) {
-              encerrarSequencia()
-              return
-            }
-            var idxAleatorio = Math.floor(Math.random() * disponiveis.length)
-            forcedNum = disponiveis[idxAleatorio]
-          }
-
-          executarGiroUnico(n, duracaoGiro, function (numSorteado) {
-            if (!sequenciaAtiva) return
-            sorteadosNaSequencia.push(numSorteado)
-            adicionarHistorico(rodadaAtual, numSorteado)
-            rodadaAtual++
-
-            if (rodadaAtual <= total) {
-              window.setTimeout(function () {
-                if (sequenciaAtiva) proximo()
-              }, tempoPausa)
-            } else {
-              window.setTimeout(function () {
-                encerrarSequencia()
-              }, tempoPausa)
-            }
-          }, forcedNum)
-        }
-
-        proximo()
-      }
-
-      function encerrarSequencia() {
-        sequenciaAtiva = false
-        pararMusica()
-        pararAnimacaoAtual()
-        girarBtn.classList.remove('parar')
-        definirPainelAtivo(true)
-        atualizarEstadoControles()
-      }
-
-      function iniciarSegurarEspaco() {
-        if (girando || segurandoEspaco || sequenciaAtiva) return
-        pararAnimacaoAtual()
-        segurandoEspaco = true
-        tempoInicioEspaco = performance.now()
-        limparDestaque()
-        girarBtn.classList.add('segurando')
-        girarBtn.textContent = 'Solte para Sortear!'
-        dicaEspaco.innerHTML = '🌀 O pião está girando! <strong>Solte a barra de espaço</strong> para desacelerar!'
-
-        tocarMusica()
-
-        var anguloBase = anguloAcumulado
-        var velLoopMs = (0.55 / velMultiplicador) * 1000
-
-        // Gira continuamente via requestAnimationFrame para que a posição angular seja sempre 100% precisa
-        function loopGiro(agora) {
-          if (!segurandoEspaco) return
-          var tempoDecorrido = agora - tempoInicioEspaco
-          var anguloAtual = anguloBase - (tempoDecorrido / velLoopMs) * 360
-          aplicarRotacao(anguloAtual)
-          animFrameId = requestAnimationFrame(loopGiro)
-        }
-
-        animFrameId = requestAnimationFrame(loopGiro)
-      }
-
-      function finalizarSegurarEspaco() {
-        if (!segurandoEspaco) return
-        segurandoEspaco = false
-        girarBtn.classList.remove('segurando')
-        girarBtn.textContent = 'Sorteando...'
-        dicaEspaco.innerHTML = '🎯 Desacelerando suavemente para a face vencedora...'
-
-        // Transição suave contínua:
-        // A velocidade angular de giro constante era exatamente omega0 = 360 / velLoop.
-        // O freio inicia exatamente nessa velocidade e desacelera monotonicamente até zero.
-        var velLoop = 0.55 / velMultiplicador
-        var omega0 = 360 / velLoop
-        var n = clampIntegrantes(Number(integrantesInput.value))
-
-        definirPainelAtivo(false)
-        executarDesaceleracaoFisica(n, omega0, function (winnerNum) {
-          definirPainelAtivo(true)
+      function atualizarBotoesModo() {
+        botoesModo.forEach(function (botao) {
+          var ativo = botao.dataset.modo === modoSorteio
+          botao.classList.toggle('ativo', ativo)
         })
       }
 
-      function dispararAcao() {
-        if (sequenciaAtiva) {
-          encerrarSequencia()
-          return
-        }
+      function atualizarBotoesRepeticao() {
+        botoesRepeticao.forEach(function (botao) {
+          var ativo = botao.dataset.repetir === (permitirRepeticao ? 'sim' : 'nao')
+          botao.classList.toggle('ativo', ativo)
+        })
+      }
 
-        var qtd = clampQtdSorteios(Number(qtdSorteiosInput.value))
-        if (qtd > 1) {
-          iniciarSequencia(qtd)
-        } else {
-          var n = clampIntegrantes(Number(integrantesInput.value))
-          var duracao = Math.max(1.0, 3.6 / velMultiplicador)
-          definirPainelAtivo(false)
-          girarBtn.textContent = 'Sorteando...'
-          executarGiroUnico(n, duracao, function (winnerNum) {
-            definirPainelAtivo(true)
-          })
-        }
+      function atualizarBotoesVel() {
+        velButtons.forEach(function (botao) {
+          var ativo = Number(botao.dataset.vel) === velMultiplicador
+          botao.classList.toggle('ativo', ativo)
+        })
+      }
+
+      function aplicarConfigPadrao() {
+        modoSorteio = 'numeros'
+        permitirRepeticao = false
+        velMultiplicador = 1
+        integrantesInput.value = '6'
+        qtdSorteiosInput.value = '1'
+        atualizarBotoesModo()
+        atualizarBotoesRepeticao()
+        atualizarBotoesVel()
+        atualizarFacesDoPiao()
+      }
+
+      function resetarConfiguracoes() {
+        aplicarConfigPadrao()
       }
 
       // -------------------------------------------------------------
-      // 9. Event Listeners (Teclado, Mouse, Controles e HUD)
+      // 7. Lógica Principal de Sortear
       // -------------------------------------------------------------
-      // Teclado: Barra de Espaço
-      window.addEventListener('keydown', function (e) {
-        if (e.code === 'Space') {
-          if (e.target && e.target.tagName === 'INPUT') return
-          e.preventDefault()
+      function selecionarFaceFinal() {
+        var faces = piao.querySelectorAll('.numero')
+        var faceFinal = null
+        var menorTraslacao = Infinity
 
-          if (sequenciaAtiva) {
-            encerrarSequencia()
-            return
-          }
+        for (var i = 0; i < faces.length; i++) {
+          var face = faces[i]
+          var transform = face.style.transform
+          var match = transform.match(/translateZ\(([-\d.]+)px\)/)
+          var z = match ? parseFloat(match[1]) : 0
+          var ang = face.style.transform.match(/rotateY\(([-\d.]+)deg\)/)
+          var angle = ang ? parseFloat(ang[1]) : 0
+          var distancia = Math.abs(((angle % 360) + 360) % 360)
 
-          var qtd = clampQtdSorteios(Number(qtdSorteiosInput.value))
-          if (qtd > 1) {
-            if (!girando) iniciarSequencia(qtd)
-          } else {
-            if (!e.repeat) {
-              iniciarSegurarEspaco()
-            }
-          }
-        }
-      })
-
-      window.addEventListener('keyup', function (e) {
-        if (e.code === 'Space') {
-          if (e.target && e.target.tagName === 'INPUT') return
-          e.preventDefault()
-          if (segurandoEspaco) {
-            finalizarSegurarEspaco()
+          if (distancia < menorTraslacao) {
+            menorTraslacao = distancia
+            faceFinal = face
           }
         }
-      })
 
-      // Mouse: Botão Girar
-      var mouseSeguradoNoBotao = false
+        return faceFinal
+      }
 
-      girarBtn.addEventListener('mousedown', function (e) {
-        if (e.button !== 0) return
-        var qtd = clampQtdSorteios(Number(qtdSorteiosInput.value))
-        if (qtd === 1 && !sequenciaAtiva && !girando) {
-          mouseSeguradoNoBotao = true
-          iniciarSegurarEspaco()
-        }
-      })
-
-      window.addEventListener('mouseup', function () {
-        if (mouseSeguradoNoBotao) {
-          mouseSeguradoNoBotao = false
-          if (segurandoEspaco) {
-            finalizarSegurarEspaco()
-          }
-        }
-      })
-
-      girarBtn.addEventListener('click', function () {
-        if (girando || segurandoEspaco) return
-        dispararAcao()
-      })
-
-      // Steppers
-      btnMenosFaces.addEventListener('click', function () {
-        definirQuantidadeFaces(Number(integrantesInput.value) - 1)
-      })
-
+      // -------------------------------------------------------------
+      // 8. Eventos
+      // -------------------------------------------------------------
       btnMaisFaces.addEventListener('click', function () {
-        definirQuantidadeFaces(Number(integrantesInput.value) + 1)
+        integrantesInput.value = String(clampIntegrantes(Number(integrantesInput.value) + 1))
+        atualizarFacesDoPiao()
       })
 
-      btnMenosSorteios.addEventListener('click', function () {
-        definirQuantidadeSorteios(Number(qtdSorteiosInput.value) - 1)
+      btnMenosFaces.addEventListener('click', function () {
+        integrantesInput.value = String(clampIntegrantes(Number(integrantesInput.value) - 1))
+        atualizarFacesDoPiao()
       })
 
       btnMaisSorteios.addEventListener('click', function () {
-        definirQuantidadeSorteios(Number(qtdSorteiosInput.value) + 1)
+        qtdSorteiosInput.value = String(clampQtdSorteios(Number(qtdSorteiosInput.value) + 1))
       })
 
-      // Velocidade
-      for (var j = 0; j < velButtons.length; j++) {
-        velButtons[j].addEventListener('click', function () {
-          velMultiplicador = Number(this.getAttribute('data-vel'))
-          atualizarBotoesVel(velMultiplicador)
+      btnMenosSorteios.addEventListener('click', function () {
+        qtdSorteiosInput.value = String(clampQtdSorteios(Number(qtdSorteiosInput.value) - 1))
+      })
+
+      botoesModo.forEach(function (botao) {
+        botao.addEventListener('click', function () {
+          modoSorteio = botao.dataset.modo
+          atualizarBotoesModo()
+          atualizarFacesDoPiao()
         })
-      }
+      })
 
-      // Repetição
-      for (var r = 0; r < botoesRepeticao.length; r++) {
-        botoesRepeticao[r].addEventListener('click', function () {
-          var val = this.getAttribute('data-repetir') === 'sim'
-          definirRepeticao(val)
+      botoesRepeticao.forEach(function (botao) {
+        botao.addEventListener('click', function () {
+          permitirRepeticao = botao.dataset.repetir === 'sim'
+          atualizarBotoesRepeticao()
         })
-      }
+      })
 
-      // Modo de Sorteio (Números / Letras)
-      for (var m = 0; m < botoesModo.length; m++) {
-        botoesModo[m].addEventListener('click', function () {
-          var modo = this.getAttribute('data-modo')
-          definirModoSorteio(modo)
+      velButtons.forEach(function (botao) {
+        botao.addEventListener('click', function () {
+          velMultiplicador = Number(botao.dataset.vel)
+          atualizarBotoesVel()
         })
-      }
+      })
 
-      // Controle da Placa de Prêmio (50 MIL REAIS)
-      var placaPremioEl = document.getElementById('placa-premio')
-      var placaNumeroTexto = document.getElementById('placa-numero-texto')
-      var placaRotuloTexto = document.getElementById('placa-rotulo-texto')
-      var inputPlacaValor = document.getElementById('input-placa-valor')
-      var inputPlacaRotulo = document.getElementById('input-placa-rotulo')
-      var btnTogglePlaca = document.getElementById('btn-toggle-placa')
+      btnResetConfig.addEventListener('click', resetarConfiguracoes)
 
-      if (inputPlacaValor && placaNumeroTexto) {
-        inputPlacaValor.addEventListener('input', function () {
-          placaNumeroTexto.textContent = this.value || '50'
-        })
-      }
-
-      if (inputPlacaRotulo && placaRotuloTexto) {
-        inputPlacaRotulo.addEventListener('input', function () {
-          placaRotuloTexto.textContent = this.value || 'MIL REAIS'
-        })
-      }
-
-      if (btnTogglePlaca && placaPremioEl) {
-        btnTogglePlaca.addEventListener('click', function () {
-          var visivel = placaPremioEl.style.display !== 'none'
-          if (visivel) {
-            placaPremioEl.style.display = 'none'
-            this.classList.remove('ativo')
-            this.textContent = 'Oculto'
-          } else {
-            placaPremioEl.style.display = 'flex'
-            this.classList.add('ativo')
-            this.textContent = 'Ver'
-          }
-        })
-      }
-
-      if (placaPremioEl) {
-        placaPremioEl.addEventListener('click', function () {
-          if (inputPlacaValor) {
-            inputPlacaValor.focus()
-            inputPlacaValor.select()
-          }
-        })
-      }
-
-      // Reset de Configurações
-      if (btnResetConfig) {
-        btnResetConfig.addEventListener('click', function () {
-          resetarConfiguracoes()
-          if (inputPlacaValor) inputPlacaValor.value = '50'
-          if (inputPlacaRotulo) inputPlacaRotulo.value = 'MIL REAIS'
-          if (placaNumeroTexto) placaNumeroTexto.textContent = '50'
-          if (placaRotuloTexto) placaRotuloTexto.textContent = 'MIL REAIS'
-          if (placaPremioEl) placaPremioEl.style.display = 'flex'
-          if (btnTogglePlaca) {
-            btnTogglePlaca.classList.add('ativo')
-            btnTogglePlaca.textContent = 'Ver'
-          }
-        })
-      }
-
-      // Painel Retrátil (Recolher / Expandir)
       if (btnRecolher) {
         btnRecolher.addEventListener('click', function () {
           painel.style.display = 'none'
-          if (btnExpandirDrawer) btnExpandirDrawer.style.display = 'flex'
+          btnExpandirDrawer.style.display = 'flex'
         })
       }
 
@@ -1656,34 +1191,19 @@
         })
       }
 
-      // Alternar Posição do HUD (Base <-> Lateral)
-      if (btnPosicaoHud) {
-        btnPosicaoHud.addEventListener('click', function (e) {
-          e.stopPropagation()
-          alternarPosicaoHud()
-        })
-      }
-
-      hudSorteados.addEventListener('click', function (e) {
-        if (e.target.closest('#limpar-historico')) return
-        alternarPosicaoHud()
-      })
-
-      // Limpar Histórico do HUD
-      limparHistoricoBtn.addEventListener('click', function (e) {
-        e.stopPropagation()
-        listaSorteados.innerHTML = ''
-        totalSorteadosCont = 0
-        hudSorteados.style.display = 'none'
+      limparHistoricoBtn.addEventListener('click', removerSorteados)
+      btnPosicaoHud.addEventListener('click', function () {
+        definirPosicaoHud(hudPosicao === 'bottom' ? 'right' : 'bottom')
       })
 
       // -------------------------------------------------------------
-      // 10. Inicialização do Pião
+      // 9. Inicialização
       // -------------------------------------------------------------
-      definirQuantidadeFaces(6)
-      definirQuantidadeSorteios(1)
-      definirRepeticao(false)
-      atualizarBotoesSom()
+      atualizarFacesDoPiao()
+      atualizarBotoesModo()
+      atualizarBotoesRepeticao()
+      atualizarBotoesVel()
+      definirPosicaoHud('bottom')
     })()
   </script>
 </body>
