@@ -30,9 +30,10 @@ Projetado especialmente para:
 - O pião é um polígono cilíndrico tridimensional gerado via CSS 3D (`preserve-3d`, `translateZ` e `rotateY`).
 - A largura de cada face e o raio de rotação são calculados dinamicamente através de trigonometria precisa ($w = 2R \sin(\frac{\pi}{n})$ e $r = R \cos(\frac{\pi}{n})$), mantendo as proporções estéticas perfeitas em qualquer quantidade de faces.
 
-### 3. ⌨️ Giro Interativo com a Barra de Espaço
-- **Giro Contínuo**: segure a tecla **[Espaço]** (ou mantenha pressionado o botão do mouse sobre "Girar Pião") para o pião acelerar e rodar em velocidade máxima contínua.
-- **Desaceleração Realista**: ao soltar a tecla, o pião entra em uma curva suave de inércia (`cubic-bezier`), parando exatamente na face sorteada perfeitamente centralizada e nítida.
+### 3. ⌨️ Giro Interativo na Cena
+- O botão **Girar Pião** fica sempre visível na base da tela, fora do painel de configuração.
+- **Giro Contínuo**: segure o botão (ou a tecla **[Espaço]** no desktop) para o pião acelerar e rodar em velocidade máxima contínua.
+- **Desaceleração Realista**: ao soltar, o pião desacelera com inércia e para na face sorteada.
 
 ### 4. ⚡ Sorteios em Sequência (Sim / Não)
 - **Não**: um único sorteio por giro.
@@ -91,9 +92,9 @@ Em seguida, acesse no navegador: **`http://localhost:8080`**.
 
 | Ação | Controle |
 | :--- | :--- |
-| **Girar Pião** | Clique no botão ou pressione **[Espaço]** |
-| **Giro Contínuo com Suspense** | **Segure [Espaço]** (ou segure o clique no botão) e solte para sortear |
-| **Interromper Sequência** | Clique em **"Parar Sequência"** ou aperte **[Espaço]** |
+| **Girar Pião** | Botão fixo na base da tela (ou **[Espaço]** no desktop) |
+| **Giro Contínuo com Suspense** | Segure o botão (ou **[Espaço]**) e solte para sortear |
+| **Interromper Sequência** | Toque em **"Parar Sequência"** ou aperte **[Espaço]** |
 | **Mudar Posição do Placar** | Clique em qualquer lugar sobre o placar ou no botão **Lateral / Base** |
 | **Recolher / Abrir Painel** | Clique no botão **✕** para fechar ou no ícone flutuante **⚙️** para reabrir |
 | **Ligar / Desligar Som** | Clique no botão **🔊 Som** no cabeçalho do painel |

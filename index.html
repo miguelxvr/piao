@@ -413,34 +413,55 @@
       cursor: not-allowed;
     }
 
+    #acao-principal {
+      position: fixed;
+      left: 50%;
+      bottom: max(18px, env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      z-index: 85;
+      width: min(92vw, 360px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    #acao-principal #girar,
+    #acao-principal .dica-espaco {
+      pointer-events: auto;
+    }
+
     #girar {
       width: 100%;
-      padding: 12px;
-      font-size: 14px;
+      padding: 16px 18px;
+      font-size: 16px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: white;
       background: linear-gradient(135deg, var(--red-cta) 0%, var(--red-cta-2) 100%);
-      border: none;
-      border-radius: 8px;
+      border: 2px solid #ffd700;
+      border-radius: 14px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(200, 0, 0, 0.35);
+      box-shadow: 0 8px 24px rgba(200, 0, 0, 0.4), 0 0 18px rgba(255, 215, 0, 0.25);
       transition: all 0.15s ease;
       user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
     }
 
     #girar:hover:not(:disabled) {
       background: linear-gradient(135deg, rgb(235, 20, 20) 0%, rgb(180, 0, 0) 100%);
       transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(200, 0, 0, 0.45);
+      box-shadow: 0 10px 28px rgba(200, 0, 0, 0.5), 0 0 22px rgba(255, 215, 0, 0.35);
     }
 
     #girar:active:not(:disabled),
     #girar.segurando {
       background: linear-gradient(135deg, rgb(160, 0, 0) 0%, rgb(120, 0, 0) 100%);
-      transform: translateY(1px);
-      box-shadow: 0 2px 6px rgba(200, 0, 0, 0.3);
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 3px 10px rgba(200, 0, 0, 0.35);
     }
 
     #girar.parar {
@@ -454,11 +475,12 @@
     }
 
     .dica-espaco {
-      font-size: 11px;
-      color: #666;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.92);
       text-align: center;
-      margin-top: 6px;
       line-height: 1.35;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+      max-width: 100%;
     }
 
     #hud-sorteados {
@@ -479,7 +501,7 @@
     }
 
     #hud-sorteados.pos-bottom {
-      bottom: 20px;
+      bottom: calc(96px + env(safe-area-inset-bottom, 0px));
       left: 50%;
       transform: translateX(-50%);
       width: min(85vw, 680px);
@@ -624,10 +646,19 @@
 
     @media (max-width: 768px) {
       #wrapper {
-        transform: scale(0.75);
+        transform: scale(0.72);
+        margin-top: -36px;
+      }
+      #acao-principal {
+        width: min(94vw, 360px);
+      }
+      #girar {
+        padding: 15px 16px;
+        font-size: 15px;
       }
       #hud-sorteados.pos-bottom {
         width: 92vw;
+        bottom: calc(104px + env(safe-area-inset-bottom, 0px));
       }
     }
   </style>
@@ -683,15 +714,15 @@
           <button type="button" class="btn-toggle" data-repetir="sim">Sim</button>
         </div>
       </div>
-
-      <div class="campo campo-acao">
-        <button type="button" id="girar">Girar Pião [Espaço]</button>
-        <div class="dica-espaco" id="dica-espaco">💡 Segure o botão (ou [Espaço]) para girar e solte para sortear!</div>
-      </div>
     </div>
   </aside>
 
-  <section id="hud-sorteados" class="pos-bottom" style="display:none;" title="Clique no painel para mudar de posição (Inferior / Lateral)">
+  <div id="acao-principal">
+    <button type="button" id="girar">Girar Pião</button>
+    <div class="dica-espaco" id="dica-espaco">💡 Segure o botão para girar e solte para sortear</div>
+  </div>
+
+  <section id="hud-sorteados" class="pos-bottom" style="display:none;" title="Toque no painel para mudar de posição (Inferior / Lateral)">
     <div class="hud-header">
       <div class="hud-titulo">
         <span>🏆</span>
@@ -969,7 +1000,7 @@
           dicaEspaco.innerHTML = '⚡ Vai sortear as <strong>' + n + '</strong> faces em sequência. Toque para iniciar.'
         } else {
           girarBtn.textContent = 'Girar Pião'
-          dicaEspaco.innerHTML = '💡 Segure o botão (ou [Espaço]) para girar e solte para sortear!'
+          dicaEspaco.innerHTML = '💡 Segure o botão para girar e solte para sortear'
         }
       }
 
