@@ -1581,9 +1581,7 @@
         girarBtn.classList.toggle('ocupado', girando && !sequenciaAtiva)
         if (sequenciaAtiva) {
           texto = 'Parar sequência'
-        } else if (segurando) {
-          texto = 'Solte para sortear!'
-        } else if (girando) {
+        } else if (segurando || girando) {
           texto = 'Sorteando…'
         } else if (cfg.modo === 'sequencia') {
           texto = (ultimaSequenciaCompleta ? 'Sortear de novo' : 'Sortear todos') + ' (' + cfg.faces + ')'
