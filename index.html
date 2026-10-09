@@ -365,9 +365,8 @@
       touch-action: manipulation;
     }
 
-    /* Apertado (toque/clique): mesmo retorno amarelo em todos os botões */
-    .icone:active:not(:disabled),
-    .icone.apertado {
+    /* Apertado (toque/clique): retorno imediato, só enquanto pressionado — igual em todos os botões */
+    .icone:active:not(:disabled) {
       color: var(--ui-gold);
       border-color: var(--ui-gold);
       background: rgba(255, 215, 0, 0.2);
@@ -537,6 +536,12 @@
       display: flex;
       gap: calc(var(--hud-h) * 0.1);
       flex-shrink: 0;
+    }
+
+    /* Copiado: ícone ✓ em amarelo por um instante */
+    .icone.confirmado {
+      color: var(--ui-gold);
+      border-color: var(--ui-gold);
     }
 
     /* Botões da faixa: mesmo estilo dos ícones do topo, só que no tamanho da faixa */
@@ -1260,10 +1265,21 @@
         document.title = TITULO_BASE
       }
 
-      // Retorno visual de botão apertado (amarelo), para ações sem outra resposta na tela
-      function piscarApertado(el) {
-        el.classList.add('apertado')
-        window.setTimeout(function () { el.classList.remove('apertado') }, 320)
+      // Confirmação de "copiado" no padrão usual (GitHub, VS Code): o ícone vira um ✓ por um
+      // instante e volta; sem texto e sem repetir o efeito de apertar
+      var ICONE_COPIAR = btnCopiar.innerHTML
+      var ICONE_OK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>'
+      var copiadoTimer = null
+      function confirmarCopia() {
+        btnCopiar.innerHTML = ICONE_OK
+        btnCopiar.classList.add('confirmado')
+        btnCopiar.setAttribute('aria-label', 'Copied')
+        if (copiadoTimer) window.clearTimeout(copiadoTimer)
+        copiadoTimer = window.setTimeout(function () {
+          btnCopiar.innerHTML = ICONE_COPIAR
+          btnCopiar.classList.remove('confirmado')
+          btnCopiar.setAttribute('aria-label', 'Copy draw order')
+        }, 1500)
       }
 
       // 1st, 2nd, 3rd, 4th … 11th, 12th, 13th, 21st …
@@ -1278,7 +1294,7 @@
         var partes = []
         for (var i = 0; i < historico.length; i++) partes.push(ordinal(i + 1) + ' ' + rotulo(historico[i]))
         var texto = 'Draw order: ' + partes.join(', ')
-        var ok = function () { piscarApertado(btnCopiar) }
+        var ok = confirmarCopia
         var falhou = function () { mostrarToast('Could not copy') }
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(texto).then(ok, function () { copiarFallback(texto) ? ok() : falhou() })
@@ -1494,8 +1510,7 @@
         girando = false
         ultimaSequenciaCompleta = !!completa
         if (estavaAtiva) {
-          if (completa) mostrarToast('Sequence complete')
-          else mostrarToast('Sequence stopped')
+          if (!completa) mostrarToast('Sequence stopped')
         }
         atualizarTudo()
       }
@@ -1714,6 +1729,9 @@
       })
 
       // ---------- Ícones ----------
+      // O Safari do iOS só aplica :active (retorno de toque) se a página ouvir touchstart
+      document.addEventListener('touchstart', function () {}, { passive: true })
+
       // Clique de mouse não deixa o foco no ícone: Espaço/Enter continuam girando o pião
       document.querySelectorAll('.icone').forEach(function (el) {
         el.addEventListener('mousedown', function (e) { e.preventDefault() })
