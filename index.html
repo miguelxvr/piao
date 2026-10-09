@@ -22,7 +22,7 @@
       --scene-1: #1a1d18;
       --piao-bg: radial-gradient(circle at 40% 36%, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.015) 30%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.5) 100%), radial-gradient(circle at 44% 40%, #141516 0%, #0b0b0c 55%, #040404 100%);
       --moldura-shadow: inset 0 0 25px 8px rgba(0, 0, 0, 0.9), inset calc(6px * var(--luz-x)) calc(6px * var(--luz-y)) 8px rgba(0, 0, 0, 0.55), inset calc(-3px * var(--luz-x)) calc(-3px * var(--luz-y)) 6px rgba(255, 255, 255, 0.28);
-      --scene-bg: radial-gradient(circle at calc(var(--centro-x, 50%) + 22px * var(--luz-x) * var(--escala, 1)) calc(var(--centro-y, 50%) + 22px * var(--luz-y) * var(--escala, 1)), rgba(0, 0, 0, 0.75) calc(205px * var(--escala, 1)), rgba(0, 0, 0, 0.42) calc(248px * var(--escala, 1)), rgba(0, 0, 0, 0.15) calc(290px * var(--escala, 1)), transparent calc(360px * var(--escala, 1))), radial-gradient(circle at 28% 14%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 80%), radial-gradient(circle at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.22) 100%), repeating-conic-gradient(from 0deg at var(--centro-x, 50%) var(--centro-y, 50%), #e5eae1 0deg, #d6dcd2 3.2deg, #c5ccc1 6.8deg, #161914 6.8deg, #161914 7.5deg);
+      --scene-bg: radial-gradient(circle at calc(var(--centro-x, 50%) + 22px * var(--luz-x) * var(--escala, 1)) calc(var(--centro-y, 50%) + 22px * var(--luz-y) * var(--escala, 1)), rgba(0, 0, 0, 0.3) calc(205px * var(--escala, 1)), rgba(0, 0, 0, 0.14) calc(250px * var(--escala, 1)), rgba(0, 0, 0, 0.04) calc(290px * var(--escala, 1)), transparent calc(330px * var(--escala, 1))), radial-gradient(circle at 28% 14%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 80%), radial-gradient(circle at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.22) 100%), repeating-conic-gradient(from 0deg at var(--centro-x, 50%) var(--centro-y, 50%), #e5eae1 0deg, #d6dcd2 3.2deg, #c5ccc1 6.8deg, #161914 6.8deg, #161914 7.5deg);
     }
 
     html {
@@ -165,14 +165,35 @@
     #moldura {
       height: 400px;
       width: 400px;
-      border: 45px solid var(--frame-red);
+      border: 45px solid transparent;
       border-radius: 50%;
       position: absolute;
       top: -45px;
       left: -45px;
       box-sizing: content-box;
       z-index: 4;
-      box-shadow: var(--moldura-shadow);
+      /* Moldura de escotilha, como no programa: face frontal plana vermelho vivo (borda externa
+         se dissolvendo no halo) e, por dentro, uma parede que entra em direção ao tambor
+         (faixa vermelho-escura que escurece até quase preto) — ver ::before.
+         A máscara recorta a abertura. */
+      background:
+        linear-gradient(135deg, rgba(255, 190, 190, 0.14) 0%, rgba(0, 0, 0, 0) 45%, rgba(40, 0, 3, 0.22) 100%) border-box,
+        radial-gradient(circle closest-side, rgba(0, 0, 0, 0) 81.4%, #2a0205 81.6%, #5a050c 83%, #82080f 85.2%, #a30b17 87.4%, #b80d1a 88.4%, #e5141f 88.8%, #e8161f 95%, #ef2a32 98%, #f0444b 100%) border-box;
+      -webkit-mask: radial-gradient(circle closest-side, transparent 81.4%, #000 81.8%) border-box;
+      mask: radial-gradient(circle closest-side, transparent 81.4%, #000 81.8%) border-box;
+    }
+
+    /* Parede interna da escotilha: luz invertida em relação à face (numa cavidade, o lado da
+       luz fica na sombra e o lado oposto recebe luz) */
+    #moldura::before {
+      content: "";
+      position: absolute;
+      inset: -45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.1) 50%, rgba(255, 110, 110, 0.16) 100%);
+      -webkit-mask: radial-gradient(circle closest-side, transparent 81.4%, #000 81.6%, #000 88.5%, transparent 88.8%);
+      mask: radial-gradient(circle closest-side, transparent 81.4%, #000 81.6%, #000 88.5%, transparent 88.8%);
+      pointer-events: none;
     }
 
     #piao-bg {
@@ -202,7 +223,8 @@
       pointer-events: none;
     }
 
-    /* Oclusão ambiente da cavidade do aro: escurece o tambor perto da moldura */
+    /* Sombra do aro sobre o tambor: o aro, na frente, deixa a borda da janela no escuro e
+       ilumina o centro (deslocado para o lado oposto à luz) — como nas faces laterais do programa */
     #aro-oclusao {
       position: absolute;
       top: -2px;
@@ -210,7 +232,8 @@
       width: 404px;
       height: 404px;
       border-radius: 50%;
-      background: radial-gradient(circle at calc(50% - 6px) calc(50% - 6px), rgba(0, 0, 0, 0) 62%, rgba(0, 0, 0, 0.28) 80%, rgba(0, 0, 0, 0.72) 100%);
+      background: radial-gradient(circle at calc(50% + 12px * var(--luz-x)) calc(50% + 12px * var(--luz-y)), rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.36) 58%, rgba(0, 0, 0, 0.62) 72%, rgba(0, 0, 0, 0.86) 88%, rgba(0, 0, 0, 0.94) 100%);
+      box-shadow: var(--moldura-shadow); /* bisel da cavidade (antes no #moldura, agora mascarado) */
       z-index: 3;
       pointer-events: none;
     }
@@ -227,8 +250,9 @@
       z-index: 0;
       pointer-events: none;
       box-shadow:
-        0 0 calc(28px * var(--escala, 1)) calc(4px * var(--escala, 1)) rgba(220, 15, 25, 0.35),
-        calc(24px * var(--luz-x) * var(--escala, 1)) calc(24px * var(--luz-y) * var(--escala, 1)) calc(48px * var(--escala, 1)) rgba(0, 0, 0, 0.65),
+        0 0 calc(80px * var(--escala, 1)) calc(22px * var(--escala, 1)) rgba(255, 70, 80, 0.42),
+        0 0 calc(22px * var(--escala, 1)) calc(3px * var(--escala, 1)) rgba(255, 60, 70, 0.45),
+        calc(24px * var(--luz-x) * var(--escala, 1)) calc(24px * var(--luz-y) * var(--escala, 1)) calc(48px * var(--escala, 1)) rgba(0, 0, 0, 0.32),
         calc(6px * var(--luz-x) * var(--escala, 1)) calc(6px * var(--luz-y) * var(--escala, 1)) calc(14px * var(--escala, 1)) rgba(0, 0, 0, 0.4);
     }
 
