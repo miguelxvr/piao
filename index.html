@@ -82,7 +82,7 @@
       margin: 0 auto;
       height: 270px;
       width: 400px; /* contém as faces mais largas (3 faces = 286px) */
-      z-index: 1;
+      z-index: 2;
       /* Perspectiva aplicada a cada face individualmente: dá profundidade ao tambor sem
          precisar de preserve-3d (as faces de frente de um prisma convexo não se sobrepõem) */
       -webkit-perspective: 900px; /* = PERSPECTIVA no JS */
@@ -100,7 +100,10 @@
         inset 0 0 0 1px var(--metal-shadow),
         inset 0 1px 2px rgba(255, 255, 255, 0.85),
         0 0 0 1px #3c4248,
-        0 10px 18px rgba(0, 0, 0, 0.25);
+        0 10px 18px rgba(0, 0, 0, 0.25),
+        /* oclusão ambiente nas junções entre painéis */
+        inset 10px 0 12px -8px rgba(0, 0, 0, 0.55),
+        inset -10px 0 12px -8px rgba(0, 0, 0, 0.55);
       text-align: center;
       display: flex;
       align-items: center;
@@ -132,6 +135,16 @@
       pointer-events: none;
     }
 
+    /* Reflexo especular (Blinn-Phong): faixa de brilho cuja intensidade vem do JS */
+    #piao .numero .reflexo {
+      position: absolute;
+      inset: -5px;
+      border-radius: inherit;
+      background: linear-gradient(100deg, rgba(255, 255, 255, 0) 15%, rgba(255, 255, 255, 0.5) 48%, rgba(255, 255, 255, 0.08) 62%, rgba(255, 255, 255, 0) 85%);
+      opacity: var(--brilho, 0);
+      pointer-events: none;
+    }
+
     #piao .numero::before {
       content: "";
       position: absolute;
@@ -150,7 +163,7 @@
       top: -45px;
       left: -45px;
       box-sizing: content-box;
-      z-index: 2;
+      z-index: 4;
       box-shadow: var(--moldura-shadow);
     }
 
@@ -164,6 +177,34 @@
       background: var(--piao-bg);
       box-shadow: inset 0 0 0 3px rgba(255,255,255,0.08), inset 0 -18px 20px rgba(0,0,0,0.45), 0 0 22px rgba(0,0,0,0.16);
       z-index: 0;
+    }
+
+    /* Sombra de contato: o tambor projeta uma sombra suave no disco de fundo, deslocada para o
+       lado oposto à luz principal (que vem de cima, à esquerda). Tamanho definido no JS. */
+    #piao-sombra {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 300px;
+      height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.35) 55%, rgba(0, 0, 0, 0));
+      transform: translate(calc(-50% + 12px), calc(-50% + 16px));
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Oclusão ambiente da cavidade do aro: escurece o tambor perto da moldura */
+    #aro-oclusao {
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      width: 404px;
+      height: 404px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, 0.16) 84%, rgba(0, 0, 0, 0.5) 100%);
+      z-index: 3;
+      pointer-events: none;
     }
 
     /* Sombra externa da moldura fora do contexto 3D (lá ela era recortada num retângulo) */
@@ -582,6 +623,8 @@
       <div id="piao"></div>
       <div id="moldura"></div>
       <div id="piao-bg"></div>
+      <div id="piao-sombra"></div>
+      <div id="aro-oclusao"></div>
     </div>
   </div>
 
@@ -659,7 +702,8 @@
       // originais já cumprem isso. Abaixo de 6, em vez de alargar a face até virar um quadrado,
       // ela mantém a proporção da face de 6 (altura = PROPORCAO_FACE × largura) e o raio é
       // ajustado para o canto cair na mesma distância.
-      var PERSPECTIVA = 900
+      var sombraTambor = document.getElementById('piao-sombra')
+      var PERSPECTIVA = 900 // ≈ lente de 85 mm para um objeto de ~400px: proporções fiéis, pouca distorção
       var ALTURA_PADRAO = 270
       var DIST_CANTO = 180
       var PROPORCAO_FACE = ALTURA_PADRAO / (2 * RAIO_CILINDRO * Math.sin(Math.PI / 6))
@@ -697,6 +741,23 @@
         return { r: R * Math.cos(Math.PI / n), recuo: R, w: 2 * R * Math.sin(Math.PI / n) + 0.6, h: h }
       }
 
+      // Silhueta projetada do tambor em repouso (meia largura e meia altura), para a sombra de contato
+      function silhueta(n, g) {
+        var mx = 0, my = 0
+        for (var k = 0; k < n; k++) {
+          var ang = 2 * Math.PI * k / n
+          if (Math.cos(ang) <= 0.02) continue
+          for (var lado = -1; lado <= 1; lado += 2) {
+            var a = ang + lado * (n === 2 ? Math.PI / 2 : Math.PI / n)
+            var raioV = n === 2 ? Math.sqrt(g.r * g.r + g.w * g.w / 4) : g.recuo
+            var s = PERSPECTIVA / (PERSPECTIVA - (raioV * Math.cos(a) - g.recuo))
+            mx = Math.max(mx, Math.abs(raioV * Math.sin(a)) * s)
+            my = Math.max(my, g.h / 2 * s)
+          }
+        }
+        return { x: mx, y: my }
+      }
+
       // Geometria de cada face: elemento, ângulo base, raio, recuo do tambor e largura
       var facesGeo = []
 
@@ -717,9 +778,15 @@
           face.style.top = ((ALTURA_PADRAO - g.h) / 2).toFixed(2) + 'px'
           face.style.marginLeft = (-g.w / 2).toFixed(2) + 'px'
           face.style.fontSize = calcularFontSize(g.w, num) + 'px'
+          var reflexo = document.createElement('div')
+          reflexo.className = 'reflexo'
+          face.appendChild(reflexo)
           piao.appendChild(face)
           facesGeo.push({ el: face, base: i * 360 / n, r: g.r, recuo: g.recuo, w: g.w })
         }
+        var sil = silhueta(n, g)
+        sombraTambor.style.width = (2 * sil.x * 1.12).toFixed(1) + 'px'
+        sombraTambor.style.height = (2 * sil.y * 1.06).toFixed(1) + 'px'
         aplicarForaDaRoda()
         aplicarRotacao(0)
       }
@@ -979,15 +1046,29 @@
         }
       }
 
+      // Iluminação (modelo de Blinn-Phong, sombreamento flat: uma intensidade por face).
+      // Luz direcional principal vindo de cima/esquerda/frente; observador em +z.
+      // Normal da face girada de φ em torno do eixo Y: N = (sen φ, 0, cos φ).
+      var LUZ = normalizar([-0.4, 0.35, 0.85])
+      var MEIO = normalizar([LUZ[0], LUZ[1], LUZ[2] + 1]) // vetor intermediário H = (L + V)/|L + V|
+      var K_AMBIENTE = 0.22, K_DIFUSA = 0.78, K_ESPECULAR = 0.9, BRILHO_S = 28
+      var I_MAX = K_AMBIENTE + K_DIFUSA * Math.sqrt(LUZ[0] * LUZ[0] + LUZ[2] * LUZ[2])
+
+      function normalizar(v) {
+        var m = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
+        return [v[0] / m, v[1] / m, v[2] / m]
+      }
+
       // Cada face recebe sua própria transformação; a perspectiva vem do #piao. O tambor é
       // recuado do próprio raio, com o eixo atrás da tela e a face da frente perto do plano dela.
-      // Faces de costas ficam ocultas; as laterais escurecem pelo cosseno do ângulo (luz frontal).
+      // Faces de costas ficam ocultas.
       function aplicarRotacao(angulo) {
         anguloAcumulado = angulo
         for (var i = 0; i < facesGeo.length; i++) {
           var f = facesGeo[i]
           var phi = angulo + f.base
-          var cos = Math.cos(phi * Math.PI / 180)
+          var rad = phi * Math.PI / 180
+          var sen = Math.sin(rad), cos = Math.cos(rad)
           if (cos <= 0.02) {
             if (f.visivel !== false) { f.el.style.visibility = 'hidden'; f.visivel = false }
             continue
@@ -996,7 +1077,11 @@
           var transformacao = 'translateZ(' + (-f.recuo).toFixed(2) + 'px) rotateY(' + phi.toFixed(3) + 'deg) translateZ(' + f.r.toFixed(2) + 'px)'
           f.el.style.transform = transformacao
           f.el.style.webkitTransform = transformacao
-          f.el.style.setProperty('--sombra', (0.82 * Math.pow(1 - cos, 1.15)).toFixed(3))
+          var difusa = Math.max(0, sen * LUZ[0] + cos * LUZ[2])
+          var intensidade = K_AMBIENTE + K_DIFUSA * difusa
+          var especular = K_ESPECULAR * Math.pow(Math.max(0, sen * MEIO[0] + cos * MEIO[2]), BRILHO_S)
+          f.el.style.setProperty('--sombra', Math.min(0.9, Math.max(0, 1 - intensidade / I_MAX)).toFixed(3))
+          f.el.style.setProperty('--brilho', especular.toFixed(3))
         }
       }
 

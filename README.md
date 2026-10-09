@@ -41,9 +41,11 @@ Barra de ícones no topo da tela, sem painel de configurações:
 
 Nada é salvo: ao recarregar a página tudo volta ao estado inicial (6 faces, números, um por vez, som ligado).
 
-### 3. 📐 Geometria 3D Dinâmica (2 a 15 Faces)
-- O pião é um polígono cilíndrico tridimensional gerado via CSS 3D (`preserve-3d`, `translateZ` e `rotateY`).
-- A largura de cada face e o raio de rotação são calculados dinamicamente através de trigonometria precisa ($w = 2R \sin(\frac{\pi}{n})$ e $r = R \cos(\frac{\pi}{n})$), mantendo as proporções estéticas perfeitas em qualquer quantidade de faces.
+### 3. 📐 Tambor 3D realista (2 a 15 faces)
+- **Projeção por face com perspectiva** (equivalente a uma lente de ~85 mm): cada face recebe sua própria transformação, sem depender da ordenação de planos 3D do navegador (`preserve-3d`), o que garante o mesmo resultado no Safari, Chrome e Firefox.
+- **Dimensionamento constante**: para qualquer quantidade de faces, o canto mais externo visível fica sempre à mesma distância do aro vermelho; abaixo de 6 faces, a face mantém a proporção da face de 6.
+- **Iluminação Blinn-Phong** (sombreamento flat): luz principal de cima/esquerda com componentes ambiente, difusa e especular; o reflexo desliza pelas faces durante o giro.
+- **Oclusão ambiente** nas junções dos painéis e junto ao aro, e **sombra de contato** do tambor no disco de fundo.
 
 ### 4. 🏆 Sorteados na tela
 - Faixa discreta abaixo do pião com os números na ordem em que saíram (o último em destaque).
