@@ -21,8 +21,8 @@
       --red-cta-2: rgb(160,0,0);
       --scene-1: #1a1d18;
       --piao-bg: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 22%, rgba(0,0,0,0.12) 46%, rgba(0,0,0,0.8) 100%), linear-gradient(180deg, #1d1d1b 0%, #090909 100%);
-      --moldura-shadow: 0 0 28px 4px rgba(220, 15, 25, 0.35), 0 18px 48px rgba(0, 0, 0, 0.65), 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 0 25px 8px rgba(0, 0, 0, 0.9), inset 0 3px 6px rgba(255, 255, 255, 0.4), inset 0 -3px 6px rgba(0, 0, 0, 0.45);
-      --scene-bg: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.75) 205px, rgba(0, 0, 0, 0.42) 248px, rgba(0, 0, 0, 0.15) 290px, transparent 360px), radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 80%), radial-gradient(circle at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.22) 100%), repeating-conic-gradient(from 0deg at 50% 50%, #e5eae1 0deg, #d6dcd2 3.2deg, #c5ccc1 6.8deg, #161914 6.8deg, #161914 7.5deg);
+      --moldura-shadow: inset 0 0 25px 8px rgba(0, 0, 0, 0.9), inset 0 3px 6px rgba(255, 255, 255, 0.4), inset 0 -3px 6px rgba(0, 0, 0, 0.45);
+      --scene-bg: radial-gradient(circle at var(--centro-x, 50%) var(--centro-y, 50%), rgba(0, 0, 0, 0.75) calc(205px * var(--escala, 1)), rgba(0, 0, 0, 0.42) calc(248px * var(--escala, 1)), rgba(0, 0, 0, 0.15) calc(290px * var(--escala, 1)), transparent calc(360px * var(--escala, 1))), radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 80%), radial-gradient(circle at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.22) 100%), repeating-conic-gradient(from 0deg at var(--centro-x, 50%) var(--centro-y, 50%), #e5eae1 0deg, #d6dcd2 3.2deg, #c5ccc1 6.8deg, #161914 6.8deg, #161914 7.5deg);
     }
 
     html {
@@ -157,6 +157,23 @@
       box-shadow: inset 0 0 0 3px rgba(255,255,255,0.08), inset 0 -18px 20px rgba(0,0,0,0.45), 0 0 22px rgba(0,0,0,0.16);
       -webkit-transform: translateZ(1px);
       transform: translateZ(1px);
+    }
+
+    /* Sombra externa da moldura fora do contexto 3D (lá ela era recortada num retângulo) */
+    #moldura-sombra {
+      position: fixed;
+      left: var(--centro-x, 50%);
+      top: var(--centro-y, 50%);
+      width: calc(490px * var(--escala, 1));
+      height: calc(490px * var(--escala, 1));
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      z-index: 0;
+      pointer-events: none;
+      box-shadow:
+        0 0 calc(28px * var(--escala, 1)) calc(4px * var(--escala, 1)) rgba(220, 15, 25, 0.35),
+        0 calc(18px * var(--escala, 1)) calc(48px * var(--escala, 1)) rgba(0, 0, 0, 0.65),
+        0 calc(4px * var(--escala, 1)) calc(14px * var(--escala, 1)) rgba(0, 0, 0, 0.4);
     }
 
     #decoracao {
@@ -1094,6 +1111,7 @@
     <source src="piao-da-casa-propria-soundtrack.ogg" type="audio/ogg" />
   </audio>
 
+  <div id="moldura-sombra" aria-hidden="true"></div>
   <div id="decoracao"></div>
 
   <script type="text/javascript">
@@ -2142,6 +2160,20 @@
         palco.style.transformOrigin = 'center center'
         palco.style.webkitTransformOrigin = 'center center'
         palco.setAttribute('data-scale', String(scale))
+        centralizarFundo()
+      }
+
+      // Sombra e raios do fundo acompanham o centro e a escala reais da moldura
+      var decoracao = document.getElementById('decoracao')
+      var wrapperPiao = document.getElementById('wrapper')
+      function centralizarFundo() {
+        if (!decoracao || !wrapperPiao) return
+        var r = wrapperPiao.getBoundingClientRect()
+        if (!r.width) return
+        var raiz = document.documentElement.style
+        raiz.setProperty('--centro-x', (r.left + r.width / 2).toFixed(1) + 'px')
+        raiz.setProperty('--centro-y', (r.top + r.height / 2).toFixed(1) + 'px')
+        raiz.setProperty('--escala', (r.width / 400).toFixed(3))
       }
 
       var resizeTimer = null
