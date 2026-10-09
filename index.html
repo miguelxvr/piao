@@ -1031,7 +1031,7 @@
         <summary>Atalhos de teclado</summary>
         <ul>
           <li><kbd>Espaço</kbd> girar (segure para mais força)</li>
-          <li><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> tipo de sorteio</li>
+          <li><kbd>1</kbd> <kbd>2</kbd> tipo de sorteio</li>
           <li><kbd>Esc</kbd> parar sequência / fechar painel</li>
           <li><kbd>S</kbd> som &nbsp; <kbd>F</kbd> tela cheia &nbsp; <kbd>C</kbd> configurações</li>
         </ul>
@@ -1041,15 +1041,6 @@
 
   <div id="acao-principal">
     <div id="ajuste-rapido" class="ajuste-rapido" hidden>
-        <div class="campo" id="campo-giros" hidden>
-          <p class="campo-titulo" id="titulo-giros">Quantos giros</p>
-          <div class="stepper-controle" role="group" aria-labelledby="titulo-giros">
-            <button type="button" class="btn-step" id="btn-menos-giros" aria-label="Menos giros">−</button>
-            <span class="stepper-valor" id="giros-valor" aria-live="polite">10</span>
-            <button type="button" class="btn-step" id="btn-mais-giros" aria-label="Mais giros">+</button>
-          </div>
-        </div>
-
         <div class="campo" id="campo-roda">
           <button type="button" class="linha-switch" id="sw-roda" role="switch" aria-checked="false">
             <span>Tirar da roda quem já saiu</span>
@@ -1061,7 +1052,6 @@
     <div id="seletor-modo" class="seletor-modo" role="radiogroup" aria-label="Tipo de sorteio">
       <button type="button" class="modo-btn" role="radio" data-modo="unico" title="Um por vez (1)"><span class="modo-rotulo">Um por vez</span></button>
       <button type="button" class="modo-btn" role="radio" data-modo="sequencia" title="Todos em sequência, sem repetir (2)"><span class="modo-rotulo" id="rotulo-sequencia">Todos (6)</span></button>
-      <button type="button" class="modo-btn" role="radio" data-modo="repeticao" title="Vários giros, pode repetir (3)"><span class="modo-rotulo" id="rotulo-repeticao">10 giros</span></button>
     </div>
     <button type="button" id="girar"><span class="girar-texto" id="girar-texto">Girar o Pião</span><span class="forca" id="forca" aria-hidden="true"></span></button>
   </div>
@@ -1114,21 +1104,16 @@
       var btnSom = $('#btn-som')
       var swSom = $('#sw-som')
       var swRoda = $('#sw-roda')
-      var campoGiros = $('#campo-giros')
       var campoRoda = $('#campo-roda')
       var opcoesModo = $$('.modo-btn')
       var ajusteRapido = $('#ajuste-rapido')
       var rotuloSequencia = $('#rotulo-sequencia')
-      var rotuloRepeticao = $('#rotulo-repeticao')
       var badgeFaces = $('#badge-faces')
       var botoesRotulos = $$('[data-rotulos]')
       var btnMenosFaces = $('#btn-menos-faces')
       var btnMaisFaces = $('#btn-mais-faces')
       var facesValor = $('#faces-valor')
       var facesIntervalo = $('#faces-intervalo')
-      var btnMenosGiros = $('#btn-menos-giros')
-      var btnMaisGiros = $('#btn-mais-giros')
-      var girosValor = $('#giros-valor')
       var btnRestaurar = $('#btn-restaurar')
       var girarBtn = $('#girar')
       var girarTexto = $('#girar-texto')
@@ -1149,10 +1134,10 @@
       var CHAVE_PREFS = 'piao:prefs:v2'
       var RAIO_CILINDRO = 165
       var VEL_BASE = 360 / 0.55 // graus/s
-      var MIN_FACES = 2, MAX_FACES = 15, MIN_GIROS = 2, MAX_GIROS = 30
+      var MIN_FACES = 2, MAX_FACES = 15
       var reduzirMovimento = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
 
-      var PADRAO = { modo: 'unico', faces: 6, rotulos: 'numeros', giros: 10, tirarDaRoda: false, som: true }
+      var PADRAO = { modo: 'unico', faces: 6, rotulos: 'numeros', tirarDaRoda: false, som: true }
       var cfg = carregarPrefs()
 
       // Estado de execução
@@ -1175,10 +1160,9 @@
         try {
           var salvo = JSON.parse(window.localStorage.getItem(CHAVE_PREFS) || 'null')
           if (salvo && typeof salvo === 'object') {
-            if (['unico', 'sequencia', 'repeticao'].indexOf(salvo.modo) !== -1) c.modo = salvo.modo
+            if (['unico', 'sequencia'].indexOf(salvo.modo) !== -1) c.modo = salvo.modo
             if (typeof salvo.faces === 'number') c.faces = limitar(salvo.faces, MIN_FACES, MAX_FACES)
             if (salvo.rotulos === 'letras' || salvo.rotulos === 'numeros') c.rotulos = salvo.rotulos
-            if (typeof salvo.giros === 'number') c.giros = limitar(salvo.giros, MIN_GIROS, MAX_GIROS)
             if (typeof salvo.tirarDaRoda === 'boolean') c.tirarDaRoda = salvo.tirarDaRoda
             if (typeof salvo.som === 'boolean') c.som = salvo.som
           }
@@ -1299,7 +1283,7 @@
 
       // ---------- Áudio ----------
       // No iOS/Safari, play() só é garantido dentro de um gesto "de verdade" (touchend/click/tecla)
-      // e o ciclo pause → currentTime = 0 → play() entre giros é instável. Por isso, depois do
+      // e o ciclo pause → currentTime = 0 → play() entre um giro e outro é instável. Por isso, depois do
       // primeiro gesto o elemento fica tocando em loop MUDO; cada giro só volta ao início e desmuta.
       var PAUSA_OCIOSA_MS = 3 * 60 * 1000
       var pausaOciosaTimer = null
@@ -1531,19 +1515,17 @@
       // ---------- Textos e estado da interface ----------
       function textoModo() {
         if (cfg.modo === 'sequencia') return 'Todos em sequência'
-        if (cfg.modo === 'repeticao') return cfg.giros + ' giros'
         return cfg.tirarDaRoda ? 'Um por vez · sem repetir' : 'Um por vez'
       }
 
       var ajusteAberto = false
 
       function modoTemAjuste(modo) {
-        return modo === 'unico' || modo === 'repeticao'
+        return modo === 'unico'
       }
 
       function atualizarSeletor() {
         rotuloSequencia.textContent = 'Todos (' + cfg.faces + ')'
-        rotuloRepeticao.textContent = cfg.giros + ' giros'
         badgeFaces.textContent = String(cfg.faces)
         btnConfig.setAttribute('aria-label', 'Abrir configurações (' + cfg.faces + ' faces, ' + textoIntervalo() + ')')
         if (!emRepouso()) ajusteAberto = false
@@ -1585,8 +1567,6 @@
           texto = 'Sorteando…'
         } else if (cfg.modo === 'sequencia') {
           texto = (ultimaSequenciaCompleta ? 'Sortear de novo' : 'Sortear todos') + ' (' + cfg.faces + ')'
-        } else if (cfg.modo === 'repeticao') {
-          texto = (ultimaSequenciaCompleta ? 'Girar de novo' : 'Girar') + ' ' + cfg.giros + ' vezes'
         } else if (rodaAtiva() && restantesNaRoda().length === 0) {
           texto = 'Recomeçar a roda'
         } else {
@@ -1604,8 +1584,6 @@
         }
         facesValor.textContent = String(cfg.faces)
         facesIntervalo.textContent = textoIntervalo()
-        girosValor.textContent = String(cfg.giros)
-        campoGiros.hidden = cfg.modo !== 'repeticao'
         campoRoda.hidden = cfg.modo !== 'unico'
         swRoda.setAttribute('aria-checked', String(cfg.tirarDaRoda))
         definirPainelAtivo(!(girando || sequenciaAtiva || segurando))
@@ -1617,8 +1595,6 @@
         if (ativo) {
           btnMenosFaces.disabled = cfg.faces <= MIN_FACES
           btnMaisFaces.disabled = cfg.faces >= MAX_FACES
-          btnMenosGiros.disabled = cfg.giros <= MIN_GIROS
-          btnMaisGiros.disabled = cfg.giros >= MAX_GIROS
         }
       }
 
@@ -1671,16 +1647,6 @@
         limparDestaque()
         construirPiao(cfg.faces)
         renderizarHistorico()
-        atualizarTudo()
-      }
-
-      function definirGiros(n) {
-        if (!emRepouso()) return
-        var novo = limitar(n, MIN_GIROS, MAX_GIROS)
-        if (novo === cfg.giros) return
-        cfg.giros = novo
-        salvarPrefs()
-        ultimaSequenciaCompleta = false
         atualizarTudo()
       }
 
@@ -1856,8 +1822,7 @@
       // ---------- Sequência ----------
       function iniciarSequencia() {
         if (!emRepouso()) return
-        var permitirRepeticao = cfg.modo === 'repeticao'
-        var total = permitirRepeticao ? cfg.giros : cfg.faces
+        var total = cfg.faces
         var n = cfg.faces
         var meuId = ++idSequencia
         sequenciaAtiva = true
@@ -1875,16 +1840,13 @@
             encerrarSequencia(true)
             return
           }
-          var forcedNum
-          if (!permitirRepeticao) {
-            var disponiveis = []
-            for (var c = 1; c <= n; c++) if (historico.indexOf(c) === -1) disponiveis.push(c)
-            if (!disponiveis.length) {
-              encerrarSequencia(true)
-              return
-            }
-            forcedNum = sortearEntre(disponiveis)
+          var disponiveis = []
+          for (var c = 1; c <= n; c++) if (historico.indexOf(c) === -1) disponiveis.push(c)
+          if (!disponiveis.length) {
+            encerrarSequencia(true)
+            return
           }
+          var forcedNum = sortearEntre(disponiveis)
           continuarMusica()
           executarDesaceleracaoFisica(n, VEL_BASE, duracaoGiro(0.5), function (num) {
             if (!sequenciaAtiva || meuId !== idSequencia) return
@@ -1992,7 +1954,7 @@
         if (k === 's') { liberarAudioIOS(); definirSom(!cfg.som) }
         else if (k === 'f') alternarTelaCheia()
         else if (k === 'c') alternarPainel()
-        else if (k === '1' || k === '2' || k === '3') aoEscolherModo(['unico', 'sequencia', 'repeticao'][Number(k) - 1])
+        else if (k === '1' || k === '2') aoEscolherModo(['unico', 'sequencia'][Number(k) - 1])
       })
 
       window.addEventListener('keyup', function (e) {
@@ -2037,8 +1999,6 @@
 
       ligarStepper(btnMenosFaces, function () { definirFaces(cfg.faces - 1) })
       ligarStepper(btnMaisFaces, function () { definirFaces(cfg.faces + 1) })
-      ligarStepper(btnMenosGiros, function () { definirGiros(cfg.giros - 1) })
-      ligarStepper(btnMaisGiros, function () { definirGiros(cfg.giros + 1) })
 
       // ---------- Grupos de opção (com setas) ----------
       function ligarGrupo(botoes, attr, acao) {
