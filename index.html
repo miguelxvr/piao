@@ -63,9 +63,8 @@
       transform-origin: center center;
     }
 
-    /* Sem transform-style: preserve-3d. A projeção do cilindro é calculada por face no JS
-       (ortográfica: rotação + recorte do trecho atrás do disco), então o navegador não
-       precisa ordenar planos 3D — o que o Safari faz errado com poucas faces. */
+    /* Sem transform-style: preserve-3d: cada face é projetada individualmente (perspectiva do
+       #piao), então o navegador não precisa ordenar planos 3D — o que o Safari faz errado. */
     #wrapper {
       width: 400px;
       height: 400px;
@@ -84,6 +83,12 @@
       height: 270px;
       width: 400px; /* contém as faces mais largas (3 faces = 286px) */
       z-index: 1;
+      /* Perspectiva aplicada a cada face individualmente: dá profundidade ao tambor sem
+         precisar de preserve-3d (as faces de frente de um prisma convexo não se sobrepõem) */
+      -webkit-perspective: 900px;
+      perspective: 900px;
+      -webkit-perspective-origin: 50% 50%;
+      perspective-origin: 50% 50%;
     }
 
     #piao .numero {
@@ -114,6 +119,17 @@
       backface-visibility: hidden;
       user-select: none;
       transition: color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* Sombreamento por ângulo (Lambert): escurece a face conforme ela vira para o lado */
+    #piao .numero::after {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      border-radius: inherit;
+      background: #000;
+      opacity: var(--sombra, 0);
+      pointer-events: none;
     }
 
     #piao .numero::before {
@@ -638,7 +654,6 @@
 
       // Geometria de cada face: elemento, ângulo base, raio e largura
       var facesGeo = []
-      var Z_FUNDO = 1 // o disco de fundo fica no plano z = 1px; o que está atrás dele não aparece
 
       function construirPiao(n) {
         piao.innerHTML = ''
@@ -940,36 +955,24 @@
         }
       }
 
-      // Projeção ortográfica do cilindro, face a face. Um ponto da face na coordenada local u
-      // (−w/2 … w/2) fica na profundidade z(u) = r·cos φ − u·sen φ; o trecho com z < Z_FUNDO
-      // está atrás do disco e é recortado. Faces de costas somem por backface-visibility.
+      // Cada face recebe sua própria transformação; a perspectiva vem do #piao. O tambor é
+      // recuado de RAIO_CILINDRO para a face da frente ficar no plano da tela (tamanho real).
+      // Faces de costas ficam ocultas; as laterais escurecem pelo cosseno do ângulo (luz frontal).
       function aplicarRotacao(angulo) {
         anguloAcumulado = angulo
         for (var i = 0; i < facesGeo.length; i++) {
           var f = facesGeo[i]
           var phi = angulo + f.base
-          var rad = phi * Math.PI / 180
-          var sen = Math.sin(rad), cos = Math.cos(rad)
-          var meia = f.w / 2
-          var esq = 0, dir = 0 // recorte em px a partir de cada borda da face
-          if (Math.abs(sen) < 1e-6) {
-            if (f.r * cos < Z_FUNDO) esq = f.w
-          } else {
-            var u = (f.r * cos - Z_FUNDO) / sen // ponto em que a face cruza o plano do disco
-            if (sen > 0) dir = Math.min(f.w, Math.max(0, meia - u))
-            else esq = Math.min(f.w, Math.max(0, u + meia))
+          var cos = Math.cos(phi * Math.PI / 180)
+          if (cos <= 0.02) {
+            if (f.visivel !== false) { f.el.style.visibility = 'hidden'; f.visivel = false }
+            continue
           }
-          var transformacao = 'rotateY(' + phi.toFixed(3) + 'deg) translateZ(' + f.r.toFixed(2) + 'px)'
+          if (f.visivel !== true) { f.el.style.visibility = ''; f.visivel = true }
+          var transformacao = 'translateZ(' + (-RAIO_CILINDRO) + 'px) rotateY(' + phi.toFixed(3) + 'deg) translateZ(' + f.r.toFixed(2) + 'px)'
           f.el.style.transform = transformacao
           f.el.style.webkitTransform = transformacao
-          if (esq + dir >= f.w - 0.5 || cos <= 0) {
-            f.el.style.visibility = 'hidden'
-          } else {
-            f.el.style.visibility = ''
-            var recorte = (esq > 0 || dir > 0) ? 'inset(0 ' + dir.toFixed(2) + 'px 0 ' + esq.toFixed(2) + 'px)' : ''
-            f.el.style.clipPath = recorte
-            f.el.style.webkitClipPath = recorte
-          }
+          f.el.style.setProperty('--sombra', (0.82 * Math.pow(1 - cos, 1.15)).toFixed(3))
         }
       }
 
