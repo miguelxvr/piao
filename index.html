@@ -171,289 +171,469 @@
       background-image: var(--scene-bg);
     }
 
-    .btn-expandir-drawer {
+    /* ================= UI (controles) ================= */
+    :root {
+      --ui-text: #1a1a1a;
+      --ui-text-soft: #4a4a4a;
+      --ui-line: #dcdcdc;
+      --ui-fill: #f1f1f1;
+      --ui-gold: #ffd700;
+      --focus-ring: 0 0 0 3px #fff, 0 0 0 6px #1565c0;
+    }
+
+    button {
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible,
+    [tabindex]:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring) !important;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ---------- Botões flutuantes (topo) ---------- */
+    .btn-flutuante {
       position: fixed;
       top: max(12px, env(safe-area-inset-top, 0px));
-      left: max(12px, env(safe-area-inset-left, 0px));
       z-index: 100;
-      width: 50px;
-      height: 50px;
+      width: 48px;
+      height: 48px;
       padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 22px;
+      line-height: 1;
       background: linear-gradient(135deg, var(--red-cta) 0%, var(--red-cta-2) 100%);
-      border: 3px solid #ffd700;
+      color: #fff;
+      border: 3px solid var(--ui-gold);
       border-radius: 50%;
       cursor: pointer;
-      box-shadow: 0 6px 20px rgba(200, 0, 0, 0.45), 0 0 14px rgba(255, 215, 0, 0.4);
-      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      user-select: none;
-      -webkit-user-select: none;
+      box-shadow: 0 6px 20px rgba(200, 0, 0, 0.45), 0 0 14px rgba(255, 215, 0, 0.35);
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
       touch-action: manipulation;
     }
 
-    .btn-expandir-drawer .drawer-icone {
-      font-size: 26px;
-      line-height: 1;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
-      transition: transform 0.25s ease;
+    .btn-flutuante:hover {
+      transform: scale(1.08);
     }
 
-    .btn-expandir-drawer:hover {
-      background: linear-gradient(135deg, var(--red-cta) 0%, var(--red-cta-2) 100%);
-      transform: scale(1.12);
-      box-shadow: 0 8px 25px rgba(200, 0, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.7);
-    }
-
-    .btn-expandir-drawer:hover .drawer-icone {
-      transform: rotate(45deg);
-    }
-
-    .btn-expandir-drawer:active {
+    .btn-flutuante:active {
       transform: scale(0.95);
     }
 
+    #btn-config {
+      left: max(12px, env(safe-area-inset-left, 0px));
+    }
+
+    .acoes-topo {
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top, 0px));
+      right: max(12px, env(safe-area-inset-right, 0px));
+      z-index: 100;
+      display: flex;
+      gap: 10px;
+    }
+
+    .acoes-topo .btn-flutuante {
+      position: static;
+    }
+
+    #btn-som[aria-pressed="false"] {
+      background: linear-gradient(135deg, #555 0%, #333 100%);
+      border-color: #999;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+    }
+
+    body.painel-aberto #btn-config {
+      display: none;
+    }
+
+    /* ---------- Painel de configurações ---------- */
     #painel {
       position: fixed;
       top: max(12px, env(safe-area-inset-top, 0px));
       left: max(12px, env(safe-area-inset-left, 0px));
-      z-index: 90;
+      z-index: 110;
       background: var(--panel-bg);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      padding: 16px 18px;
-      border-radius: 14px;
+      border-radius: 16px;
       border: 1px solid var(--panel-border);
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.06);
-      width: min(250px, calc(100vw - 24px));
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.08);
+      width: 300px;
       max-height: calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-      overflow-x: hidden;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      font-family: inherit;
+      display: flex;
+      flex-direction: column;
       box-sizing: border-box;
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      color: var(--ui-text);
+      user-select: none;
+      -webkit-user-select: none;
     }
 
-    #painel .painel-header {
+    #painel[hidden] {
+      display: none;
+    }
+
+    .painel-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
+      padding: 12px 12px 10px 18px;
       border-bottom: 1px solid #eee;
+      flex-shrink: 0;
     }
 
-    #painel .header-titulo {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    #painel .header-titulo h1 {
+    .painel-header h2 {
       margin: 0;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--red-cta);
     }
 
-    #painel .header-acoes {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    #painel .btn-reset-config {
-      background: #f0f0f0;
-      border: 1px solid #ccc;
-      color: #555;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 7px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    #painel .btn-reset-config:hover {
-      background: #e0e0e0;
-      color: var(--red-cta);
-      border-color: #bbb;
-    }
-
-    #painel .btn-som {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
-      cursor: pointer;
+    .btn-icone {
+      width: 44px;
+      height: 44px;
       border: 1px solid transparent;
-      transition: all 0.15s ease;
-    }
-
-    #painel .btn-som.ativo {
-      background: #e8f5e9;
-      color: #2e7d32;
-      border-color: #c8e6c9;
-    }
-
-    #painel .btn-som.ativo:hover {
-      background: #c8e6c9;
-    }
-
-    #painel .btn-som.mudo {
-      background: #ffebee;
-      color: #c62828;
-      border-color: #ffcdd2;
-    }
-
-    #painel .btn-som.mudo:hover {
-      background: #ffcdd2;
-    }
-
-    #painel .btn-recolher {
-      background: #eee;
-      border: 1px solid #ccc;
-      color: #444;
-      font-size: 13px;
-      font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 6px;
+      background: transparent;
+      border-radius: 10px;
+      font-size: 18px;
+      color: var(--ui-text-soft);
       cursor: pointer;
-      transition: background 0.15s ease, color 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    #painel .btn-recolher:hover {
-      background: #ddd;
+    .btn-icone:hover {
+      background: var(--ui-fill);
       color: var(--red-cta);
     }
 
-    #painel .painel-conteudo {
+    .painel-conteudo {
+      padding: 14px 18px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
-    #painel .campo {
+    .campo {
       margin: 0;
+      padding: 0;
+      border: 0;
+      min-width: 0;
     }
 
-    #painel .campo label {
-      display: block;
-      font-weight: 600;
-      font-size: 11px;
-      color: var(--text-soft);
-      margin-bottom: 5px;
+    .campo-titulo {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--ui-text-soft);
+      margin: 0 0 6px;
+      padding: 0;
       text-transform: uppercase;
       letter-spacing: 0.4px;
     }
 
+    .campo-titulo .campo-extra {
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 600;
+      color: var(--red-cta);
+    }
+
+    .campo-ajuda {
+      margin: 6px 0 0;
+      font-size: 12px;
+      line-height: 1.35;
+      color: var(--ui-text-soft);
+    }
+
+    /* Opções "Como sortear" */
+    .opcoes-modo {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .opcao-modo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 52px;
+      padding: 8px 12px;
+      text-align: left;
+      background: #fff;
+      border: 2px solid var(--ui-line);
+      border-radius: 12px;
+      cursor: pointer;
+      color: var(--ui-text);
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .opcao-modo:hover:not(:disabled) {
+      border-color: #b9b9b9;
+    }
+
+    .opcao-modo .opcao-icone {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .opcao-modo strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .opcao-modo small {
+      display: block;
+      font-size: 12px;
+      color: var(--ui-text-soft);
+      margin-top: 1px;
+    }
+
+    .opcao-modo[aria-checked="true"] {
+      border-color: var(--red-cta);
+      background: #fff4f4;
+    }
+
+    .opcao-modo[aria-checked="true"] strong {
+      color: var(--red-cta);
+    }
+
+    /* Stepper */
     .stepper-controle {
       display: flex;
       align-items: center;
       width: 100%;
-      background: #f1f1f1;
-      border-radius: 8px;
+      background: var(--ui-fill);
+      border-radius: 10px;
       overflow: hidden;
-      border: 1px solid #ddd;
+      border: 1px solid var(--ui-line);
     }
 
-    .stepper-controle .btn-step {
-      width: 44px;
-      height: 36px;
+    .btn-step {
+      width: 52px;
+      height: 44px;
       flex-shrink: 0;
       border: none;
       background: #e2e2e2;
-      color: #333;
-      font-size: 18px;
+      color: #222;
+      font-size: 22px;
       font-weight: 700;
       cursor: pointer;
-      transition: background 0.15s ease, color 0.15s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      user-select: none;
+      touch-action: manipulation;
     }
 
-    .stepper-controle .btn-step:hover:not(:disabled) {
+    .btn-step:hover:not(:disabled) {
       background: #d4d4d4;
       color: var(--red-cta);
     }
 
-    .stepper-controle .btn-step:active:not(:disabled) {
-      background: #c8c8c8;
-    }
-
-    .stepper-controle .btn-step:disabled {
+    .btn-step:disabled {
       opacity: 0.35;
       cursor: not-allowed;
     }
 
-    .stepper-controle input {
+    .stepper-valor {
       flex: 1;
-      width: 100%;
-      min-width: 0;
-      border: none;
-      background: transparent;
       text-align: center;
-      font-size: 16px;
+      font-size: 20px;
       font-weight: 800;
       color: #111;
-      cursor: default;
-      outline: none;
-      user-select: none;
-      -webkit-appearance: none;
-      margin: 0;
     }
 
+    /* Segmentado (Números/Letras) */
     .botoes-toggle {
       display: flex;
       gap: 3px;
-      background: #f1f1f1;
+      background: var(--ui-fill);
       padding: 3px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
+      border-radius: 10px;
+      border: 1px solid var(--ui-line);
     }
 
-    .botoes-toggle .btn-toggle {
+    .btn-toggle {
       flex: 1;
+      min-height: 40px;
       padding: 6px 4px;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
       border: none;
       background: transparent;
-      color: #666;
-      border-radius: 6px;
+      color: #444;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.15s ease;
     }
 
-    .botoes-toggle .btn-toggle:hover:not(.ativo):not(:disabled) {
-      background: rgba(0, 0, 0, 0.05);
+    .btn-toggle:hover:not([aria-checked="true"]):not(:disabled) {
+      background: rgba(0, 0, 0, 0.06);
       color: #111;
     }
 
-    .botoes-toggle .btn-toggle.ativo {
+    .btn-toggle[aria-checked="true"] {
       background: var(--red-cta);
-      color: white;
+      color: #fff;
       box-shadow: 0 2px 4px rgba(200, 0, 0, 0.3);
     }
 
-    .botoes-toggle .btn-toggle:disabled {
-      opacity: 0.45;
+    /* Switch */
+    .linha-switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      min-height: 44px;
+      padding: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      color: var(--ui-text);
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+    }
+
+    .switch {
+      position: relative;
+      width: 46px;
+      height: 26px;
+      flex-shrink: 0;
+      border-radius: 13px;
+      background: #bbb;
+      transition: background 0.15s ease;
+    }
+
+    .switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      transition: transform 0.15s ease;
+    }
+
+    [aria-checked="true"] > .switch {
+      background: var(--red-cta);
+    }
+
+    [aria-checked="true"] > .switch::after {
+      transform: translateX(20px);
+    }
+
+    .opcao-modo:disabled,
+    .btn-toggle:disabled,
+    .linha-switch:disabled {
+      opacity: 0.5;
       cursor: not-allowed;
     }
 
+    .painel-rodape {
+      border-top: 1px solid #eee;
+      padding: 10px 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-secundario {
+      min-height: 40px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      background: #f7f7f7;
+      color: #333;
+      cursor: pointer;
+    }
+
+    .btn-secundario:hover:not(:disabled) {
+      background: #ececec;
+      color: var(--red-cta);
+    }
+
+    .btn-secundario.confirmar {
+      background: var(--red-cta);
+      border-color: var(--red-cta-2);
+      color: #fff;
+    }
+
+    .btn-secundario:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .atalhos {
+      font-size: 12px;
+      color: var(--ui-text-soft);
+      line-height: 1.6;
+    }
+
+    .atalhos summary {
+      cursor: pointer;
+      font-weight: 700;
+      min-height: 28px;
+    }
+
+    .atalhos ul {
+      margin: 4px 0 0;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    kbd {
+      display: inline-block;
+      min-width: 18px;
+      padding: 0 5px;
+      font: 700 11px/18px ui-monospace, SFMono-Regular, Menlo, monospace;
+      text-align: center;
+      color: #222;
+      background: #fff;
+      border: 1px solid #bbb;
+      border-bottom-width: 2px;
+      border-radius: 4px;
+    }
+
+    /* ---------- Ação principal ---------- */
     #acao-principal {
       position: fixed;
       left: 50%;
-      bottom: max(18px, env(safe-area-inset-bottom, 0px));
+      bottom: max(16px, env(safe-area-inset-bottom, 0px));
       transform: translateX(-50%);
       z-index: 85;
-      width: min(92vw, 360px);
+      width: min(92vw, 380px);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -461,35 +641,75 @@
       pointer-events: none;
     }
 
-    #acao-principal #girar,
-    #acao-principal .dica-espaco {
+    #acao-principal > * {
       pointer-events: auto;
     }
 
+    .resumo {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      padding: 4px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.62);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 17px;
+      cursor: pointer;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .resumo:hover {
+      background: rgba(0, 0, 0, 0.78);
+    }
+
     #girar {
+      position: relative;
+      overflow: hidden;
       width: 100%;
-      padding: 16px 18px;
-      font-size: 16px;
+      min-height: 56px;
+      padding: 14px 18px;
+      font-size: 17px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: white;
+      color: #fff;
       background: linear-gradient(135deg, var(--red-cta) 0%, var(--red-cta-2) 100%);
-      border: 2px solid #ffd700;
+      border: 2px solid var(--ui-gold);
       border-radius: 14px;
       cursor: pointer;
       box-shadow: 0 8px 24px rgba(200, 0, 0, 0.4), 0 0 18px rgba(255, 215, 0, 0.25);
-      transition: all 0.15s ease;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
       user-select: none;
       -webkit-user-select: none;
       touch-action: none;
     }
 
+    #girar .girar-texto {
+      position: relative;
+      z-index: 1;
+    }
+
+    #girar .forca {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 5px;
+      width: 100%;
+      background: linear-gradient(90deg, #ffd700, #fff59d);
+      transform-origin: left center;
+      transform: scaleX(0);
+    }
+
     @media (hover: hover) and (pointer: fine) {
       #girar:hover:not(:disabled) {
-        background: linear-gradient(135deg, rgb(235, 20, 20) 0%, rgb(180, 0, 0) 100%);
+        filter: brightness(1.1);
         transform: translateY(-1px);
-        box-shadow: 0 10px 28px rgba(200, 0, 0, 0.5), 0 0 22px rgba(255, 215, 0, 0.35);
       }
     }
 
@@ -500,114 +720,182 @@
       box-shadow: 0 3px 10px rgba(200, 0, 0, 0.35);
     }
 
+    #girar.ocupado {
+      cursor: progress;
+      filter: saturate(0.7);
+    }
+
     #girar.parar {
-      background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+      background: linear-gradient(135deg, #5a0000 0%, #3a0000 100%);
       animation: pulsar-parar 1s infinite alternate ease-in-out;
     }
 
     @keyframes pulsar-parar {
       0% { filter: brightness(1); }
-      100% { filter: brightness(1.2); }
+      100% { filter: brightness(1.35); }
     }
 
-    .dica-espaco {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.92);
+    .dica {
+      min-height: 17px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.95);
       text-align: center;
       line-height: 1.35;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
       max-width: 100%;
     }
 
+    /* ---------- Selo de resultado ---------- */
+    #resultado-selo {
+      position: fixed;
+      left: 50%;
+      top: calc(72px + env(safe-area-inset-top, 0px));
+      z-index: 95;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 26px 8px 18px;
+      background: linear-gradient(135deg, var(--red-cta) 0%, var(--red-cta-2) 100%);
+      border: 3px solid var(--ui-gold);
+      border-radius: 999px;
+      color: #fff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 215, 0, 0.5);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    #resultado-selo.visivel {
+      visibility: visible;
+      animation: selo-pop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    #resultado-selo.saindo {
+      visibility: visible;
+      animation: selo-sair 0.3s ease forwards;
+    }
+
+    #resultado-selo .selo-rotulo {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    #resultado-selo .selo-valor {
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      font-size: 54px;
+      line-height: 1;
+      color: var(--ui-gold);
+      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
+    }
+
+    @keyframes selo-pop {
+      0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+      100% { opacity: 1; transform: translateX(-50%) scale(1); }
+    }
+
+    @keyframes selo-sair {
+      0% { opacity: 1; transform: translateX(-50%) scale(1); }
+      100% { opacity: 0; transform: translateX(-50%) scale(0.85); }
+    }
+
+    /* Faces já sorteadas ("tirar da roda") */
+    #piao .numero.fora {
+      color: rgba(255, 255, 255, 0.22);
+    }
+
+    /* ---------- Histórico ---------- */
     #hud-sorteados {
       position: fixed;
       z-index: 80;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(0, 0, 0, 0.1);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
-      font-family: inherit;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+      color: var(--ui-text);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    #hud-sorteados[hidden] {
+      display: none;
     }
 
     #hud-sorteados.pos-bottom {
-      bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(148px + env(safe-area-inset-bottom, 0px));
       left: 50%;
       transform: translateX(-50%);
-      width: min(85vw, 680px);
-      max-height: 110px;
+      width: min(88vw, 680px);
       border-radius: 16px;
-      padding: 10px 16px;
+      padding: 8px 12px 10px 16px;
     }
 
     #hud-sorteados.pos-right {
-      top: 20px;
-      bottom: 20px;
-      right: 20px;
-      width: 140px;
+      top: calc(72px + env(safe-area-inset-top, 0px));
+      bottom: calc(148px + env(safe-area-inset-bottom, 0px));
+      right: max(12px, env(safe-area-inset-right, 0px));
+      width: 168px;
       border-radius: 16px;
-      padding: 14px 10px;
-      transform: none;
-      left: auto;
-      max-height: none;
+      padding: 10px;
+    }
+
+    #hud-sorteados.completo {
+      border-color: var(--ui-gold);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22), 0 0 0 3px var(--ui-gold);
     }
 
     .hud-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      gap: 8px;
+      margin-bottom: 6px;
       flex-shrink: 0;
+    }
+
+    #hud-sorteados.pos-right .hud-header {
+      flex-direction: column;
+      align-items: stretch;
     }
 
     .hud-titulo {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 11px;
+      margin: 0;
+      font-size: 12px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.6px;
       color: var(--red-cta);
     }
 
-    .hud-contador {
-      background: #f1f1f1;
-      padding: 2px 6px;
+    .hud-progresso {
+      background: var(--ui-fill);
+      padding: 2px 8px;
       border-radius: 10px;
-      font-size: 10px;
-      color: #555;
+      font-size: 12px;
+      color: #333;
+      text-transform: none;
+      letter-spacing: 0;
     }
 
     .hud-acoes {
       display: flex;
-      gap: 6px;
+      gap: 4px;
     }
 
-    .btn-posicao-hud,
-    .btn-limpar-hud {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      background: #f5f5f5;
-      color: #444;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .btn-posicao-hud:hover,
-    .btn-limpar-hud:hover {
-      background: #e8e8e8;
-      color: var(--red-cta);
-      border-color: #bbb;
+    .hud-acoes .btn-icone {
+      width: 40px;
+      height: 36px;
+      font-size: 16px;
+      border-color: #ddd;
+      background: #f7f7f7;
     }
 
     .lista-sorteados {
@@ -616,6 +904,9 @@
       overflow: auto;
       flex: 1;
       align-items: center;
+      margin: 0;
+      padding: 0;
+      list-style: none;
     }
 
     #hud-sorteados.pos-bottom .lista-sorteados {
@@ -630,7 +921,6 @@
       overflow-y: auto;
       overflow-x: hidden;
       align-items: stretch;
-      padding-right: 2px;
     }
 
     .badge-sorteado {
@@ -657,20 +947,20 @@
     }
 
     .badge-sorteado .ordem-sorteado {
-      font-size: 11px;
-      color: #bbb;
+      font-size: 12px;
+      color: #ccc;
       font-weight: 600;
     }
 
     .badge-sorteado .numero-sorteado {
-      font-size: 18px;
-      color: #ffd700;
+      font-size: 20px;
+      color: var(--ui-gold);
       font-family: 'Impact', 'Arial Black', sans-serif;
       letter-spacing: 0.5px;
     }
 
     .badge-sorteado.recente {
-      border-color: #ffd700;
+      border-color: var(--ui-gold);
       box-shadow: 0 0 16px rgba(255, 215, 0, 0.8);
       background: linear-gradient(135deg, #1a0000 0%, #300000 100%);
     }
@@ -680,112 +970,221 @@
       100% { transform: scale(1); opacity: 1; }
     }
 
+    /* ---------- Toast ---------- */
+    #toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      z-index: 120;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: min(92vw, 440px);
+      padding: 10px 10px 10px 16px;
+      background: #222;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    #toast[hidden] {
+      display: none;
+    }
+
+    #toast button {
+      min-height: 36px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--ui-gold);
+      background: transparent;
+      border: 1px solid rgba(255, 215, 0, 0.5);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #toast button[hidden] {
+      display: none;
+    }
+
+    #palco {
+      --cta-reserve: calc(150px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* ---------- Responsivo ---------- */
     @media (max-width: 768px) {
       #palco {
-        --cta-reserve: calc(118px + env(safe-area-inset-bottom, 0px));
+        --cta-reserve: calc(150px + env(safe-area-inset-bottom, 0px));
       }
       #acao-principal {
-        width: min(94vw, 360px);
+        width: min(94vw, 380px);
       }
-      #girar {
-        padding: 15px 16px;
-        font-size: 15px;
-        min-height: 52px;
+      /* Painel vira gaveta inferior */
+      #painel {
+        top: auto;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-height: 78dvh;
+        border-radius: 18px 18px 0 0;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        animation: gaveta-subir 0.25s ease;
       }
       #hud-sorteados.pos-bottom {
-        width: min(92vw, 680px);
-        bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+        width: min(94vw, 680px);
       }
       #hud-sorteados.pos-right {
-        top: max(12px, env(safe-area-inset-top, 0px));
-        bottom: calc(118px + env(safe-area-inset-bottom, 0px));
-        right: max(12px, env(safe-area-inset-right, 0px));
+        width: 128px;
+      }
+      #resultado-selo .selo-valor {
+        font-size: 44px;
       }
     }
 
+    @keyframes gaveta-subir {
+      0% { transform: translateY(100%); }
+      100% { transform: translateY(0); }
+    }
+
     @media (max-height: 700px) {
-      #palco {
-        --cta-reserve: calc(104px + env(safe-area-inset-bottom, 0px));
+      .dica {
+        font-size: 12px;
       }
-      .dica-espaco {
-        font-size: 11px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #girar.parar,
+      .badge-sorteado,
+      #painel,
+      #resultado-selo.visivel,
+      #resultado-selo.saindo {
+        animation: none !important;
+      }
+      #resultado-selo.visivel {
+        opacity: 1;
+        transform: translateX(-50%);
       }
     }
   </style>
 </head>
 <body>
-  <button type="button" id="btn-expandir-drawer" class="btn-expandir-drawer" style="display:flex;" title="Abrir painel de controles" aria-label="Abrir painel de controles">
-    <span class="drawer-icone">⚙️</span>
-  </button>
+  <button type="button" id="btn-config" class="btn-flutuante" aria-controls="painel" aria-expanded="false" title="Configurações (C)" aria-label="Abrir configurações">⚙️</button>
 
-  <aside id="painel" style="display:none;">
+  <div class="acoes-topo">
+    <button type="button" id="btn-tela-cheia" class="btn-flutuante" aria-pressed="false" title="Tela cheia (F)" aria-label="Tela cheia">⛶</button>
+    <button type="button" id="btn-som" class="btn-flutuante" aria-pressed="true" title="Som (S)" aria-label="Som">🔊</button>
+  </div>
+
+  <aside id="painel" aria-labelledby="painel-titulo" hidden>
     <div class="painel-header">
-      <div class="header-titulo">
-        <span style="font-size: 16px;">🎯</span>
-        <h1>Sorteio</h1>
-      </div>
-      <div class="header-acoes">
-        <button type="button" id="btn-reset-config" class="btn-reset-config" title="Resetar todas as configurações para o padrão">Reset</button>
-        <button type="button" id="toggle-som" class="btn-som ativo" title="Ligar/Desligar som do Pião">🔊 Som Ligado</button>
-        <button type="button" id="btn-recolher" class="btn-recolher" title="Recolher painel">✕</button>
-      </div>
+      <h2 id="painel-titulo">⚙️ Configurações</h2>
+      <button type="button" id="btn-fechar-painel" class="btn-icone" title="Fechar (Esc)" aria-label="Fechar configurações">✕</button>
     </div>
 
     <div class="painel-conteudo">
-      <div class="campo">
-        <label>Modo de sorteio</label>
-        <div class="botoes-toggle" id="botoes-modo">
-          <button type="button" class="btn-toggle ativo" data-modo="numeros">1 2 3 Números</button>
-          <button type="button" class="btn-toggle" data-modo="letras">A B C Letras</button>
+      <div class="campo" role="radiogroup" aria-labelledby="titulo-modo">
+        <p class="campo-titulo" id="titulo-modo">Como sortear</p>
+        <div class="opcoes-modo">
+          <button type="button" class="opcao-modo" role="radio" data-modo="unico">
+            <span class="opcao-icone" aria-hidden="true">🎯</span>
+            <span><strong>Um por vez</strong><small>Cada giro é um sorteio</small></span>
+          </button>
+          <button type="button" class="opcao-modo" role="radio" data-modo="sequencia">
+            <span class="opcao-icone" aria-hidden="true">⚡</span>
+            <span><strong>Todos em sequência</strong><small>Sorteia todas as faces, sem repetir</small></span>
+          </button>
+          <button type="button" class="opcao-modo" role="radio" data-modo="repeticao">
+            <span class="opcao-icone" aria-hidden="true">🔁</span>
+            <span><strong>Vários giros</strong><small>Gira várias vezes; pode repetir</small></span>
+          </button>
         </div>
       </div>
 
       <div class="campo">
-        <label for="integrantes-input">Faces (2 a 15)</label>
-        <div class="stepper-controle">
-          <button type="button" id="btn-menos-faces" class="btn-step" aria-label="Diminuir faces">−</button>
-          <input type="number" id="integrantes-input" min="2" max="15" value="6" readonly />
-          <button type="button" id="btn-mais-faces" class="btn-step" aria-label="Aumentar faces">+</button>
+        <p class="campo-titulo" id="titulo-faces">Quantidade de faces <span class="campo-extra" id="faces-intervalo">1–6</span></p>
+        <div class="stepper-controle" role="group" aria-labelledby="titulo-faces">
+          <button type="button" class="btn-step" id="btn-menos-faces" aria-label="Menos faces">−</button>
+          <span class="stepper-valor" id="faces-valor" aria-live="polite">6</span>
+          <button type="button" class="btn-step" id="btn-mais-faces" aria-label="Mais faces">+</button>
+        </div>
+        <p class="campo-ajuda">De 2 a 15. O pião se ajusta na hora.</p>
+      </div>
+
+      <div class="campo" role="radiogroup" aria-labelledby="titulo-rotulos">
+        <p class="campo-titulo" id="titulo-rotulos">Faces com</p>
+        <div class="botoes-toggle">
+          <button type="button" class="btn-toggle" role="radio" data-rotulos="numeros">1 2 3 Números</button>
+          <button type="button" class="btn-toggle" role="radio" data-rotulos="letras">A B C Letras</button>
         </div>
       </div>
 
-      <div class="campo">
-        <label>Sorteios em sequência</label>
-        <div class="botoes-toggle" id="botoes-sequencia">
-          <button type="button" class="btn-toggle ativo" data-sequencia="nao">Não</button>
-          <button type="button" class="btn-toggle" data-sequencia="sim">Sim</button>
+      <div class="campo" id="campo-giros" hidden>
+        <p class="campo-titulo" id="titulo-giros">Quantos giros</p>
+        <div class="stepper-controle" role="group" aria-labelledby="titulo-giros">
+          <button type="button" class="btn-step" id="btn-menos-giros" aria-label="Menos giros">−</button>
+          <span class="stepper-valor" id="giros-valor" aria-live="polite">10</span>
+          <button type="button" class="btn-step" id="btn-mais-giros" aria-label="Mais giros">+</button>
         </div>
       </div>
 
-      <div class="campo">
-        <label>Repetir sorteados</label>
-        <div class="botoes-toggle" id="botoes-repeticao">
-          <button type="button" class="btn-toggle ativo" data-repetir="nao">Não</button>
-          <button type="button" class="btn-toggle" data-repetir="sim">Sim</button>
-        </div>
+      <div class="campo" id="campo-roda">
+        <button type="button" class="linha-switch" id="sw-roda" role="switch" aria-checked="false">
+          <span>Tirar da roda quem já saiu</span>
+          <span class="switch" aria-hidden="true"></span>
+        </button>
+        <p class="campo-ajuda">Quem já foi sorteado não sai de novo até você recomeçar.</p>
       </div>
+    </div>
+
+    <div class="painel-rodape">
+      <button type="button" class="linha-switch" id="sw-som" role="switch" aria-checked="true">
+        <span>🔊 Música durante o giro</span>
+        <span class="switch" aria-hidden="true"></span>
+      </button>
+      <button type="button" class="btn-secundario" id="btn-restaurar">↺ Restaurar padrão</button>
+      <details class="atalhos">
+        <summary>⌨️ Atalhos de teclado</summary>
+        <ul>
+          <li><kbd>Espaço</kbd> girar (segure para mais força)</li>
+          <li><kbd>Esc</kbd> parar sequência / fechar painel</li>
+          <li><kbd>S</kbd> som &nbsp; <kbd>F</kbd> tela cheia &nbsp; <kbd>C</kbd> configurações</li>
+        </ul>
+      </details>
     </div>
   </aside>
 
   <div id="acao-principal">
-    <button type="button" id="girar">Girar Pião</button>
-    <div class="dica-espaco" id="dica-espaco">💡 Segure o botão para girar e solte para sortear</div>
+    <button type="button" id="resumo" class="resumo" aria-controls="painel" title="Alterar configurações"></button>
+    <button type="button" id="girar"><span class="girar-texto" id="girar-texto">Girar o Pião</span><span class="forca" id="forca" aria-hidden="true"></span></button>
+    <div class="dica" id="dica"></div>
   </div>
 
-  <section id="hud-sorteados" class="pos-bottom" style="display:none;" title="Toque no painel para mudar de posição (Inferior / Lateral)">
+  <div id="resultado-selo" aria-hidden="true">
+    <span class="selo-rotulo" id="selo-rotulo">Sorteado</span>
+    <span class="selo-valor" id="selo-valor"></span>
+  </div>
+  <div id="anuncio" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+
+  <section id="hud-sorteados" class="pos-bottom" aria-labelledby="hud-titulo" hidden>
     <div class="hud-header">
-      <div class="hud-titulo">
-        <span>🏆</span>
-        <span>Sorteados</span>
-        <span id="hud-contador" class="hud-contador">0</span>
-      </div>
+      <h2 class="hud-titulo" id="hud-titulo"><span aria-hidden="true">🏆</span> Sorteados <span id="hud-progresso" class="hud-progresso">0</span></h2>
       <div class="hud-acoes">
-        <button type="button" id="btn-posicao-hud" class="btn-posicao-hud" title="Mover painel para a lateral direita (vertical) ou inferior (horizontal)">➡️ Lateral</button>
-        <button type="button" id="limpar-historico" class="btn-limpar-hud" title="Limpar histórico">Limpar</button>
+        <button type="button" id="btn-posicao-hud" class="btn-icone" title="Mover para a lateral" aria-label="Mover para a lateral">➡️</button>
+        <button type="button" id="btn-copiar" class="btn-icone" title="Copiar ordem" aria-label="Copiar ordem dos sorteados">📋</button>
+        <button type="button" id="btn-limpar" class="btn-icone" title="Limpar histórico" aria-label="Limpar histórico">🗑️</button>
       </div>
     </div>
-    <div id="lista-sorteados" class="lista-sorteados"></div>
+    <ol id="lista-sorteados" class="lista-sorteados"></ol>
   </section>
+
+  <div id="toast" role="status" hidden>
+    <span id="toast-texto"></span>
+    <button type="button" id="toast-acao" hidden></button>
+  </div>
 
   <div id="palco">
     <div id="wrapper">
@@ -805,151 +1204,205 @@
 
   <script type="text/javascript">
     (function () {
-      var spinStyleEl = document.getElementById('spin-keyframes')
-      if (!spinStyleEl) {
-        spinStyleEl = document.createElement('style')
-        spinStyleEl.id = 'spin-keyframes'
-        document.head.appendChild(spinStyleEl)
-      }
+      var $ = function (sel) { return document.querySelector(sel) }
+      var $$ = function (sel) { return document.querySelectorAll(sel) }
 
-      var piao = document.querySelector('#piao')
-      var painel = document.querySelector('#painel')
-      var btnExpandirDrawer = document.querySelector('#btn-expandir-drawer')
-      var btnRecolher = document.querySelector('#btn-recolher')
-      var btnResetConfig = document.querySelector('#btn-reset-config')
+      var piao = $('#piao')
+      var painel = $('#painel')
+      var btnConfig = $('#btn-config')
+      var btnFecharPainel = $('#btn-fechar-painel')
+      var btnTelaCheia = $('#btn-tela-cheia')
+      var btnSom = $('#btn-som')
+      var swSom = $('#sw-som')
+      var swRoda = $('#sw-roda')
+      var campoGiros = $('#campo-giros')
+      var campoRoda = $('#campo-roda')
+      var opcoesModo = $$('.opcao-modo')
+      var botoesRotulos = $$('[data-rotulos]')
+      var btnMenosFaces = $('#btn-menos-faces')
+      var btnMaisFaces = $('#btn-mais-faces')
+      var facesValor = $('#faces-valor')
+      var facesIntervalo = $('#faces-intervalo')
+      var btnMenosGiros = $('#btn-menos-giros')
+      var btnMaisGiros = $('#btn-mais-giros')
+      var girosValor = $('#giros-valor')
+      var btnRestaurar = $('#btn-restaurar')
+      var resumoBtn = $('#resumo')
+      var girarBtn = $('#girar')
+      var girarTexto = $('#girar-texto')
+      var forcaBar = $('#forca')
+      var dica = $('#dica')
+      var selo = $('#resultado-selo')
+      var seloRotulo = $('#selo-rotulo')
+      var seloValor = $('#selo-valor')
+      var anuncio = $('#anuncio')
+      var hud = $('#hud-sorteados')
+      var hudProgresso = $('#hud-progresso')
+      var listaSorteados = $('#lista-sorteados')
+      var btnPosicaoHud = $('#btn-posicao-hud')
+      var btnCopiar = $('#btn-copiar')
+      var btnLimpar = $('#btn-limpar')
+      var toast = $('#toast')
+      var toastTexto = $('#toast-texto')
+      var toastAcao = $('#toast-acao')
+      var audio = $('#trilha-piao')
 
-      var botoesModo = document.querySelectorAll('#botoes-modo .btn-toggle')
-      var modoSorteio = 'numeros'
-
-      var btnMenosFaces = document.querySelector('#btn-menos-faces')
-      var btnMaisFaces = document.querySelector('#btn-mais-faces')
-      var integrantesInput = document.querySelector('#integrantes-input')
-
-      var botoesSequencia = document.querySelectorAll('#botoes-sequencia .btn-toggle')
-      var botoesRepeticao = document.querySelectorAll('#botoes-repeticao .btn-toggle')
-      var sequenciaHabilitada = false
-      var permitirRepeticao = false
-      var velMultiplicador = 1
-
-      var girarBtn = document.querySelector('#girar')
-      var dicaEspaco = document.querySelector('#dica-espaco')
-
-      var hudSorteados = document.querySelector('#hud-sorteados')
-      var hudContador = document.querySelector('#hud-contador')
-      var listaSorteados = document.querySelector('#lista-sorteados')
-      var btnPosicaoHud = document.querySelector('#btn-posicao-hud')
-      var limparHistoricoBtn = document.querySelector('#limpar-historico')
-      var totalSorteadosCont = 0
-      var hudPosicao = 'bottom'
-
-      var audio = document.querySelector('#trilha-piao') || document.querySelector('audio')
-      var toggleSomBtn = document.querySelector('#toggle-som')
-      var somHabilitado = true
-      var audioLiberado = false
-      var musicaDesejada = false
-      var idSequencia = 0
-
-      var girando = false
-      var segurandoEspaco = false
-      var sequenciaAtiva = false
-      var anguloAcumulado = 0
-      var tempoInicioEspaco = 0
+      var TITULO_BASE = 'Pião — Sorteio de Apresentação'
+      var CHAVE_PREFS = 'piao:prefs:v2'
       var RAIO_CILINDRO = 165
+      var VEL_BASE = 360 / 0.55 // graus/s
+      var MIN_FACES = 2, MAX_FACES = 15, MIN_GIROS = 2, MAX_GIROS = 30
+      var reduzirMovimento = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+
+      var PADRAO = { modo: 'unico', faces: 6, rotulos: 'numeros', giros: 10, tirarDaRoda: false, som: true, hud: 'bottom' }
+      var cfg = carregarPrefs()
+
+      // Estado de execução
+      var historico = [] // números sorteados, em ordem
+      var girando = false
+      var segurando = false
+      var sequenciaAtiva = false
+      var idSequencia = 0
+      var totalSequencia = 0
+      var ultimaSequenciaCompleta = false
+      var jaUsou = false
+      var anguloAcumulado = 0
       var animFrameId = null
-      var ponteiroSeguradoNoBotao = false
+      var ponteiroSegurado = false
+      var musicaDesejada = false
+      var audioLiberado = false
 
-      function clampIntegrantes(n) {
-        return Math.min(15, Math.max(2, Math.round(n)))
+      // ---------- Preferências ----------
+      function carregarPrefs() {
+        var c = {}
+        for (var k in PADRAO) c[k] = PADRAO[k]
+        try {
+          var salvo = JSON.parse(window.localStorage.getItem(CHAVE_PREFS) || 'null')
+          if (salvo && typeof salvo === 'object') {
+            if (['unico', 'sequencia', 'repeticao'].indexOf(salvo.modo) !== -1) c.modo = salvo.modo
+            if (typeof salvo.faces === 'number') c.faces = limitar(salvo.faces, MIN_FACES, MAX_FACES)
+            if (salvo.rotulos === 'letras' || salvo.rotulos === 'numeros') c.rotulos = salvo.rotulos
+            if (typeof salvo.giros === 'number') c.giros = limitar(salvo.giros, MIN_GIROS, MAX_GIROS)
+            if (typeof salvo.tirarDaRoda === 'boolean') c.tirarDaRoda = salvo.tirarDaRoda
+            if (typeof salvo.som === 'boolean') c.som = salvo.som
+            if (salvo.hud === 'right' || salvo.hud === 'bottom') c.hud = salvo.hud
+          }
+        } catch (e) {}
+        return c
       }
 
-      function obterQtdSorteios() {
-        if (!sequenciaHabilitada) return 1
-        return clampIntegrantes(Number(integrantesInput.value) || 6)
+      function salvarPrefs() {
+        try { window.localStorage.setItem(CHAVE_PREFS, JSON.stringify(cfg)) } catch (e) {}
       }
 
-      function obterRotuloFace(numIndex) {
-        if (modoSorteio === 'letras') {
-          return String.fromCharCode(64 + numIndex)
-        }
-        return String(numIndex)
+      function limitar(n, min, max) {
+        return Math.min(max, Math.max(min, Math.round(n)))
       }
 
-      function calcularFontSize(n, width, numero) {
-        var rotulo = String(obterRotuloFace(numero))
-        var numCaracteres = rotulo.length
+      // ---------- Rótulos ----------
+      function rotulo(num) {
+        return cfg.rotulos === 'letras' ? String.fromCharCode(64 + num) : String(num)
+      }
+
+      function textoIntervalo() {
+        return rotulo(1) + '–' + rotulo(cfg.faces)
+      }
+
+      // ---------- Construção do pião 3D (inalterado) ----------
+      function calcularFontSize(width, numero) {
+        var numCaracteres = rotulo(numero).length
         var base = (width * 0.95) / (numCaracteres > 1 ? 1.6 : 1.0)
         var fontSize = Math.min(240, Math.max(28, Math.round(base)))
-        if (modoSorteio === 'letras') {
-          fontSize = Math.round(fontSize * 0.9)
-        }
+        if (cfg.rotulos === 'letras') fontSize = Math.round(fontSize * 0.9)
         return fontSize
       }
 
-      function limparDestaque() {
-        var faces = piao.querySelectorAll('.numero')
-        for (var i = 0; i < faces.length; i++) {
-          faces[i].classList.remove('vencedor')
-        }
-      }
-
-      function destacarVencedor(winnerFaceEl) {
-        if (!winnerFaceEl) return
-        winnerFaceEl.classList.add('vencedor')
-      }
-
-      function definirPosicaoHud(pos) {
-        hudPosicao = pos
-        if (pos === 'right') {
-          hudSorteados.classList.remove('pos-bottom')
-          hudSorteados.classList.add('pos-right')
-          if (btnPosicaoHud) {
-            btnPosicaoHud.textContent = '⬇️ Base'
-            btnPosicaoHud.title = 'Mover painel para a base da tela (horizontal)'
+      function construirPiao(n) {
+        piao.innerHTML = ''
+        anguloAcumulado = 0
+        piao.style.transform = 'rotateY(0deg)'
+        piao.style.webkitTransform = 'rotateY(0deg)'
+        if (n === 2) {
+          var w2 = 165
+          var r2 = 1.0
+          for (var i2 = 0; i2 < 2; i2++) {
+            var num2 = i2 + 1
+            var face2 = document.createElement('div')
+            face2.className = 'numero'
+            face2.setAttribute('data-num', String(num2))
+            face2.textContent = rotulo(num2)
+            face2.style.width = w2 + 'px'
+            face2.style.left = '50%'
+            face2.style.marginLeft = (-w2 / 2) + 'px'
+            face2.style.fontSize = calcularFontSize(w2, num2) + 'px'
+            face2.style.transform = 'rotateY(' + (i2 * 180) + 'deg) translateZ(' + r2 + 'px)'
+            face2.style.webkitTransform = face2.style.transform
+            piao.appendChild(face2)
           }
-          hudSorteados.title = 'Toque no painel para mover para a base da tela (horizontal)'
-        } else {
-          hudSorteados.classList.remove('pos-right')
-          hudSorteados.classList.add('pos-bottom')
-          if (btnPosicaoHud) {
-            btnPosicaoHud.textContent = '➡️ Lateral'
-            btnPosicaoHud.title = 'Mover painel para a lateral direita (vertical)'
-          }
-          hudSorteados.title = 'Toque no painel para mover para a lateral direita (vertical)'
-        }
-      }
-
-      function alternarPosicaoHud() {
-        definirPosicaoHud(hudPosicao === 'bottom' ? 'right' : 'bottom')
-      }
-
-      function adicionarHistorico(rodada, num) {
-        if (!sequenciaAtiva && obterQtdSorteios() <= 1) {
-          hudSorteados.style.display = 'none'
+          aplicarForaDaRoda()
           return
         }
-
-        hudSorteados.style.display = 'flex'
-        totalSorteadosCont++
-        hudContador.textContent = String(totalSorteadosCont)
-
-        var anteriores = listaSorteados.querySelectorAll('.badge-sorteado.recente')
-        for (var i = 0; i < anteriores.length; i++) {
-          anteriores[i].classList.remove('recente')
+        var anguloPasso = 360 / n
+        var semiAnguloRad = Math.PI / n
+        var w = 2 * RAIO_CILINDRO * Math.sin(semiAnguloRad) + 0.6
+        var r = RAIO_CILINDRO * Math.cos(semiAnguloRad)
+        for (var i = 0; i < n; i++) {
+          var num = i + 1
+          var face = document.createElement('div')
+          face.className = 'numero'
+          face.setAttribute('data-num', String(num))
+          face.textContent = rotulo(num)
+          face.style.width = w.toFixed(2) + 'px'
+          face.style.left = '50%'
+          face.style.marginLeft = (-w / 2).toFixed(2) + 'px'
+          face.style.fontSize = calcularFontSize(w, num) + 'px'
+          face.style.transform = 'rotateY(' + (i * anguloPasso).toFixed(2) + 'deg) translateZ(' + r.toFixed(2) + 'px)'
+          face.style.webkitTransform = face.style.transform
+          piao.appendChild(face)
         }
+        aplicarForaDaRoda()
+      }
 
-        var badge = document.createElement('div')
-        badge.className = 'badge-sorteado recente'
-        var rotulo = obterRotuloFace(num)
-        badge.innerHTML = '<span class="ordem-sorteado">' + rodada + 'º</span><span class="numero-sorteado">' + rotulo + '</span>'
-        listaSorteados.appendChild(badge)
+      function limparDestaque() {
+        var faces = piao.querySelectorAll('.numero.vencedor')
+        for (var i = 0; i < faces.length; i++) faces[i].classList.remove('vencedor')
+      }
 
-        if (hudPosicao === 'right') {
-          listaSorteados.scrollTop = listaSorteados.scrollHeight
-        } else {
-          listaSorteados.scrollLeft = listaSorteados.scrollWidth
+      // ---------- Roda (quem já saiu) ----------
+      function rodaAtiva() {
+        return cfg.modo === 'unico' && cfg.tirarDaRoda
+      }
+
+      function foraDaRoda() {
+        if (!rodaAtiva()) return []
+        var fora = []
+        for (var i = 0; i < historico.length; i++) {
+          if (fora.indexOf(historico[i]) === -1) fora.push(historico[i])
+        }
+        return fora
+      }
+
+      function restantesNaRoda() {
+        var fora = foraDaRoda()
+        var r = []
+        for (var c = 1; c <= cfg.faces; c++) if (fora.indexOf(c) === -1) r.push(c)
+        return r
+      }
+
+      function aplicarForaDaRoda() {
+        var fora = foraDaRoda()
+        var faces = piao.querySelectorAll('.numero')
+        for (var i = 0; i < faces.length; i++) {
+          var num = Number(faces[i].getAttribute('data-num'))
+          faces[i].classList.toggle('fora', fora.indexOf(num) !== -1)
         }
       }
 
+      function sortearEntre(lista) {
+        return lista[Math.floor(Math.random() * lista.length)]
+      }
+
+      // ---------- Áudio ----------
       function liberarAudioIOS() {
         if (!audio || audioLiberado) return
         audioLiberado = true
@@ -982,19 +1435,8 @@
         }
       }
 
-      function atualizarBotoesSom() {
-        if (!toggleSomBtn) return
-        if (somHabilitado) {
-          toggleSomBtn.className = 'btn-som ativo'
-          toggleSomBtn.textContent = '🔊 Som Ligado'
-        } else {
-          toggleSomBtn.className = 'btn-som mudo'
-          toggleSomBtn.textContent = '🔇 Som Mudo'
-        }
-      }
-
       function tocarMusica() {
-        if (!somHabilitado || !audio) return
+        if (!cfg.som || !audio) return
         musicaDesejada = true
         liberarAudioIOS()
         try { audio.currentTime = 0 } catch (e) {}
@@ -1003,7 +1445,7 @@
       }
 
       function continuarMusica() {
-        if (!somHabilitado || !audio) return
+        if (!cfg.som || !audio) return
         musicaDesejada = true
         liberarAudioIOS()
         audio.muted = false
@@ -1016,157 +1458,27 @@
         audio.pause()
       }
 
-      function alternarSom() {
-        liberarAudioIOS()
-        somHabilitado = !somHabilitado
-        if (!somHabilitado) {
+      function definirSom(ligado) {
+        cfg.som = !!ligado
+        salvarPrefs()
+        if (!cfg.som) {
           pararMusica()
-        } else if (girando || sequenciaAtiva || segurandoEspaco) {
+        } else if (girando || sequenciaAtiva || segurando) {
           continuarMusica()
         }
-        atualizarBotoesSom()
+        btnSom.setAttribute('aria-pressed', String(cfg.som))
+        btnSom.textContent = cfg.som ? '🔊' : '🔇'
+        btnSom.setAttribute('aria-label', cfg.som ? 'Som ligado' : 'Som desligado')
+        btnSom.title = (cfg.som ? 'Som ligado' : 'Som desligado') + ' (S)'
+        swSom.setAttribute('aria-checked', String(cfg.som))
       }
 
-      function atualizarBotoesModo() {
-        for (var i = 0; i < botoesModo.length; i++) {
-          var btn = botoesModo[i]
-          btn.classList.toggle('ativo', btn.getAttribute('data-modo') === modoSorteio)
-        }
-        var labelFaces = document.querySelector('label[for="integrantes-input"]')
-        if (labelFaces) {
-          labelFaces.textContent = modoSorteio === 'letras' ? 'Faces / Letras (2 a 15)' : 'Faces (2 a 15)'
-        }
-      }
-
-      function atualizarBotoesSequencia() {
-        for (var i = 0; i < botoesSequencia.length; i++) {
-          var btn = botoesSequencia[i]
-          var ativo = btn.getAttribute('data-sequencia') === (sequenciaHabilitada ? 'sim' : 'nao')
-          btn.classList.toggle('ativo', ativo)
-        }
-      }
-
-      function atualizarBotoesRepeticao() {
-        for (var i = 0; i < botoesRepeticao.length; i++) {
-          var btn = botoesRepeticao[i]
-          var ativo = btn.getAttribute('data-repetir') === (permitirRepeticao ? 'sim' : 'nao')
-          btn.classList.toggle('ativo', ativo)
-        }
-      }
-
-      function atualizarEstadoControles() {
-        var n = clampIntegrantes(Number(integrantesInput.value) || 6)
-        if (btnMenosFaces) btnMenosFaces.disabled = (n <= 2)
-        if (btnMaisFaces) btnMaisFaces.disabled = (n >= 15)
-
-        if (sequenciaHabilitada) {
-          girarBtn.textContent = 'Sortear todos'
-          dicaEspaco.innerHTML = '⚡ Vai sortear as <strong>' + n + '</strong> faces em sequência. Toque para iniciar.'
-        } else {
-          girarBtn.textContent = 'Girar Pião'
-          dicaEspaco.innerHTML = '💡 Segure o botão para girar e solte para sortear'
-        }
-      }
-
-      function definirPainelAtivo(ativo) {
-        if (btnMenosFaces) btnMenosFaces.disabled = !ativo || Number(integrantesInput.value) <= 2
-        if (btnMaisFaces) btnMaisFaces.disabled = !ativo || Number(integrantesInput.value) >= 15
-        for (var k = 0; k < botoesRepeticao.length; k++) botoesRepeticao[k].disabled = !ativo
-        for (var s = 0; s < botoesSequencia.length; s++) botoesSequencia[s].disabled = !ativo
-        for (var m = 0; m < botoesModo.length; m++) botoesModo[m].disabled = !ativo
-        if (btnResetConfig) btnResetConfig.disabled = !ativo
-        if (ativo) atualizarEstadoControles()
-      }
-
-      function definirModoSorteio(modo) {
-        modoSorteio = (modo === 'letras') ? 'letras' : 'numeros'
-        atualizarBotoesModo()
-        limparDestaque()
-        construirPiao(clampIntegrantes(Number(integrantesInput.value)))
-      }
-
-      function definirSequencia(habilitada) {
-        sequenciaHabilitada = !!habilitada
-        atualizarBotoesSequencia()
-        atualizarEstadoControles()
-      }
-
-      function definirRepeticao(permitir) {
-        permitirRepeticao = !!permitir
-        atualizarBotoesRepeticao()
-      }
-
-      function resetarConfiguracoes() {
-        definirModoSorteio('numeros')
-        definirQuantidadeFaces(6)
-        definirSequencia(false)
-        definirRepeticao(false)
-      }
-
-      function construirPiao(n) {
-        piao.innerHTML = ''
-        anguloAcumulado = 0
-        piao.style.transform = 'rotateY(0deg)'
-        piao.style.webkitTransform = 'rotateY(0deg)'
-
-        if (n === 2) {
-          var w2 = 165
-          var r2 = 1.0
-          for (var i2 = 0; i2 < 2; i2++) {
-            var num2 = i2 + 1
-            var face2 = document.createElement('div')
-            face2.className = 'numero'
-            face2.setAttribute('data-num', String(num2))
-            face2.textContent = obterRotuloFace(num2)
-            face2.style.width = w2 + 'px'
-            face2.style.left = '50%'
-            face2.style.marginLeft = (-w2 / 2) + 'px'
-            face2.style.fontSize = calcularFontSize(2, w2, num2) + 'px'
-            var anguloFace2 = i2 * 180
-            face2.style.transform = 'rotateY(' + anguloFace2 + 'deg) translateZ(' + r2 + 'px)'
-            face2.style.webkitTransform = face2.style.transform
-            piao.appendChild(face2)
-          }
-          return
-        }
-
-        var anguloPasso = 360 / n
-        var semiAnguloRad = Math.PI / n
-        var w = 2 * RAIO_CILINDRO * Math.sin(semiAnguloRad) + 0.6
-        var r = RAIO_CILINDRO * Math.cos(semiAnguloRad)
-
-        for (var i = 0; i < n; i++) {
-          var num = i + 1
-          var face = document.createElement('div')
-          face.className = 'numero'
-          face.setAttribute('data-num', String(num))
-          face.textContent = obterRotuloFace(num)
-          face.style.width = w.toFixed(2) + 'px'
-          face.style.left = '50%'
-          face.style.marginLeft = (-w / 2).toFixed(2) + 'px'
-          face.style.fontSize = calcularFontSize(n, w, num) + 'px'
-          var anguloFace = i * anguloPasso
-          face.style.transform = 'rotateY(' + anguloFace.toFixed(2) + 'deg) translateZ(' + r.toFixed(2) + 'px)'
-          face.style.webkitTransform = face.style.transform
-          piao.appendChild(face)
-        }
-      }
-
-      function definirQuantidadeFaces(n) {
-        var num = clampIntegrantes(n)
-        integrantesInput.value = num
-        limparDestaque()
-        construirPiao(num)
-        atualizarEstadoControles()
-      }
-
+      // ---------- Física do giro (inalterada, com duração configurável) ----------
       function pararAnimacaoAtual() {
         if (animFrameId) {
           cancelAnimationFrame(animFrameId)
           animFrameId = null
         }
-        piao.style.animation = ''
-        piao.style.webkitAnimation = ''
       }
 
       function aplicarRotacao(angulo) {
@@ -1175,352 +1487,761 @@
         piao.style.webkitTransform = 'rotateY(' + angulo + 'deg)'
       }
 
-      function executarDesaceleracaoFisica(n, omega0, callback, forcedWinnerNum) {
+      function duracaoGiro(forca) {
+        if (reduzirMovimento) return 1.2
+        return 2.2 + 2.0 * forca
+      }
+
+      function executarDesaceleracaoFisica(n, omega0, T_desejado, callback, forcedWinnerNum) {
         pararAnimacaoAtual()
         limparDestaque()
         girando = true
-
         var winnerNum = (typeof forcedWinnerNum === 'number') ? forcedWinnerNum : (Math.floor(Math.random() * n) + 1)
-        var winnerIndex = winnerNum - 1
         var anguloPasso = 360 / n
-        var alvoAngulo = -(winnerIndex * anguloPasso)
-
-        var T_desejado = Math.max(1.5, 3.2 / velMultiplicador)
+        var alvoAngulo = -((winnerNum - 1) * anguloPasso)
         var p = 2.2
         var S_ideal = (omega0 * T_desejado) / p
-
         var anguloInicial = anguloAcumulado
         var diff = (anguloInicial - alvoAngulo) % 360
         if (diff < 0) diff += 360
-
         var voltas = Math.round((S_ideal - diff) / 360)
         if (voltas < 1) voltas = 1
         var S_real = voltas * 360 + diff
         var anguloFinal = anguloInicial - S_real
-
-        var T_real = (p * S_real) / omega0
-        var duracaoMs = T_real * 1000
+        var duracaoMs = ((p * S_real) / omega0) * 1000
         var tempoInicio = performance.now()
-
         function frame(agora) {
-          var decorrido = agora - tempoInicio
-          var u = Math.min(1, Math.max(0, decorrido / duracaoMs))
-          var progresso = 1 - Math.pow(1 - u, p)
-          var anguloAtual = anguloInicial - S_real * progresso
-          aplicarRotacao(anguloAtual)
-
+          var u = Math.min(1, Math.max(0, (agora - tempoInicio) / duracaoMs))
+          aplicarRotacao(anguloInicial - S_real * (1 - Math.pow(1 - u, p)))
           if (u < 1) {
             animFrameId = requestAnimationFrame(frame)
           } else {
             animFrameId = null
             aplicarRotacao(anguloFinal)
             girando = false
-
-            if (!sequenciaAtiva) {
-              pararMusica()
-            }
-
+            if (!sequenciaAtiva) pararMusica()
             var winnerFaceEl = piao.querySelector('[data-num="' + winnerNum + '"]')
-            destacarVencedor(winnerFaceEl)
-
+            if (winnerFaceEl) winnerFaceEl.classList.add('vencedor')
             if (callback) callback(winnerNum)
           }
         }
-
         animFrameId = requestAnimationFrame(frame)
       }
 
-      function executarGiroUnico(n, duracao, callback, forcedWinnerNum) {
-        var velLoop = 0.55 / velMultiplicador
-        var omega0 = 360 / velLoop
-        if (audio && audio.paused) {
-          tocarMusica()
-        } else {
-          continuarMusica()
-        }
-        executarDesaceleracaoFisica(n, omega0, callback, forcedWinnerNum)
+      // ---------- Resultado ----------
+      var seloTimer = null
+      function mostrarResultado(num, prefixo, duracaoMs) {
+        var r = rotulo(num)
+        seloRotulo.textContent = prefixo
+        seloValor.textContent = r
+        selo.classList.remove('saindo', 'visivel')
+        void selo.offsetWidth
+        selo.classList.add('visivel')
+        if (seloTimer) window.clearTimeout(seloTimer)
+        seloTimer = window.setTimeout(function () {
+          selo.classList.remove('visivel')
+          selo.classList.add('saindo')
+          seloTimer = window.setTimeout(function () { selo.classList.remove('saindo') }, 320)
+        }, duracaoMs || 1600)
+        anuncio.textContent = prefixo + ': ' + r
+        document.title = '🎯 ' + r + ' — Pião'
       }
 
-      function iniciarSequencia(total) {
-        sequenciaAtiva = true
-        var meuId = ++idSequencia
-        tocarMusica()
+      function esconderResultado() {
+        if (seloTimer) window.clearTimeout(seloTimer)
+        seloTimer = null
+        selo.classList.remove('visivel', 'saindo')
+      }
+
+      // ---------- Histórico ----------
+      function totalEsperado() {
+        if (sequenciaAtiva || ultimaSequenciaCompleta) return totalSequencia
+        if (cfg.modo === 'sequencia') return cfg.faces
+        if (cfg.modo === 'repeticao') return cfg.giros
+        if (rodaAtiva()) return cfg.faces
+        return 0
+      }
+
+      function renderizarHistorico() {
         listaSorteados.innerHTML = ''
-        totalSorteadosCont = 0
-        hudContador.textContent = '0'
-        hudSorteados.style.display = 'flex'
+        for (var i = 0; i < historico.length; i++) {
+          listaSorteados.appendChild(criarBadge(i + 1, historico[i], i === historico.length - 1))
+        }
+        atualizarHud()
+      }
+
+      function criarBadge(ordem, num, recente) {
+        var li = document.createElement('li')
+        li.className = 'badge-sorteado' + (recente ? ' recente' : '')
+        li.innerHTML = '<span class="ordem-sorteado">' + ordem + 'º</span><span class="numero-sorteado">' + rotulo(num) + '</span>'
+        return li
+      }
+
+      function adicionarHistorico(num) {
+        historico.push(num)
+        var anteriores = listaSorteados.querySelectorAll('.recente')
+        for (var i = 0; i < anteriores.length; i++) anteriores[i].classList.remove('recente')
+        listaSorteados.appendChild(criarBadge(historico.length, num, true))
+        if (cfg.hud === 'right') {
+          listaSorteados.scrollTop = listaSorteados.scrollHeight
+        } else {
+          listaSorteados.scrollLeft = listaSorteados.scrollWidth
+        }
+        atualizarHud()
+      }
+
+      function atualizarHud() {
+        hud.hidden = historico.length === 0 && !sequenciaAtiva
+        var total = totalEsperado()
+        hudProgresso.textContent = total ? (historico.length + ' de ' + total) : String(historico.length)
+        hud.classList.toggle('completo', ultimaSequenciaCompleta || (rodaAtiva() && historico.length > 0 && restantesNaRoda().length === 0))
+        btnLimpar.disabled = sequenciaAtiva || girando || historico.length === 0
+        btnCopiar.disabled = historico.length === 0
+      }
+
+      function limparHistorico(silencioso) {
+        historico = []
+        ultimaSequenciaCompleta = false
+        renderizarHistorico()
+        aplicarForaDaRoda()
+        if (!silencioso) document.title = TITULO_BASE
+      }
+
+      function definirPosicaoHud(pos) {
+        cfg.hud = pos === 'right' ? 'right' : 'bottom'
+        hud.classList.toggle('pos-right', cfg.hud === 'right')
+        hud.classList.toggle('pos-bottom', cfg.hud !== 'right')
+        var proximo = cfg.hud === 'right' ? 'Mover para a base' : 'Mover para a lateral'
+        btnPosicaoHud.textContent = cfg.hud === 'right' ? '⬇️' : '➡️'
+        btnPosicaoHud.title = proximo
+        btnPosicaoHud.setAttribute('aria-label', proximo)
+        salvarPrefs()
+      }
+
+      function copiarOrdem() {
+        if (!historico.length) return
+        var partes = []
+        for (var i = 0; i < historico.length; i++) partes.push((i + 1) + 'º ' + rotulo(historico[i]))
+        var texto = 'Ordem do sorteio: ' + partes.join(', ')
+        var ok = function () { mostrarToast('📋 Ordem copiada') }
+        var falhou = function () { mostrarToast('Não foi possível copiar') }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(texto).then(ok, function () { copiarFallback(texto) ? ok() : falhou() })
+        } else {
+          copiarFallback(texto) ? ok() : falhou()
+        }
+      }
+
+      function copiarFallback(texto) {
+        try {
+          var ta = document.createElement('textarea')
+          ta.value = texto
+          ta.setAttribute('readonly', '')
+          ta.style.position = 'fixed'
+          ta.style.opacity = '0'
+          document.body.appendChild(ta)
+          ta.select()
+          var ok = document.execCommand('copy')
+          document.body.removeChild(ta)
+          return ok
+        } catch (e) {
+          return false
+        }
+      }
+
+      // ---------- Toast ----------
+      var toastTimer = null
+      function mostrarToast(texto, acaoTexto, acao, duracaoMs) {
+        toastTexto.textContent = texto
+        if (acaoTexto && acao) {
+          toastAcao.textContent = acaoTexto
+          toastAcao.hidden = false
+          toastAcao.onclick = function () {
+            esconderToast()
+            acao()
+          }
+        } else {
+          toastAcao.hidden = true
+          toastAcao.onclick = null
+        }
+        toast.hidden = false
+        if (toastTimer) window.clearTimeout(toastTimer)
+        toastTimer = window.setTimeout(esconderToast, duracaoMs || 2600)
+      }
+
+      function esconderToast() {
+        if (toastTimer) window.clearTimeout(toastTimer)
+        toastTimer = null
+        toast.hidden = true
+      }
+
+      // ---------- Textos e estado da interface ----------
+      function textoModo() {
+        if (cfg.modo === 'sequencia') return 'Todos em sequência'
+        if (cfg.modo === 'repeticao') return cfg.giros + ' giros'
+        return cfg.tirarDaRoda ? 'Um por vez · sem repetir' : 'Um por vez'
+      }
+
+      function atualizarResumo() {
+        resumoBtn.textContent = '⚙️ ' + cfg.faces + ' faces (' + textoIntervalo() + ') · ' + textoModo()
+        resumoBtn.setAttribute('aria-label', 'Configurações atuais: ' + cfg.faces + ' faces, ' + textoIntervalo() + ', ' + textoModo() + '. Toque para alterar.')
+      }
+
+      function atualizarBotao() {
+        var texto
+        var dicaHtml = ''
+        girarBtn.classList.toggle('parar', sequenciaAtiva)
+        girarBtn.classList.toggle('segurando', segurando)
+        girarBtn.classList.toggle('ocupado', girando && !sequenciaAtiva)
+        if (sequenciaAtiva) {
+          texto = '⏸ Parar sequência'
+          dicaHtml = 'Sorteio <strong>' + Math.min(historico.length + 1, totalSequencia) + '</strong> de ' + totalSequencia + '…'
+        } else if (segurando) {
+          texto = 'Solte para sortear!'
+          dicaHtml = 'Quanto mais tempo segurar, mais forte o giro'
+        } else if (girando) {
+          texto = 'Sorteando…'
+          dicaHtml = 'Desacelerando…'
+        } else if (cfg.modo === 'sequencia') {
+          texto = (ultimaSequenciaCompleta ? 'Sortear de novo' : 'Sortear todos') + ' (' + cfg.faces + ')'
+          dicaHtml = 'Sorteia as ' + cfg.faces + ' faces, uma de cada vez, sem repetir'
+        } else if (cfg.modo === 'repeticao') {
+          texto = (ultimaSequenciaCompleta ? 'Girar de novo' : 'Girar') + ' ' + cfg.giros + ' vezes'
+          dicaHtml = cfg.giros + ' giros seguidos · a mesma face pode sair de novo'
+        } else if (rodaAtiva() && restantesNaRoda().length === 0) {
+          texto = 'Recomeçar a roda'
+          dicaHtml = 'Todos já foram sorteados 🎉'
+        } else {
+          texto = 'Girar o Pião'
+          if (rodaAtiva()) {
+            var r = restantesNaRoda().length
+            dicaHtml = r === 1 ? 'Falta <strong>1</strong> na roda' : 'Faltam <strong>' + r + '</strong> de ' + cfg.faces + ' na roda'
+          } else if (!jaUsou) {
+            dicaHtml = 'Toque para girar · segure para dar mais força'
+          }
+        }
+        girarTexto.textContent = texto
+        dica.innerHTML = dicaHtml
+      }
+
+      function atualizarPainel() {
+        for (var i = 0; i < opcoesModo.length; i++) {
+          var sel = opcoesModo[i].getAttribute('data-modo') === cfg.modo
+          opcoesModo[i].setAttribute('aria-checked', String(sel))
+          opcoesModo[i].tabIndex = sel ? 0 : -1
+        }
+        for (var j = 0; j < botoesRotulos.length; j++) {
+          var selR = botoesRotulos[j].getAttribute('data-rotulos') === cfg.rotulos
+          botoesRotulos[j].setAttribute('aria-checked', String(selR))
+          botoesRotulos[j].tabIndex = selR ? 0 : -1
+        }
+        facesValor.textContent = String(cfg.faces)
+        facesIntervalo.textContent = textoIntervalo()
+        girosValor.textContent = String(cfg.giros)
+        campoGiros.hidden = cfg.modo !== 'repeticao'
+        campoRoda.hidden = cfg.modo !== 'unico'
+        swRoda.setAttribute('aria-checked', String(cfg.tirarDaRoda))
+        definirPainelAtivo(!(girando || sequenciaAtiva || segurando))
+      }
+
+      function definirPainelAtivo(ativo) {
+        var controles = painel.querySelectorAll('.painel-conteudo button, #btn-restaurar')
+        for (var i = 0; i < controles.length; i++) controles[i].disabled = !ativo
+        if (ativo) {
+          btnMenosFaces.disabled = cfg.faces <= MIN_FACES
+          btnMaisFaces.disabled = cfg.faces >= MAX_FACES
+          btnMenosGiros.disabled = cfg.giros <= MIN_GIROS
+          btnMaisGiros.disabled = cfg.giros >= MAX_GIROS
+        }
+      }
+
+      function atualizarTudo() {
+        atualizarPainel()
+        atualizarResumo()
+        atualizarBotao()
+        atualizarHud()
+      }
+
+      // ---------- Alterações de configuração ----------
+      function emRepouso() {
+        return !(girando || sequenciaAtiva || segurando)
+      }
+
+      function zerarSeNecessario(motivo) {
+        if (historico.length) {
+          limparHistorico()
+          mostrarToast('Histórico zerado (' + motivo + ')')
+        } else {
+          ultimaSequenciaCompleta = false
+        }
+      }
+
+      function definirModo(modo) {
+        if (!emRepouso() || modo === cfg.modo) return
+        cfg.modo = modo
+        salvarPrefs()
+        zerarSeNecessario('modo alterado')
+        aplicarForaDaRoda()
+        atualizarTudo()
+      }
+
+      function definirFaces(n) {
+        if (!emRepouso()) return
+        var novo = limitar(n, MIN_FACES, MAX_FACES)
+        if (novo === cfg.faces) return
+        cfg.faces = novo
+        salvarPrefs()
+        zerarSeNecessario('faces alteradas')
+        limparDestaque()
+        construirPiao(cfg.faces)
+        atualizarTudo()
+      }
+
+      function definirRotulos(r) {
+        if (!emRepouso() || r === cfg.rotulos) return
+        cfg.rotulos = r
+        salvarPrefs()
+        limparDestaque()
+        construirPiao(cfg.faces)
+        renderizarHistorico()
+        atualizarTudo()
+      }
+
+      function definirGiros(n) {
+        if (!emRepouso()) return
+        var novo = limitar(n, MIN_GIROS, MAX_GIROS)
+        if (novo === cfg.giros) return
+        cfg.giros = novo
+        salvarPrefs()
+        ultimaSequenciaCompleta = false
+        atualizarTudo()
+      }
+
+      function definirTirarDaRoda(v) {
+        if (!emRepouso()) return
+        cfg.tirarDaRoda = !!v
+        salvarPrefs()
+        aplicarForaDaRoda()
+        atualizarTudo()
+      }
+
+      var restaurarTimer = null
+      function pedirRestaurar() {
+        if (!btnRestaurar.classList.contains('confirmar')) {
+          btnRestaurar.classList.add('confirmar')
+          btnRestaurar.textContent = 'Toque de novo para confirmar'
+          restaurarTimer = window.setTimeout(cancelarRestaurar, 3000)
+          return
+        }
+        cancelarRestaurar()
+        var som = cfg.som
+        for (var k in PADRAO) cfg[k] = PADRAO[k]
+        cfg.som = som
+        salvarPrefs()
+        limparHistorico()
+        limparDestaque()
+        construirPiao(cfg.faces)
+        definirPosicaoHud(cfg.hud)
+        atualizarTudo()
+        mostrarToast('↺ Configurações restauradas')
+      }
+
+      function cancelarRestaurar() {
+        if (restaurarTimer) window.clearTimeout(restaurarTimer)
+        restaurarTimer = null
+        btnRestaurar.classList.remove('confirmar')
+        btnRestaurar.textContent = '↺ Restaurar padrão'
+      }
+
+      // ---------- Painel ----------
+      function painelAberto() {
+        return !painel.hidden
+      }
+
+      function abrirPainel() {
+        painel.hidden = false
+        document.body.classList.add('painel-aberto')
+        btnConfig.setAttribute('aria-expanded', 'true')
+        resumoBtn.setAttribute('aria-expanded', 'true')
+      }
+
+      function fecharPainel() {
+        var focoDentro = painel.contains(document.activeElement)
+        painel.hidden = true
+        document.body.classList.remove('painel-aberto')
+        btnConfig.setAttribute('aria-expanded', 'false')
+        resumoBtn.setAttribute('aria-expanded', 'false')
+        cancelarRestaurar()
+        if (focoDentro) girarBtn.focus()
+      }
+
+      function alternarPainel() {
+        if (painelAberto()) fecharPainel()
+        else abrirPainel()
+      }
+
+      // ---------- Tela cheia ----------
+      var raiz = document.documentElement
+      var suportaTelaCheia = !!(raiz.requestFullscreen || raiz.webkitRequestFullscreen)
+      function emTelaCheia() {
+        return !!(document.fullscreenElement || document.webkitFullscreenElement)
+      }
+
+      function alternarTelaCheia() {
+        if (!suportaTelaCheia) return
+        try {
+          if (emTelaCheia()) {
+            (document.exitFullscreen || document.webkitExitFullscreen).call(document)
+          } else {
+            var r = (raiz.requestFullscreen || raiz.webkitRequestFullscreen).call(raiz)
+            if (r && r.catch) r.catch(function () {})
+          }
+        } catch (e) {}
+      }
+
+      function atualizarBotaoTelaCheia() {
+        var on = emTelaCheia()
+        btnTelaCheia.setAttribute('aria-pressed', String(on))
+        btnTelaCheia.title = (on ? 'Sair da tela cheia' : 'Tela cheia') + ' (F)'
+        btnTelaCheia.setAttribute('aria-label', on ? 'Sair da tela cheia' : 'Tela cheia')
+      }
+
+      // ---------- Giro "um por vez" ----------
+      var tempoInicioSegurar = 0
+      var forcaAtual = 0
+      var velAtual = VEL_BASE
+
+      function forcaDe(ms) {
+        return Math.min(1, Math.max(0, ms / 1200))
+      }
+
+      function vencedorForcado() {
+        return rodaAtiva() ? sortearEntre(restantesNaRoda()) : undefined
+      }
+
+      function podeGirarUnico() {
+        return cfg.modo === 'unico' && emRepouso() && !(rodaAtiva() && restantesNaRoda().length === 0)
+      }
+
+      function aoTerminarGiroUnico(num) {
+        adicionarHistorico(num)
+        mostrarResultado(num, 'Sorteado')
+        if (rodaAtiva() && restantesNaRoda().length === 0) {
+          mostrarToast('🎉 Todos foram sorteados!', 'Recomeçar', recomecarRoda, 5000)
+        }
+        atualizarTudo()
+      }
+
+      function prepararGiro() {
+        jaUsou = true
+        esconderResultado()
+        aplicarForaDaRoda()
         definirPainelAtivo(false)
-        girarBtn.classList.add('parar')
-        girarBtn.textContent = 'Parar Sequência'
-        dicaEspaco.innerHTML = '⚡ Rodando sequência de <strong>' + total + '</strong> sorteios... Toque em Parar para interromper.'
+      }
 
-        var rodadaAtual = 1
-        var n = clampIntegrantes(Number(integrantesInput.value))
-        var sorteadosNaSequencia = []
-        var tempoPausa = Math.max(0.4, 1.4 / velMultiplicador) * 1000
+      function iniciarSegurar() {
+        if (!podeGirarUnico()) return
+        liberarAudioIOS()
+        pararAnimacaoAtual()
+        prepararGiro()
+        limparDestaque()
+        segurando = true
+        tempoInicioSegurar = performance.now()
+        forcaAtual = 0
+        tocarMusica()
+        atualizarBotao()
+        var ultimo = tempoInicioSegurar
+        function loopGiro(agora) {
+          if (!segurando) return
+          var dt = Math.max(0, agora - ultimo) / 1000
+          ultimo = agora
+          forcaAtual = forcaDe(agora - tempoInicioSegurar)
+          velAtual = VEL_BASE * (0.55 + 0.45 * forcaAtual)
+          aplicarRotacao(anguloAcumulado - velAtual * dt)
+          forcaBar.style.transform = 'scaleX(' + forcaAtual.toFixed(3) + ')'
+          animFrameId = requestAnimationFrame(loopGiro)
+        }
+        animFrameId = requestAnimationFrame(loopGiro)
+      }
 
+      function finalizarSegurar() {
+        if (!segurando) return
+        segurando = false
+        forcaAtual = forcaDe(performance.now() - tempoInicioSegurar)
+        var omega = VEL_BASE * (0.55 + 0.45 * forcaAtual)
+        forcaBar.style.transform = 'scaleX(0)'
+        executarDesaceleracaoFisica(cfg.faces, omega, duracaoGiro(forcaAtual), aoTerminarGiroUnico, vencedorForcado())
+        atualizarBotao()
+      }
+
+      function girarUmaVez() {
+        if (!podeGirarUnico()) return
+        prepararGiro()
+        if (audio && audio.paused) tocarMusica()
+        else continuarMusica()
+        executarDesaceleracaoFisica(cfg.faces, VEL_BASE * 0.8, duracaoGiro(0.5), aoTerminarGiroUnico, vencedorForcado())
+        atualizarBotao()
+      }
+
+      function recomecarRoda() {
+        if (!emRepouso()) return
+        limparHistorico()
+        limparDestaque()
+        atualizarTudo()
+        mostrarToast('🔄 Roda recomeçada: todos de volta')
+      }
+
+      // ---------- Sequência ----------
+      function iniciarSequencia() {
+        if (!emRepouso()) return
+        var permitirRepeticao = cfg.modo === 'repeticao'
+        var total = permitirRepeticao ? cfg.giros : cfg.faces
+        var n = cfg.faces
+        var meuId = ++idSequencia
+        sequenciaAtiva = true
+        totalSequencia = total
+        ultimaSequenciaCompleta = false
+        jaUsou = true
+        esconderResultado()
+        esconderToast()
+        tocarMusica()
+        historico = []
+        renderizarHistorico()
+        atualizarTudo()
+        var tempoPausa = reduzirMovimento ? 900 : 1400
         function proximo() {
-          if (meuId !== idSequencia) return
-          if (!sequenciaAtiva || rodadaAtual > total) {
-            encerrarSequencia()
+          if (meuId !== idSequencia || !sequenciaAtiva) return
+          if (historico.length >= total) {
+            encerrarSequencia(true)
             return
           }
-
-          var forcedNum = null
+          var forcedNum
           if (!permitirRepeticao) {
             var disponiveis = []
-            for (var c = 1; c <= n; c++) {
-              if (sorteadosNaSequencia.indexOf(c) === -1) disponiveis.push(c)
-            }
-            if (disponiveis.length === 0) {
-              encerrarSequencia()
+            for (var c = 1; c <= n; c++) if (historico.indexOf(c) === -1) disponiveis.push(c)
+            if (!disponiveis.length) {
+              encerrarSequencia(true)
               return
             }
-            forcedNum = disponiveis[Math.floor(Math.random() * disponiveis.length)]
+            forcedNum = sortearEntre(disponiveis)
           }
-
-          executarGiroUnico(n, 0, function (numSorteado) {
+          continuarMusica()
+          executarDesaceleracaoFisica(n, VEL_BASE, duracaoGiro(0.5), function (num) {
             if (!sequenciaAtiva || meuId !== idSequencia) return
-            sorteadosNaSequencia.push(numSorteado)
-            adicionarHistorico(rodadaAtual, numSorteado)
-            rodadaAtual++
-
-            if (rodadaAtual <= total) {
-              window.setTimeout(function () {
-                if (sequenciaAtiva && meuId === idSequencia) proximo()
-              }, tempoPausa)
-            } else {
-              window.setTimeout(function () {
-                if (sequenciaAtiva && meuId === idSequencia) encerrarSequencia()
-              }, tempoPausa)
-            }
+            adicionarHistorico(num)
+            mostrarResultado(num, historico.length + 'º sorteado', tempoPausa - 100)
+            atualizarBotao()
+            window.setTimeout(function () {
+              if (sequenciaAtiva && meuId === idSequencia) proximo()
+            }, tempoPausa)
           }, forcedNum)
+          atualizarBotao()
         }
-
         proximo()
       }
 
-      function encerrarSequencia() {
+      function encerrarSequencia(completa) {
         idSequencia++
+        var estavaAtiva = sequenciaAtiva
         sequenciaAtiva = false
         pararMusica()
         pararAnimacaoAtual()
         girando = false
-        girarBtn.classList.remove('parar')
-        definirPainelAtivo(true)
-        atualizarEstadoControles()
-      }
-
-      function iniciarSegurarEspaco() {
-        if (girando || segurandoEspaco || sequenciaAtiva) return
-        liberarAudioIOS()
-        pararAnimacaoAtual()
-        segurandoEspaco = true
-        tempoInicioEspaco = performance.now()
-        limparDestaque()
-        girarBtn.classList.add('segurando')
-        girarBtn.textContent = 'Solte para Sortear!'
-        dicaEspaco.innerHTML = '🌀 O pião está girando! <strong>Solte</strong> para desacelerar!'
-
-        tocarMusica()
-
-        var anguloBase = anguloAcumulado
-        var velLoopMs = (0.55 / velMultiplicador) * 1000
-
-        function loopGiro(agora) {
-          if (!segurandoEspaco) return
-          var tempoDecorrido = agora - tempoInicioEspaco
-          var anguloAtual = anguloBase - (tempoDecorrido / velLoopMs) * 360
-          aplicarRotacao(anguloAtual)
-          animFrameId = requestAnimationFrame(loopGiro)
+        ultimaSequenciaCompleta = !!completa
+        if (estavaAtiva) {
+          if (completa) mostrarToast('🎉 Sequência completa!')
+          else mostrarToast('⏸ Sequência interrompida em ' + historico.length + ' de ' + totalSequencia)
         }
-
-        animFrameId = requestAnimationFrame(loopGiro)
+        atualizarTudo()
       }
 
-      function finalizarSegurarEspaco() {
-        if (!segurandoEspaco) return
-        segurandoEspaco = false
-        girarBtn.classList.remove('segurando')
-        girarBtn.textContent = 'Sorteando...'
-        dicaEspaco.innerHTML = '🎯 Desacelerando para a face vencedora...'
-
-        var velLoop = 0.55 / velMultiplicador
-        var omega0 = 360 / velLoop
-        var n = clampIntegrantes(Number(integrantesInput.value))
-
-        definirPainelAtivo(false)
-        executarDesaceleracaoFisica(n, omega0, function () {
-          definirPainelAtivo(true)
-          atualizarEstadoControles()
-        })
-      }
-
+      // ---------- Ação principal ----------
       function dispararAcao() {
         liberarAudioIOS()
         if (sequenciaAtiva) {
-          encerrarSequencia()
+          encerrarSequencia(false)
           return
         }
-
-        var qtd = obterQtdSorteios()
-        if (qtd > 1) {
-          iniciarSequencia(qtd)
+        if (!emRepouso()) return
+        if (cfg.modo !== 'unico') {
+          iniciarSequencia()
+        } else if (rodaAtiva() && restantesNaRoda().length === 0) {
+          recomecarRoda()
         } else {
-          var n = clampIntegrantes(Number(integrantesInput.value))
-          definirPainelAtivo(false)
-          girarBtn.textContent = 'Sorteando...'
-          executarGiroUnico(n, 0, function () {
-            definirPainelAtivo(true)
-            atualizarEstadoControles()
-          })
+          girarUmaVez()
         }
       }
 
-      function atualizarEstadoConfiguracao() {
-        if (painel && btnExpandirDrawer) {
-          var estaAberto = painel.style.display !== 'none'
-          btnExpandirDrawer.style.display = estaAberto ? 'none' : 'flex'
-        }
-      }
-
-      if (toggleSomBtn) {
-        toggleSomBtn.addEventListener('click', function () {
-          liberarAudioIOS()
-          alternarSom()
-        })
-      }
-
-      window.addEventListener('keydown', function (e) {
-        if (e.code !== 'Space') return
-        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON')) return
-        e.preventDefault()
-
-        if (sequenciaAtiva) {
-          encerrarSequencia()
-          return
-        }
-
-        var qtd = obterQtdSorteios()
-        if (qtd > 1) {
-          if (!girando) iniciarSequencia(qtd)
-        } else if (!e.repeat) {
-          iniciarSegurarEspaco()
-        }
-      })
-
-      window.addEventListener('keyup', function (e) {
-        if (e.code !== 'Space') return
-        e.preventDefault()
-        if (segurandoEspaco) finalizarSegurarEspaco()
-      })
-
-      function iniciarPonteiroNoBotao(e) {
+      girarBtn.addEventListener('pointerdown', function (e) {
         if (e.pointerType === 'mouse' && e.button !== 0) return
         liberarAudioIOS()
-        var qtd = obterQtdSorteios()
-        if (qtd === 1 && !sequenciaAtiva && !girando) {
-          ponteiroSeguradoNoBotao = true
-          if (girarBtn.setPointerCapture && e.pointerId != null) {
-            try { girarBtn.setPointerCapture(e.pointerId) } catch (err) {}
-          }
-          iniciarSegurarEspaco()
+        if (!podeGirarUnico()) return
+        ponteiroSegurado = true
+        if (girarBtn.setPointerCapture && e.pointerId != null) {
+          try { girarBtn.setPointerCapture(e.pointerId) } catch (err) {}
         }
+        iniciarSegurar()
+      })
+
+      function soltarPonteiro() {
+        if (!ponteiroSegurado) return
+        ponteiroSegurado = false
+        finalizarSegurar()
       }
 
-      function finalizarPonteiroNoBotao() {
-        if (!ponteiroSeguradoNoBotao) return
-        ponteiroSeguradoNoBotao = false
-        if (segurandoEspaco) finalizarSegurarEspaco()
-      }
-
-      girarBtn.addEventListener('pointerdown', iniciarPonteiroNoBotao)
-      girarBtn.addEventListener('pointerup', finalizarPonteiroNoBotao)
-      girarBtn.addEventListener('pointercancel', finalizarPonteiroNoBotao)
-      girarBtn.addEventListener('lostpointercapture', finalizarPonteiroNoBotao)
-
+      girarBtn.addEventListener('pointerup', soltarPonteiro)
+      girarBtn.addEventListener('pointercancel', soltarPonteiro)
+      girarBtn.addEventListener('lostpointercapture', soltarPonteiro)
+      girarBtn.addEventListener('contextmenu', function (e) { e.preventDefault() })
       girarBtn.addEventListener('click', function (e) {
-        // Evita disparo duplo após hold no toque/mouse
-        if (girando || segurandoEspaco || ponteiroSeguradoNoBotao) {
-          e.preventDefault()
-          return
-        }
+        // Depois de um "segurar" o giro já está em andamento: ignora o click sintético
+        if (girando && !sequenciaAtiva) return
+        if (segurando || ponteiroSegurado) return
         dispararAcao()
       })
 
-      btnMenosFaces.addEventListener('click', function () {
-        definirQuantidadeFaces(Number(integrantesInput.value) - 1)
-      })
-      btnMaisFaces.addEventListener('click', function () {
-        definirQuantidadeFaces(Number(integrantesInput.value) + 1)
-      })
-
-      for (var m = 0; m < botoesModo.length; m++) {
-        botoesModo[m].addEventListener('click', function () {
-          definirModoSorteio(this.getAttribute('data-modo'))
-        })
+      // ---------- Teclado ----------
+      function ehCampoTexto(el) {
+        return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
       }
 
-      for (var s = 0; s < botoesSequencia.length; s++) {
-        botoesSequencia[s].addEventListener('click', function () {
-          definirSequencia(this.getAttribute('data-sequencia') === 'sim')
-        })
-      }
-
-      for (var r = 0; r < botoesRepeticao.length; r++) {
-        botoesRepeticao[r].addEventListener('click', function () {
-          definirRepeticao(this.getAttribute('data-repetir') === 'sim')
-        })
-      }
-
-      if (btnResetConfig) {
-        btnResetConfig.addEventListener('click', resetarConfiguracoes)
-      }
-
-      if (btnRecolher) {
-        btnRecolher.addEventListener('click', function () {
-          painel.style.display = 'none'
-          atualizarEstadoConfiguracao()
-        })
-      }
-
-      if (btnExpandirDrawer) {
-        btnExpandirDrawer.addEventListener('click', function () {
-          painel.style.display = 'block'
-          atualizarEstadoConfiguracao()
-        })
-      }
-
-      if (btnPosicaoHud) {
-        btnPosicaoHud.addEventListener('click', function (e) {
-          e.stopPropagation()
-          alternarPosicaoHud()
-        })
-      }
-
-      hudSorteados.addEventListener('click', function (e) {
-        if (e.target.closest('#limpar-historico')) return
-        alternarPosicaoHud()
+      window.addEventListener('keydown', function (e) {
+        if (e.ctrlKey || e.metaKey || e.altKey || ehCampoTexto(e.target)) return
+        var alvo = e.target
+        var emOutroControle = alvo && alvo !== girarBtn && (alvo.tagName === 'BUTTON' || alvo.tagName === 'SUMMARY')
+        if (e.code === 'Space' || e.key === ' ') {
+          if (emOutroControle) return // Espaço ativa o controle focado
+          e.preventDefault()
+          if (e.repeat) return
+          if (cfg.modo === 'unico' && !sequenciaAtiva) {
+            if (podeGirarUnico()) iniciarSegurar()
+            else if (emRepouso()) dispararAcao()
+          } else {
+            dispararAcao()
+          }
+          return
+        }
+        if (e.key === 'Escape') {
+          if (sequenciaAtiva) encerrarSequencia(false)
+          else if (painelAberto()) fecharPainel()
+          return
+        }
+        if (emOutroControle && e.key === 'Enter') return
+        var k = (e.key || '').toLowerCase()
+        if (k === 's') { liberarAudioIOS(); definirSom(!cfg.som) }
+        else if (k === 'f') alternarTelaCheia()
+        else if (k === 'c') alternarPainel()
       })
 
-      limparHistoricoBtn.addEventListener('click', function (e) {
-        e.stopPropagation()
-        listaSorteados.innerHTML = ''
-        totalSorteadosCont = 0
-        hudContador.textContent = '0'
-        hudSorteados.style.display = 'none'
+      window.addEventListener('keyup', function (e) {
+        if (e.code !== 'Space' && e.key !== ' ') return
+        if (segurando) {
+          e.preventDefault()
+          finalizarSegurar()
+        } else if (e.target === girarBtn) {
+          e.preventDefault()
+        }
       })
 
-      // Primeiro toque em qualquer controle libera áudio no iOS/Chrome
+      // ---------- Stepper com "segurar para repetir" ----------
+      function ligarStepper(btn, passo) {
+        var atraso = null, repeticao = null
+        function parar() {
+          if (atraso) window.clearTimeout(atraso)
+          if (repeticao) window.clearInterval(repeticao)
+          atraso = repeticao = null
+        }
+        btn.addEventListener('pointerdown', function (e) {
+          if (e.pointerType === 'mouse' && e.button !== 0) return
+          if (btn.disabled) return
+          e.preventDefault()
+          passo()
+          parar()
+          atraso = window.setTimeout(function () {
+            repeticao = window.setInterval(function () {
+              if (btn.disabled) { parar(); return }
+              passo()
+            }, 90)
+          }, 420)
+        })
+        btn.addEventListener('pointerup', parar)
+        btn.addEventListener('pointerleave', parar)
+        btn.addEventListener('pointercancel', parar)
+        // Teclado (Enter/Espaço) gera click com detail 0
+        btn.addEventListener('click', function (e) {
+          if (e.detail === 0) passo()
+        })
+      }
+
+      ligarStepper(btnMenosFaces, function () { definirFaces(cfg.faces - 1) })
+      ligarStepper(btnMaisFaces, function () { definirFaces(cfg.faces + 1) })
+      ligarStepper(btnMenosGiros, function () { definirGiros(cfg.giros - 1) })
+      ligarStepper(btnMaisGiros, function () { definirGiros(cfg.giros + 1) })
+
+      // ---------- Grupos de opção (com setas) ----------
+      function ligarGrupo(botoes, attr, acao) {
+        for (var i = 0; i < botoes.length; i++) {
+          (function (idx) {
+            botoes[idx].addEventListener('click', function () { acao(this.getAttribute(attr)) })
+            botoes[idx].addEventListener('keydown', function (e) {
+              var dir = (e.key === 'ArrowDown' || e.key === 'ArrowRight') ? 1 : (e.key === 'ArrowUp' || e.key === 'ArrowLeft') ? -1 : 0
+              if (!dir) return
+              e.preventDefault()
+              var alvo = botoes[(idx + dir + botoes.length) % botoes.length]
+              acao(alvo.getAttribute(attr))
+              alvo.focus()
+            })
+          })(i)
+        }
+      }
+
+      ligarGrupo(opcoesModo, 'data-modo', definirModo)
+      ligarGrupo(botoesRotulos, 'data-rotulos', definirRotulos)
+
+      swRoda.addEventListener('click', function () { definirTirarDaRoda(!cfg.tirarDaRoda) })
+      swSom.addEventListener('click', function () { liberarAudioIOS(); definirSom(!cfg.som) })
+      btnSom.addEventListener('click', function () { liberarAudioIOS(); definirSom(!cfg.som) })
+      btnRestaurar.addEventListener('click', pedirRestaurar)
+      btnConfig.addEventListener('click', abrirPainel)
+      resumoBtn.addEventListener('click', alternarPainel)
+      btnFecharPainel.addEventListener('click', fecharPainel)
+
+      if (suportaTelaCheia) {
+        btnTelaCheia.addEventListener('click', alternarTelaCheia)
+        document.addEventListener('fullscreenchange', atualizarBotaoTelaCheia)
+        document.addEventListener('webkitfullscreenchange', atualizarBotaoTelaCheia)
+      } else {
+        btnTelaCheia.hidden = true
+      }
+
+      btnPosicaoHud.addEventListener('click', function () {
+        definirPosicaoHud(cfg.hud === 'right' ? 'bottom' : 'right')
+      })
+      btnCopiar.addEventListener('click', copiarOrdem)
+      btnLimpar.addEventListener('click', function () {
+        if (!historico.length || !emRepouso()) return
+        var backup = historico.slice()
+        var backupCompleta = ultimaSequenciaCompleta
+        limparHistorico()
+        atualizarTudo()
+        mostrarToast('🗑️ Histórico limpo', 'Desfazer', function () {
+          if (!emRepouso()) return
+          historico = backup
+          ultimaSequenciaCompleta = backupCompleta
+          renderizarHistorico()
+          aplicarForaDaRoda()
+          atualizarTudo()
+        }, 5000)
+      })
+
+      // Primeiro toque em qualquer lugar libera áudio no iOS/Chrome
       document.addEventListener('pointerdown', function () {
         liberarAudioIOS()
       }, { once: true, passive: true })
 
-      // Escala o palco para caber em qualquer viewport (PC/mobile) sem cortar a moldura
+      // ---------- Escala do palco (inalterado) ----------
       var palco = document.getElementById('palco')
-      var STAGE_INNER = 400
-      var STAGE_FRAME = 45
-      var STAGE_TOTAL = STAGE_INNER + STAGE_FRAME * 2 // 490
+      var STAGE_TOTAL = 490
       var supportsZoom = (function () {
         try {
           return typeof CSS !== 'undefined' && CSS.supports && CSS.supports('zoom', '1')
@@ -1534,12 +2255,10 @@
         var vv = window.visualViewport
         var viewW = vv && vv.width ? vv.width : window.innerWidth
         var viewH = vv && vv.height ? vv.height : window.innerHeight
-        var ctaReserve = 118
+        var ctaReserve = 150
         try {
-          var computed = window.getComputedStyle(palco)
-          var raw = computed.getPropertyValue('--cta-reserve')
+          var raw = window.getComputedStyle(palco).getPropertyValue('--cta-reserve')
           if (raw) {
-            // cria elemento temporário para resolver calc()/env()
             var probe = document.createElement('div')
             probe.style.cssText = 'position:absolute;visibility:hidden;height:' + raw
             document.body.appendChild(probe)
@@ -1548,12 +2267,10 @@
             if (resolved > 0) ctaReserve = resolved
           }
         } catch (err) {}
-
         var availW = Math.max(200, viewW - 16)
         var availH = Math.max(200, viewH - ctaReserve - 8)
         var scale = Math.min(1, availW / STAGE_TOTAL, availH / STAGE_TOTAL)
         scale = Math.max(0.42, Math.round(scale * 1000) / 1000)
-
         if (supportsZoom) {
           palco.style.zoom = String(scale)
           palco.style.transform = ''
@@ -1573,7 +2290,6 @@
         if (resizeTimer) window.clearTimeout(resizeTimer)
         resizeTimer = window.setTimeout(ajustarEscalaPalco, 50)
       }
-
       window.addEventListener('resize', agendarAjusteEscala)
       window.addEventListener('orientationchange', function () {
         window.setTimeout(ajustarEscalaPalco, 120)
@@ -1583,12 +2299,13 @@
         window.visualViewport.addEventListener('scroll', agendarAjusteEscala)
       }
 
-      definirQuantidadeFaces(6)
-      definirSequencia(false)
-      definirRepeticao(false)
-      atualizarBotoesSom()
-      atualizarEstadoConfiguracao()
-      definirPosicaoHud('bottom')
+      // ---------- Início ----------
+      construirPiao(cfg.faces)
+      definirSom(cfg.som)
+      definirPosicaoHud(cfg.hud)
+      atualizarBotaoTelaCheia()
+      atualizarTudo()
+      if (window.innerWidth >= 1100) abrirPainel()
       ajustarEscalaPalco()
     })()
   </script>
