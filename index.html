@@ -1106,11 +1106,6 @@
     </div>
   </div>
 
-  <audio id="trilha-piao" preload="auto" loop playsinline webkit-playsinline>
-    <source src="piao-da-casa-propria-soundtrack.mp3" type="audio/mpeg" />
-    <source src="piao-da-casa-propria-soundtrack.m4a" type="audio/mp4" />
-    <source src="piao-da-casa-propria-soundtrack.ogg" type="audio/ogg" />
-  </audio>
 
   <div id="moldura-sombra" aria-hidden="true"></div>
   <div id="area-giro" aria-hidden="true" title="Arraste para girar"></div>
@@ -1151,7 +1146,6 @@
       var toast = $('#toast')
       var toastTexto = $('#toast-texto')
       var toastAcao = $('#toast-acao')
-      var audio = $('#trilha-piao')
 
       var ICONE_SOM = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>'
       var ICONE_MUDO = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6M16 9l6 6"/></svg>'
@@ -1177,7 +1171,6 @@
       var animFrameId = null
       var ponteiroSegurado = false
       var arrastando = false
-      var musicaDesejada = false
 
       // ---------- Preferências ----------
       function carregarPrefs() {
@@ -1307,68 +1300,130 @@
         return lista[Math.floor(Math.random() * lista.length)]
       }
 
-      // ---------- Áudio ----------
-      // No iOS/Safari, play() só é garantido dentro de um gesto "de verdade" (touchend/click/tecla)
-      // e o ciclo pause → currentTime = 0 → play() entre um giro e outro é instável. Por isso, depois do
-      // primeiro gesto o elemento fica tocando em loop MUDO; cada giro só volta ao início e desmuta.
-      var PAUSA_OCIOSA_MS = 3 * 60 * 1000
-      var pausaOciosaTimer = null
+      // ---------- Áudio (Web Audio API) ----------
+      // A trilha é baixada e decodificada uma vez num AudioBuffer. O AudioContext é destravado
+      // (resume) em gestos do usuário; depois disso cada giro cria um AudioBufferSourceNode e
+      // toca na hora, sem passar pelas regras de play() do <audio> (gesto por chamada,
+      // autoplay, seek). No iOS a sessão é "playback" para não ser silenciada pela chave lateral.
+      var ARQUIVOS_TRILHA = ['piao-da-casa-propria-soundtrack.mp3', 'piao-da-casa-propria-soundtrack.m4a', 'piao-da-casa-propria-soundtrack.ogg']
+      var FADE_S = 0.08
+      var ctxAudio = null
+      var ganhoMestre = null
+      var bufferTrilha = null
+      var fonteAtual = null
+      var ganhoFonte = null
+      var musicaDesejada = false
 
-      function agendarPausaOciosa() {
-        if (pausaOciosaTimer) window.clearTimeout(pausaOciosaTimer)
-        pausaOciosaTimer = window.setTimeout(function () {
-          if (audio && !musicaDesejada) audio.pause()
-        }, PAUSA_OCIOSA_MS)
+      function criarContextoAudio() {
+        if (ctxAudio) return ctxAudio
+        var Ctx = window.AudioContext || window.webkitAudioContext
+        if (!Ctx) return null
+        try {
+          if (navigator.audioSession) navigator.audioSession.type = 'playback'
+        } catch (e) {}
+        ctxAudio = new Ctx()
+        ganhoMestre = ctxAudio.createGain()
+        ganhoMestre.connect(ctxAudio.destination)
+        carregarTrilha(0)
+        return ctxAudio
       }
 
-      // Chamado em todo gesto do usuário: garante o elemento rodando (mudo, se não for hora de tocar)
+      function decodificar(dados) {
+        return new Promise(function (ok, falha) {
+          // forma com callbacks: compatível com Safari antigo
+          ctxAudio.decodeAudioData(dados, ok, falha)
+        })
+      }
+
+      function carregarTrilha(indice) {
+        if (indice >= ARQUIVOS_TRILHA.length) return
+        fetch(ARQUIVOS_TRILHA[indice])
+          .then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status)
+            return r.arrayBuffer()
+          })
+          .then(decodificar)
+          .then(function (buffer) {
+            bufferTrilha = buffer
+            if (musicaDesejada) iniciarFonte()
+          })
+          .catch(function () { carregarTrilha(indice + 1) })
+      }
+
+      // Chamado em todo gesto: cria/retoma o contexto (iOS pode suspendê-lo ou "interrompê-lo")
       function liberarAudioIOS() {
-        if (!audio || !cfg.som) return
-        agendarPausaOciosa()
-        if (!audio.paused) return
-        audio.muted = !musicaDesejada
-        var promessa = audio.play()
-        if (promessa && promessa.catch) promessa.catch(function () {})
+        if (!cfg.som) return
+        var ctx = criarContextoAudio()
+        if (ctx && ctx.state !== 'running' && ctx.state !== 'closed') {
+          var r = ctx.resume()
+          if (r && r.catch) r.catch(function () {})
+        }
+      }
+
+      function pararFonte() {
+        if (!fonteAtual) return
+        var fonte = fonteAtual, ganho = ganhoFonte
+        fonteAtual = ganhoFonte = null
+        try {
+          var t = ctxAudio.currentTime
+          ganho.gain.cancelScheduledValues(t)
+          ganho.gain.setValueAtTime(ganho.gain.value, t)
+          ganho.gain.linearRampToValueAtTime(0, t + FADE_S)
+          fonte.stop(t + FADE_S + 0.02)
+        } catch (e) {
+          try { fonte.stop() } catch (e2) {}
+        }
+      }
+
+      function iniciarFonte() {
+        if (!ctxAudio || !bufferTrilha) return
+        pararFonte()
+        var fonte = ctxAudio.createBufferSource()
+        fonte.buffer = bufferTrilha
+        fonte.loop = true
+        var ganho = ctxAudio.createGain()
+        ganho.gain.value = 1
+        fonte.connect(ganho)
+        ganho.connect(ganhoMestre)
+        fonte.start(0)
+        fonteAtual = fonte
+        ganhoFonte = ganho
       }
 
       function tocarMusica() {
-        if (!cfg.som || !audio) return
+        if (!cfg.som) return
         musicaDesejada = true
-        try { audio.currentTime = 0 } catch (e) {}
-        audio.muted = false
         liberarAudioIOS()
+        iniciarFonte() // se o buffer ainda está carregando, começa assim que ficar pronto
       }
 
       function continuarMusica() {
-        if (!cfg.som || !audio) return
+        if (!cfg.som) return
         musicaDesejada = true
-        audio.muted = false
         liberarAudioIOS()
+        if (!fonteAtual) iniciarFonte()
       }
 
       function pararMusica() {
         musicaDesejada = false
-        if (!audio) return
-        if (cfg.som) {
-          audio.muted = true // continua rodando mudo para o próximo giro não depender de gesto
-          agendarPausaOciosa()
-        } else {
-          audio.pause()
-        }
+        pararFonte()
       }
 
-      function pararAudioDeVez() {
-        if (pausaOciosaTimer) window.clearTimeout(pausaOciosaTimer)
-        pausaOciosaTimer = null
-        if (audio) audio.pause()
+      // Para depuração e testes: estado real do motor de áudio
+      window.__piaoAudio = function () {
+        return {
+          contexto: ctxAudio ? ctxAudio.state : 'nenhum',
+          carregado: !!bufferTrilha,
+          tocando: !!fonteAtual,
+          audivel: !!(fonteAtual && ctxAudio && ctxAudio.state === 'running')
+        }
       }
 
       function definirSom(ligado) {
         cfg.som = !!ligado
         salvarPrefs()
         if (!cfg.som) {
-          musicaDesejada = false
-          pararAudioDeVez()
+          pararMusica()
         } else if (girando || sequenciaAtiva || segurando) {
           continuarMusica()
         }
@@ -1839,8 +1894,7 @@
       function girarUmaVez() {
         if (!podeGirarUnico()) return
         prepararGiro()
-        if (audio && audio.paused) tocarMusica()
-        else continuarMusica()
+        tocarMusica()
         executarDesaceleracaoFisica(cfg.faces, VEL_BASE * 0.8, duracaoGiro(0.5), aoTerminarGiroUnico, vencedorForcado())
         atualizarBotao()
       }
@@ -2227,13 +2281,16 @@
         }, 5000)
       })
 
-      // Todo gesto real (no iOS: touchend/click/tecla) mantém o áudio liberado e, se um giro
-      // já começou sem som (play recusado no pointerdown), faz a música entrar agora
-      ;['touchend', 'pointerup', 'click', 'keydown'].forEach(function (tipo) {
+      // Gestos que destravam o AudioContext (o iOS aceita touchend/mousedown/keydown; não touchstart)
+      ;['pointerdown', 'mousedown', 'touchend', 'pointerup', 'click', 'keydown'].forEach(function (tipo) {
         document.addEventListener(tipo, liberarAudioIOS, { capture: true, passive: true })
       })
       document.addEventListener('visibilitychange', function () {
-        if (document.hidden) pararAudioDeVez()
+        if (!ctxAudio) return
+        if (document.hidden) {
+          pararMusica()
+          ctxAudio.suspend().catch(function () {})
+        }
       })
 
       // ---------- Escala do palco (inalterado) ----------
@@ -2311,6 +2368,7 @@
       }
 
       // ---------- Início ----------
+      criarContextoAudio() // nasce suspenso; já baixa e decodifica a trilha
       construirPiao(cfg.faces)
       definirSom(cfg.som)
       atualizarBotaoTelaCheia()
