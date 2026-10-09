@@ -370,58 +370,6 @@
     }
 
     /* Opções "Como sortear" */
-    .opcoes-modo {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .opcao-modo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-      min-height: 52px;
-      padding: 8px 12px;
-      text-align: left;
-      background: #fff;
-      border: 2px solid var(--ui-line);
-      border-radius: 12px;
-      cursor: pointer;
-      color: var(--ui-text);
-      transition: border-color 0.15s ease, background 0.15s ease;
-    }
-
-    .opcao-modo:hover:not(:disabled) {
-      border-color: #b9b9b9;
-    }
-
-    .opcao-modo .opcao-icone {
-      font-size: 20px;
-      flex-shrink: 0;
-    }
-
-    .opcao-modo strong {
-      display: block;
-      font-size: 14px;
-    }
-
-    .opcao-modo small {
-      display: block;
-      font-size: 12px;
-      color: var(--ui-text-soft);
-      margin-top: 1px;
-    }
-
-    .opcao-modo[aria-checked="true"] {
-      border-color: var(--red-cta);
-      background: #fff4f4;
-    }
-
-    .opcao-modo[aria-checked="true"] strong {
-      color: var(--red-cta);
-    }
-
     /* Stepper */
     .stepper-controle {
       display: flex;
@@ -551,7 +499,6 @@
       transform: translateX(20px);
     }
 
-    .opcao-modo:disabled,
     .btn-toggle:disabled,
     .linha-switch:disabled {
       opacity: 0.5;
@@ -645,27 +592,102 @@
       pointer-events: auto;
     }
 
-    .resumo {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      min-height: 34px;
-      padding: 4px 14px;
+    .seletor-modo {
+      display: flex;
+      width: 100%;
+      gap: 3px;
+      padding: 3px;
+      box-sizing: border-box;
+      background: rgba(0, 0, 0, 0.62);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 14px;
+    }
+
+    .modo-btn {
+      flex: 1;
+      min-width: 0;
+      min-height: 40px;
+      padding: 4px 6px;
       font-size: 13px;
       font-weight: 700;
-      color: #fff;
-      background: rgba(0, 0, 0, 0.62);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 17px;
+      color: rgba(255, 255, 255, 0.85);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 11px;
       cursor: pointer;
-      max-width: 100%;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    .resumo:hover {
-      background: rgba(0, 0, 0, 0.78);
+    .modo-btn:hover:not(:disabled):not([aria-checked="true"]) {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .modo-btn[aria-checked="true"] {
+      color: #fff;
+      background: linear-gradient(135deg, var(--red-cta) 0%, var(--red-cta-2) 100%);
+      border-color: var(--ui-gold);
+    }
+
+    .modo-btn.tem-ajuste[aria-checked="true"]::after {
+      content: " ▾";
+      font-size: 10px;
+      color: var(--ui-gold);
+    }
+
+    .modo-btn.tem-ajuste[aria-expanded="true"]::after {
+      content: " ▴";
+    }
+
+    .modo-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .modo-btn[aria-checked="true"]:disabled {
+      opacity: 0.8;
+    }
+
+    .ajuste-rapido {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: calc(100% + 8px);
+      padding: 12px 14px;
+      background: var(--panel-bg);
+      color: var(--ui-text);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      box-sizing: border-box;
+    }
+
+    .ajuste-rapido[hidden],
+    .ajuste-rapido .campo[hidden] {
+      display: none;
+    }
+
+    .ajuste-rapido .campo-ajuda {
+      margin-bottom: 0;
+    }
+
+    .badge-faces {
+      position: absolute;
+      right: -6px;
+      bottom: -6px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 4px;
+      box-sizing: border-box;
+      font: 800 12px/20px system-ui, sans-serif;
+      color: #111;
+      background: var(--ui-gold);
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
     }
 
     #girar {
@@ -765,7 +787,7 @@
       color: #fff;
       border-radius: 14px;
       transition: border-color 0.25s ease, box-shadow 0.25s ease;
-      bottom: calc(146px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(154px + env(safe-area-inset-bottom, 0px));
       left: 50%;
       transform: translateX(-50%);
       width: max-content;
@@ -929,7 +951,7 @@
     #toast {
       position: fixed;
       left: 50%;
-      bottom: calc(206px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(214px + env(safe-area-inset-bottom, 0px));
       transform: translateX(-50%);
       z-index: 120;
       display: flex;
@@ -966,13 +988,13 @@
     }
 
     #palco {
-      --cta-reserve: calc(206px + env(safe-area-inset-bottom, 0px));
+      --cta-reserve: calc(214px + env(safe-area-inset-bottom, 0px));
     }
 
     /* ---------- Responsivo ---------- */
     @media (max-width: 768px) {
       #palco {
-        --cta-reserve: calc(206px + env(safe-area-inset-bottom, 0px));
+        --cta-reserve: calc(214px + env(safe-area-inset-bottom, 0px));
       }
       #acao-principal {
         width: min(94vw, 380px);
@@ -1012,7 +1034,7 @@
   </style>
 </head>
 <body>
-  <button type="button" id="btn-config" class="btn-flutuante" aria-controls="painel" aria-expanded="false" title="Configurações (C)" aria-label="Abrir configurações">⚙️</button>
+  <button type="button" id="btn-config" class="btn-flutuante" aria-controls="painel" aria-expanded="false" title="Configurações (C)" aria-label="Abrir configurações">⚙️<span class="badge-faces" id="badge-faces" aria-hidden="true">6</span></button>
 
   <div class="acoes-topo">
     <button type="button" id="btn-tela-cheia" class="btn-flutuante" aria-pressed="false" title="Tela cheia (F)" aria-label="Tela cheia">⛶</button>
@@ -1026,24 +1048,6 @@
     </div>
 
     <div class="painel-conteudo">
-      <div class="campo" role="radiogroup" aria-labelledby="titulo-modo">
-        <p class="campo-titulo" id="titulo-modo">Como sortear</p>
-        <div class="opcoes-modo">
-          <button type="button" class="opcao-modo" role="radio" data-modo="unico">
-            <span class="opcao-icone" aria-hidden="true">🎯</span>
-            <span><strong>Um por vez</strong><small>Cada giro é um sorteio</small></span>
-          </button>
-          <button type="button" class="opcao-modo" role="radio" data-modo="sequencia">
-            <span class="opcao-icone" aria-hidden="true">⚡</span>
-            <span><strong>Todos em sequência</strong><small>Sorteia todas as faces, sem repetir</small></span>
-          </button>
-          <button type="button" class="opcao-modo" role="radio" data-modo="repeticao">
-            <span class="opcao-icone" aria-hidden="true">🔁</span>
-            <span><strong>Vários giros</strong><small>Gira várias vezes; pode repetir</small></span>
-          </button>
-        </div>
-      </div>
-
       <div class="campo">
         <p class="campo-titulo" id="titulo-faces">Quantidade de faces <span class="campo-extra" id="faces-intervalo">1–6</span></p>
         <div class="stepper-controle" role="group" aria-labelledby="titulo-faces">
@@ -1062,22 +1066,6 @@
         </div>
       </div>
 
-      <div class="campo" id="campo-giros" hidden>
-        <p class="campo-titulo" id="titulo-giros">Quantos giros</p>
-        <div class="stepper-controle" role="group" aria-labelledby="titulo-giros">
-          <button type="button" class="btn-step" id="btn-menos-giros" aria-label="Menos giros">−</button>
-          <span class="stepper-valor" id="giros-valor" aria-live="polite">10</span>
-          <button type="button" class="btn-step" id="btn-mais-giros" aria-label="Mais giros">+</button>
-        </div>
-      </div>
-
-      <div class="campo" id="campo-roda">
-        <button type="button" class="linha-switch" id="sw-roda" role="switch" aria-checked="false">
-          <span>Tirar da roda quem já saiu</span>
-          <span class="switch" aria-hidden="true"></span>
-        </button>
-        <p class="campo-ajuda">Quem já foi sorteado não sai de novo até você recomeçar.</p>
-      </div>
     </div>
 
     <div class="painel-rodape">
@@ -1090,6 +1078,7 @@
         <summary>⌨️ Atalhos de teclado</summary>
         <ul>
           <li><kbd>Espaço</kbd> girar (segure para mais força)</li>
+          <li><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> tipo de sorteio</li>
           <li><kbd>Esc</kbd> parar sequência / fechar painel</li>
           <li><kbd>S</kbd> som &nbsp; <kbd>F</kbd> tela cheia &nbsp; <kbd>C</kbd> configurações</li>
         </ul>
@@ -1098,7 +1087,29 @@
   </aside>
 
   <div id="acao-principal">
-    <button type="button" id="resumo" class="resumo" aria-controls="painel" title="Alterar configurações"></button>
+    <div id="ajuste-rapido" class="ajuste-rapido" hidden>
+        <div class="campo" id="campo-giros" hidden>
+          <p class="campo-titulo" id="titulo-giros">Quantos giros</p>
+          <div class="stepper-controle" role="group" aria-labelledby="titulo-giros">
+            <button type="button" class="btn-step" id="btn-menos-giros" aria-label="Menos giros">−</button>
+            <span class="stepper-valor" id="giros-valor" aria-live="polite">10</span>
+            <button type="button" class="btn-step" id="btn-mais-giros" aria-label="Mais giros">+</button>
+          </div>
+        </div>
+
+        <div class="campo" id="campo-roda">
+          <button type="button" class="linha-switch" id="sw-roda" role="switch" aria-checked="false">
+            <span>Tirar da roda quem já saiu</span>
+            <span class="switch" aria-hidden="true"></span>
+          </button>
+          <p class="campo-ajuda">Quem já foi sorteado não sai de novo até você recomeçar.</p>
+        </div>
+    </div>
+    <div id="seletor-modo" class="seletor-modo" role="radiogroup" aria-label="Tipo de sorteio">
+      <button type="button" class="modo-btn" role="radio" data-modo="unico" title="Um por vez (1)"><span aria-hidden="true">🎯</span> <span class="modo-rotulo">Um por vez</span></button>
+      <button type="button" class="modo-btn" role="radio" data-modo="sequencia" title="Todos em sequência, sem repetir (2)"><span aria-hidden="true">⚡</span> <span class="modo-rotulo" id="rotulo-sequencia">Todos (6)</span></button>
+      <button type="button" class="modo-btn" role="radio" data-modo="repeticao" title="Vários giros, pode repetir (3)"><span aria-hidden="true">🔁</span> <span class="modo-rotulo" id="rotulo-repeticao">10 giros</span></button>
+    </div>
     <button type="button" id="girar"><span class="girar-texto" id="girar-texto">Girar o Pião</span><span class="forca" id="forca" aria-hidden="true"></span></button>
     <div class="dica" id="dica"></div>
   </div>
@@ -1152,7 +1163,11 @@
       var swRoda = $('#sw-roda')
       var campoGiros = $('#campo-giros')
       var campoRoda = $('#campo-roda')
-      var opcoesModo = $$('.opcao-modo')
+      var opcoesModo = $$('.modo-btn')
+      var ajusteRapido = $('#ajuste-rapido')
+      var rotuloSequencia = $('#rotulo-sequencia')
+      var rotuloRepeticao = $('#rotulo-repeticao')
+      var badgeFaces = $('#badge-faces')
       var botoesRotulos = $$('[data-rotulos]')
       var btnMenosFaces = $('#btn-menos-faces')
       var btnMaisFaces = $('#btn-mais-faces')
@@ -1162,7 +1177,6 @@
       var btnMaisGiros = $('#btn-mais-giros')
       var girosValor = $('#giros-valor')
       var btnRestaurar = $('#btn-restaurar')
-      var resumoBtn = $('#resumo')
       var girarBtn = $('#girar')
       var girarTexto = $('#girar-texto')
       var forcaBar = $('#forca')
@@ -1579,9 +1593,43 @@
         return cfg.tirarDaRoda ? 'Um por vez · sem repetir' : 'Um por vez'
       }
 
-      function atualizarResumo() {
-        resumoBtn.textContent = '⚙️ ' + cfg.faces + ' faces (' + textoIntervalo() + ') · ' + textoModo()
-        resumoBtn.setAttribute('aria-label', 'Configurações atuais: ' + cfg.faces + ' faces, ' + textoIntervalo() + ', ' + textoModo() + '. Toque para alterar.')
+      var ajusteAberto = false
+
+      function modoTemAjuste(modo) {
+        return modo === 'unico' || modo === 'repeticao'
+      }
+
+      function atualizarSeletor() {
+        rotuloSequencia.textContent = 'Todos (' + cfg.faces + ')'
+        rotuloRepeticao.textContent = cfg.giros + ' giros'
+        badgeFaces.textContent = String(cfg.faces)
+        btnConfig.setAttribute('aria-label', 'Abrir configurações (' + cfg.faces + ' faces, ' + textoIntervalo() + ')')
+        if (!emRepouso()) ajusteAberto = false
+        for (var i = 0; i < opcoesModo.length; i++) {
+          var modo = opcoesModo[i].getAttribute('data-modo')
+          var sel = modo === cfg.modo
+          opcoesModo[i].setAttribute('aria-checked', String(sel))
+          opcoesModo[i].tabIndex = sel ? 0 : -1
+          opcoesModo[i].classList.toggle('tem-ajuste', modoTemAjuste(modo))
+          if (modoTemAjuste(modo)) opcoesModo[i].setAttribute('aria-expanded', String(sel && ajusteAberto))
+          opcoesModo[i].disabled = !emRepouso()
+        }
+        ajusteRapido.hidden = !ajusteAberto || !modoTemAjuste(cfg.modo)
+      }
+
+      function alternarAjuste(abrir) {
+        ajusteAberto = (typeof abrir === 'boolean') ? abrir : !ajusteAberto
+        atualizarSeletor()
+      }
+
+      function aoEscolherModo(modo) {
+        if (!emRepouso()) return
+        if (modo === cfg.modo) {
+          if (modoTemAjuste(modo)) alternarAjuste()
+          return
+        }
+        ajusteAberto = false
+        definirModo(modo)
       }
 
       function atualizarBotao() {
@@ -1619,14 +1667,10 @@
         }
         girarTexto.textContent = texto
         dica.innerHTML = dicaHtml
+        atualizarSeletor()
       }
 
       function atualizarPainel() {
-        for (var i = 0; i < opcoesModo.length; i++) {
-          var sel = opcoesModo[i].getAttribute('data-modo') === cfg.modo
-          opcoesModo[i].setAttribute('aria-checked', String(sel))
-          opcoesModo[i].tabIndex = sel ? 0 : -1
-        }
         for (var j = 0; j < botoesRotulos.length; j++) {
           var selR = botoesRotulos[j].getAttribute('data-rotulos') === cfg.rotulos
           botoesRotulos[j].setAttribute('aria-checked', String(selR))
@@ -1642,7 +1686,7 @@
       }
 
       function definirPainelAtivo(ativo) {
-        var controles = painel.querySelectorAll('.painel-conteudo button, #btn-restaurar')
+        var controles = document.querySelectorAll('.painel-conteudo button, #btn-restaurar, #ajuste-rapido button')
         for (var i = 0; i < controles.length; i++) controles[i].disabled = !ativo
         if (ativo) {
           btnMenosFaces.disabled = cfg.faces <= MIN_FACES
@@ -1654,7 +1698,7 @@
 
       function atualizarTudo() {
         atualizarPainel()
-        atualizarResumo()
+        atualizarSeletor()
         atualizarBotao()
         atualizarHud()
       }
@@ -1758,7 +1802,6 @@
         painel.hidden = false
         document.body.classList.add('painel-aberto')
         btnConfig.setAttribute('aria-expanded', 'true')
-        resumoBtn.setAttribute('aria-expanded', 'true')
       }
 
       function fecharPainel() {
@@ -1766,7 +1809,6 @@
         painel.hidden = true
         document.body.classList.remove('painel-aberto')
         btnConfig.setAttribute('aria-expanded', 'false')
-        resumoBtn.setAttribute('aria-expanded', 'false')
         cancelarRestaurar()
         if (focoDentro) girarBtn.focus()
       }
@@ -2017,6 +2059,7 @@
         }
         if (e.key === 'Escape') {
           if (sequenciaAtiva) encerrarSequencia(false)
+          else if (ajusteAberto) alternarAjuste(false)
           else if (painelAberto()) fecharPainel()
           return
         }
@@ -2025,6 +2068,7 @@
         if (k === 's') { liberarAudioIOS(); definirSom(!cfg.som) }
         else if (k === 'f') alternarTelaCheia()
         else if (k === 'c') alternarPainel()
+        else if (k === '1' || k === '2' || k === '3') aoEscolherModo(['unico', 'sequencia', 'repeticao'][Number(k) - 1])
       })
 
       window.addEventListener('keyup', function (e) {
@@ -2082,14 +2126,14 @@
               if (!dir) return
               e.preventDefault()
               var alvo = botoes[(idx + dir + botoes.length) % botoes.length]
-              acao(alvo.getAttribute(attr))
+              if (alvo.getAttribute(attr) !== botoes[idx].getAttribute(attr)) acao(alvo.getAttribute(attr))
               alvo.focus()
             })
           })(i)
         }
       }
 
-      ligarGrupo(opcoesModo, 'data-modo', definirModo)
+      ligarGrupo(opcoesModo, 'data-modo', aoEscolherModo)
       ligarGrupo(botoesRotulos, 'data-rotulos', definirRotulos)
 
       swRoda.addEventListener('click', function () { definirTirarDaRoda(!cfg.tirarDaRoda) })
@@ -2097,7 +2141,12 @@
       btnSom.addEventListener('click', function () { liberarAudioIOS(); definirSom(!cfg.som) })
       btnRestaurar.addEventListener('click', pedirRestaurar)
       btnConfig.addEventListener('click', abrirPainel)
-      resumoBtn.addEventListener('click', alternarPainel)
+      // Fecha o ajuste rápido ao tocar fora dele
+      document.addEventListener('pointerdown', function (e) {
+        if (!ajusteAberto) return
+        if (ajusteRapido.contains(e.target) || e.target.closest('#seletor-modo')) return
+        alternarAjuste(false)
+      })
       btnFecharPainel.addEventListener('click', fecharPainel)
 
       if (suportaTelaCheia) {
@@ -2146,7 +2195,7 @@
         var vv = window.visualViewport
         var viewW = vv && vv.width ? vv.width : window.innerWidth
         var viewH = vv && vv.height ? vv.height : window.innerHeight
-        var ctaReserve = 206
+        var ctaReserve = 214
         try {
           var raw = window.getComputedStyle(palco).getPropertyValue('--cta-reserve')
           if (raw) {
