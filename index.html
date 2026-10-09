@@ -680,8 +680,8 @@
   <section id="hud-sorteados" aria-label="Results">
     <ol id="lista-sorteados" class="lista-sorteados"></ol>
     <div class="hud-acoes">
-      <button type="button" class="icone" id="btn-parar" data-tip="Stop" aria-label="Stop" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>
-      <button type="button" class="icone" id="btn-copiar" data-tip="Copy order" aria-label="Copy draw order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      <button type="button" class="icone" id="btn-parar" data-tip="Play" aria-label="Play"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg></button>
+      <button type="button" class="icone" id="btn-copiar" data-tip="Copy sequence" aria-label="Copy sequence"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
       <button type="button" class="icone" id="btn-limpar" data-tip="Reset" aria-label="Reset results"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
     </div>
   </section>
@@ -702,7 +702,7 @@
   </div>
 
   <div id="moldura-sombra" aria-hidden="true"></div>
-  <div id="area-giro" role="button" tabindex="0" aria-label="Pião. Double-tap or drag to spin"></div>
+  <div id="area-giro" role="button" tabindex="0" aria-label="Pião. Click or press to spin, or drag"></div>
   <div id="decoracao"></div>
 
   <script type="text/javascript">
@@ -724,6 +724,8 @@
       var btnCopiar = $('#btn-copiar')
       var btnLimpar = $('#btn-limpar')
       var btnParar = $('#btn-parar')
+      var ICONE_PLAY = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>'
+      var ICONE_STOP = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2.5"/></svg>'
       var toast = $('#toast')
       var toastTexto = $('#toast-texto')
       var toastAcao = $('#toast-acao')
@@ -892,7 +894,6 @@
         if (!emRepouso()) return
         limparHistorico()
         atualizarTudo()
-        mostrarToast('Restarted')
       }
 
       function sortearEntre(lista) {
@@ -1066,7 +1067,6 @@
       function zerarSeNecessario() {
         if (historico.length) {
           limparHistorico()
-          mostrarToast('Results cleared')
         } else {
           ultimaSequenciaCompleta = false
         }
@@ -1095,14 +1095,12 @@
         cfg.modo = cfg.modo === 'sequencia' ? 'unico' : 'sequencia'
         zerarSeNecessario()
         atualizarTudo()
-        mostrarToast(cfg.modo === 'sequencia' ? 'Draw all in sequence' : 'One at a time')
       }
 
       function alternarRoda() {
         if (!emRepouso() || cfg.modo !== 'unico') return
         cfg.tirarDaRoda = !cfg.tirarDaRoda
         atualizarTudo()
-        mostrarToast(cfg.tirarDaRoda ? 'No repeats' : 'Repeats allowed')
       }
 
       // ---------- Física do giro (inalterada, com duração configurável) ----------
@@ -1253,7 +1251,14 @@
 
       function atualizarHud() {
         listaSorteados.hidden = historico.length === 0
-        btnParar.disabled = !(girando || sequenciaAtiva || segurando)
+        var emGiro = girando || sequenciaAtiva || segurando || arrastando
+        if (btnParar.getAttribute('data-estado') !== (emGiro ? 'stop' : 'play')) {
+          btnParar.innerHTML = emGiro ? ICONE_STOP : ICONE_PLAY
+          btnParar.setAttribute('data-estado', emGiro ? 'stop' : 'play')
+          btnParar.setAttribute('data-tip', emGiro ? 'Stop' : 'Play')
+          btnParar.setAttribute('aria-label', emGiro ? 'Stop' : 'Play')
+        }
+        btnParar.disabled = arrastando
         hud.classList.toggle('completo', ultimaSequenciaCompleta || rodaEsgotada())
         btnLimpar.disabled = sequenciaAtiva || girando || historico.length === 0
         btnCopiar.disabled = historico.length === 0
@@ -1279,7 +1284,7 @@
         copiadoTimer = window.setTimeout(function () {
           btnCopiar.innerHTML = ICONE_COPIAR
           btnCopiar.classList.remove('confirmado')
-          btnCopiar.setAttribute('aria-label', 'Copy draw order')
+          btnCopiar.setAttribute('aria-label', 'Copy sequence')
         }, 1500)
       }
 
@@ -1391,7 +1396,6 @@
       function aoTerminarGiroUnico(num) {
         adicionarHistorico(num)
         mostrarResultado(num, 'Drawn')
-        if (rodaEsgotada()) mostrarToast('Everyone has been drawn', 'Restart', recomecar, 5000)
         atualizarTudo()
       }
 
@@ -1494,16 +1498,12 @@
 
       function encerrarSequencia(completa) {
         idSequencia++
-        var estavaAtiva = sequenciaAtiva
         sequenciaAtiva = false
         pararMusica()
         pararAnimacaoAtual()
         concluirGiroAtual = null
         girando = false
         ultimaSequenciaCompleta = !!completa
-        if (estavaAtiva) {
-          if (!completa) mostrarToast('Sequence stopped')
-        }
         atualizarTudo()
       }
 
@@ -1575,21 +1575,55 @@
         animFrameId = requestAnimationFrame(frame)
       }
 
-      areaGiro.addEventListener('pointerdown', function (e) {
-        if (e.pointerType === 'mouse' && e.button !== 0) return
+      // Pressionar o pião, no padrão da tecla Espaço: clique/toque rápido gira; segurando, o pião
+      // acelera e desacelera ao soltar. Se o ponteiro se mexer logo no início, vira arraste.
+      var LIMIAR_ARRASTE_PX = 8
+      var ATRASO_SEGURAR_MS = 180
+      var pressao = null // { id, x0, segurou, timer }
+
+      function iniciarArraste(e, x0) {
         if (!podeArrastar()) return
-        e.preventDefault()
-        liberarAudioIOS()
         pararAnimacaoAtual()
-        try { areaGiro.setPointerCapture(e.pointerId) } catch (err) {}
         var agora = performance.now()
-        arraste = { id: e.pointerId, x0: e.clientX, a0: anguloAcumulado, k: grausPorPixel(), amostras: [{ t: agora, a: anguloAcumulado }] }
+        var a0 = anguloAcumulado
+        arraste = { id: e.pointerId, x0: x0, a0: a0, k: grausPorPixel(), amostras: [{ t: agora, a: a0 }] }
         arrastando = true
         areaGiro.classList.add('arrastando')
         atualizarTudo()
+      }
+
+      areaGiro.addEventListener('pointerdown', function (e) {
+        if (e.pointerType === 'mouse' && e.button !== 0) return
+        if (!emRepouso() || pressao) return
+        e.preventDefault()
+        liberarAudioIOS()
+        try { areaGiro.setPointerCapture(e.pointerId) } catch (err) {}
+        var p = { id: e.pointerId, x0: e.clientX, segurou: false, timer: null }
+        p.timer = window.setTimeout(function () {
+          if (pressao !== p || arraste) return
+          if (cfg.modo === 'unico' && podeGirarUnico()) {
+            p.segurou = true
+            iniciarSegurar()
+          }
+        }, ATRASO_SEGURAR_MS)
+        pressao = p
       })
 
+      function terminarPressao(cancelado) {
+        var p = pressao
+        pressao = null
+        window.clearTimeout(p.timer)
+        if (p.segurou) finalizarSegurar()
+        else if (!cancelado) dispararAcao()
+      }
+
       areaGiro.addEventListener('pointermove', function (e) {
+        if (pressao && e.pointerId === pressao.id && !pressao.segurou && Math.abs(e.clientX - pressao.x0) > LIMIAR_ARRASTE_PX) {
+          var x0 = pressao.x0
+          window.clearTimeout(pressao.timer)
+          pressao = null
+          iniciarArraste(e, x0)
+        }
         if (!arraste || e.pointerId !== arraste.id) return
         var agora = performance.now()
         var a = arraste.a0 + (e.clientX - arraste.x0) * arraste.k
@@ -1625,12 +1659,21 @@
         }
       }
 
-      areaGiro.addEventListener('pointerup', function (e) { soltarArraste(e, false) })
-      areaGiro.addEventListener('pointercancel', function (e) { soltarArraste(e, true) })
-      areaGiro.addEventListener('lostpointercapture', function (e) { soltarArraste(e, false) })
+      areaGiro.addEventListener('pointerup', function (e) {
+        if (pressao && e.pointerId === pressao.id) terminarPressao(false)
+        else soltarArraste(e, false)
+      })
+      areaGiro.addEventListener('pointercancel', function (e) {
+        if (pressao && e.pointerId === pressao.id) terminarPressao(true)
+        else soltarArraste(e, true)
+      })
+      areaGiro.addEventListener('lostpointercapture', function (e) {
+        if (pressao && e.pointerId === pressao.id) terminarPressao(false)
+        else soltarArraste(e, false)
+      })
       areaGiro.addEventListener('contextmenu', function (e) { e.preventDefault() })
 
-      // ---------- Ação: dois toques no pião (ou Enter/Espaço) ----------
+      // ---------- Ação: botão play (ou Enter/Espaço) ----------
       function dispararAcao() {
         liberarAudioIOS()
         if (sequenciaAtiva) {
@@ -1646,32 +1689,6 @@
           girarUmaVez()
         }
       }
-
-      // Registrado depois do arraste: num toque, o arraste termina (sem sortear) antes daqui
-      var DOIS_TOQUES_MS = 350
-      var toqueInicio = null
-      var ultimoToque = null
-      areaGiro.addEventListener('pointerdown', function (e) {
-        if (e.pointerType === 'mouse' && e.button !== 0) return
-        toqueInicio = { x: e.clientX, y: e.clientY, t: performance.now() }
-      })
-      areaGiro.addEventListener('pointerup', function (e) {
-        if (!toqueInicio) return
-        var agora = performance.now()
-        var foiToque = Math.abs(e.clientX - toqueInicio.x) < 10 && Math.abs(e.clientY - toqueInicio.y) < 10 && agora - toqueInicio.t < 350
-        toqueInicio = null
-        if (!foiToque) {
-          ultimoToque = null
-          return
-        }
-        if (ultimoToque && agora - ultimoToque.t < DOIS_TOQUES_MS && Math.abs(e.clientX - ultimoToque.x) < 40 && Math.abs(e.clientY - ultimoToque.y) < 40) {
-          ultimoToque = null
-          dispararAcao()
-        } else {
-          ultimoToque = { x: e.clientX, y: e.clientY, t: agora }
-        }
-      })
-      areaGiro.addEventListener('dblclick', function (e) { e.preventDefault() })
 
       // ---------- Teclado ----------
       window.addEventListener('keydown', function (e) {
@@ -1740,8 +1757,13 @@
         btnTelaCheia.hidden = true
       }
       btnCopiar.addEventListener('click', copiarOrdem)
-      // Stop: interrompe a sequência ou termina o giro na hora, na face já sorteada
+      // Play/stop: parado, gira (ou inicia a sequência); girando, interrompe a sequência ou
+      // termina o giro na hora, na face já sorteada
       btnParar.addEventListener('click', function () {
+        if (emRepouso()) {
+          dispararAcao()
+          return
+        }
         if (sequenciaAtiva) {
           encerrarSequencia(false)
         } else {
@@ -1835,7 +1857,7 @@
       atualizarBotaoTelaCheia()
       atualizarTudo()
       ajustarEscalaPalco()
-      mostrarToast(telaDeToque ? 'Double-tap the top or drag it to spin' : 'Double-click the top or drag it to spin', null, null, 4000)
+      mostrarToast(telaDeToque ? 'Press and hold the top (or drag it) to spin' : 'Click the top (or drag it) to spin', null, null, 4000)
     })()
   </script>
 </body>

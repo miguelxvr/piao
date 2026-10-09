@@ -23,7 +23,7 @@ Made for:
 ## ✨ Features
 
 ### 1. 🌀 Spin the top with your finger (or mouse)
-- **Double-tap** (or double-click) the top: it spins and draws.
+- **Click** the top (desktop) or **press and hold** it (mobile), like the Space key: holding makes it speed up, releasing lets it slow down and draw. A quick tap/click also spins. The **Play** button in the results strip does the same.
 - **Drag** horizontally: the drum follows your finger; on release, the gesture's speed sets the strength and duration of the spin (~1.5 to 6 s). Weak gestures just realign it without drawing.
 - Realistic deceleration that stops exactly on the drawn face; spins last at least ~4 s and never more than 7 s.
 
@@ -39,7 +39,7 @@ A row of icons at the top of the screen, no settings panel (hover over an icon t
 | **Sound** | Turns the soundtrack on/off |
 | **Fullscreen** | Desktop only |
 
-Nothing is saved: reloading the page always goes back to the initial state (6 faces, numbers, one at a time, sound on).
+Nothing is saved: reloading the page always goes back to the initial state (6 faces, numbers, one at a time, sound on). No pop-up messages are shown when using the controls.
 
 ### 3. 📐 Realistic 3D drum (2 to 15 faces)
 - **TV look**: like the show, the drum fills the ring's window — the front face's corners sit right behind the red ring and the side faces are cut by it — over an almost black backdrop, with large heavy white numbers. ~85 mm lens perspective: true proportions, little distortion.
@@ -50,7 +50,7 @@ Nothing is saved: reloading the page always goes back to the initial state (6 fa
 
 ### 4. 🏆 Results on screen
 - A discreet strip below the top shows the results in the order they came out (the latest highlighted).
-- Always visible, with **Stop** (enabled only while spinning: ends the current spin on the drawn face, or stops the sequence), **Copy order** and **Reset**.
+- Always visible, with **Play/Stop** (Play when idle; Stop while spinning: ends the current spin on the drawn face, or stops the sequence), **Copy sequence** and **Reset**.
 
 ### 5. 🎵 Soundtrack with the Web Audio API
 - The soundtrack is decoded once and played through the Web Audio API, unlocked on the first tap: it plays reliably on every spin, including on iPhone ("playback" audio session, so the silent switch doesn't mute it).
@@ -76,9 +76,9 @@ Then open **`http://localhost:8080`** in the browser.
 
 | Action | Control |
 | :--- | :--- |
-| **Spin** | Double-tap / double-click the top, **[Enter]** or **[Space]** (hold for more strength) |
+| **Spin** | Click / press and hold the top, the **Play** button, **[Enter]** or **[Space]** (hold for more strength) |
 | **Spin with gesture strength** | Drag the top horizontally and release |
-| **Stop** | **Stop** button in the results strip, double-tap the top or **[Esc]** (sequence) |
+| **Stop** | **Stop** button in the results strip or **[Esc]** (sequence) |
 | **Sound on / off** | Sound icon or **[S]** |
 | **Fullscreen** | Fullscreen icon or **[F]** (desktop) |
 
