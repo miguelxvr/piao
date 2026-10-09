@@ -807,18 +807,19 @@
     }
 
     /* ---------- Histórico ---------- */
+    /* Faixa escura e compacta, fora da área do pião */
     #hud-sorteados {
       position: fixed;
       z-index: 80;
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+      background: rgba(12, 12, 12, 0.62);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 215, 0, 0.35);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
       box-sizing: border-box;
       display: flex;
-      flex-direction: column;
-      color: var(--ui-text);
+      color: #fff;
+      border-radius: 14px;
       transition: border-color 0.25s ease, box-shadow 0.25s ease;
     }
 
@@ -827,93 +828,127 @@
     }
 
     #hud-sorteados.pos-bottom {
-      bottom: calc(148px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(146px + env(safe-area-inset-bottom, 0px));
       left: 50%;
       transform: translateX(-50%);
-      width: min(88vw, 680px);
-      border-radius: 16px;
-      padding: 8px 12px 10px 16px;
+      width: max-content;
+      max-width: min(94vw, 680px);
+      height: 50px;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      padding: 0 6px 0 12px;
     }
 
     #hud-sorteados.pos-right {
       top: calc(72px + env(safe-area-inset-top, 0px));
-      bottom: calc(148px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(206px + env(safe-area-inset-bottom, 0px));
       right: max(12px, env(safe-area-inset-right, 0px));
-      width: 168px;
-      border-radius: 16px;
-      padding: 10px;
+      width: 132px;
+      flex-direction: column;
+      padding: 8px;
     }
 
     #hud-sorteados.completo {
       border-color: var(--ui-gold);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22), 0 0 0 3px var(--ui-gold);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35), 0 0 14px rgba(255, 215, 0, 0.45);
     }
 
     .hud-header {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
+      flex-direction: column;
+      gap: 6px;
       margin-bottom: 6px;
       flex-shrink: 0;
     }
 
-    #hud-sorteados.pos-right .hud-header {
-      flex-direction: column;
-      align-items: stretch;
+    #hud-sorteados.pos-bottom .hud-header {
+      display: contents;
     }
+
+    #hud-sorteados.pos-bottom .hud-titulo { order: 1; }
+    #hud-sorteados.pos-bottom .lista-sorteados { order: 2; }
+    #hud-sorteados.pos-bottom .hud-acoes { order: 3; }
 
     .hud-titulo {
       display: flex;
       align-items: center;
       gap: 6px;
       margin: 0;
+      flex-shrink: 0;
       font-size: 12px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.6px;
-      color: var(--red-cta);
+      color: var(--ui-gold);
+      white-space: nowrap;
+    }
+
+    #hud-sorteados.pos-bottom .hud-titulo-texto {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
     }
 
     .hud-progresso {
-      background: var(--ui-fill);
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-size: 12px;
-      color: #333;
+      font-size: 13px;
+      color: #fff;
       text-transform: none;
       letter-spacing: 0;
     }
 
     .hud-acoes {
       display: flex;
-      gap: 4px;
+      gap: 2px;
+      flex-shrink: 0;
     }
 
     .hud-acoes .btn-icone {
-      width: 40px;
+      width: 36px;
       height: 36px;
-      font-size: 16px;
-      border-color: #ddd;
-      background: #f7f7f7;
+      font-size: 15px;
+      color: #fff;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      opacity: 0.85;
+    }
+
+    .hud-acoes .btn-icone:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      opacity: 1;
+    }
+
+    .hud-acoes .btn-icone:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
     }
 
     .lista-sorteados {
       display: flex;
-      gap: 8px;
-      overflow: auto;
+      gap: 6px;
       flex: 1;
+      min-width: 0;
       align-items: center;
       margin: 0;
       padding: 0;
       list-style: none;
+      scrollbar-width: none;
+    }
+
+    .lista-sorteados::-webkit-scrollbar {
+      display: none;
     }
 
     #hud-sorteados.pos-bottom .lista-sorteados {
+      flex: 0 1 auto;
       flex-direction: row;
       overflow-x: auto;
       overflow-y: hidden;
-      padding-bottom: 2px;
+      height: 100%;
     }
 
     #hud-sorteados.pos-right .lista-sorteados {
@@ -925,44 +960,44 @@
 
     .badge-sorteado {
       display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #111;
+      align-items: baseline;
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.55);
       color: #fff;
-      padding: 6px 12px;
-      border-radius: 10px;
+      padding: 3px 9px;
+      border-radius: 8px;
       font-weight: 800;
-      font-size: 14px;
-      border: 2px solid #333;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       flex-shrink: 0;
       animation: badge-surgir 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     #hud-sorteados.pos-right .badge-sorteado {
-      width: 100%;
-      box-sizing: border-box;
       justify-content: space-between;
-      padding: 8px 10px;
+      padding: 5px 9px;
     }
 
     .badge-sorteado .ordem-sorteado {
-      font-size: 12px;
-      color: #ccc;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
       font-weight: 600;
     }
 
     .badge-sorteado .numero-sorteado {
       font-size: 20px;
-      color: var(--ui-gold);
+      line-height: 1.1;
+      color: #fff;
       font-family: 'Impact', 'Arial Black', sans-serif;
       letter-spacing: 0.5px;
     }
 
     .badge-sorteado.recente {
       border-color: var(--ui-gold);
-      box-shadow: 0 0 16px rgba(255, 215, 0, 0.8);
-      background: linear-gradient(135deg, #1a0000 0%, #300000 100%);
+      background: var(--red-cta-2);
+    }
+
+    .badge-sorteado.recente .numero-sorteado {
+      color: var(--ui-gold);
     }
 
     @keyframes badge-surgir {
@@ -974,7 +1009,7 @@
     #toast {
       position: fixed;
       left: 50%;
-      bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(206px + env(safe-area-inset-bottom, 0px));
       transform: translateX(-50%);
       z-index: 120;
       display: flex;
@@ -1011,13 +1046,13 @@
     }
 
     #palco {
-      --cta-reserve: calc(150px + env(safe-area-inset-bottom, 0px));
+      --cta-reserve: calc(206px + env(safe-area-inset-bottom, 0px));
     }
 
     /* ---------- Responsivo ---------- */
     @media (max-width: 768px) {
       #palco {
-        --cta-reserve: calc(150px + env(safe-area-inset-bottom, 0px));
+        --cta-reserve: calc(206px + env(safe-area-inset-bottom, 0px));
       }
       #acao-principal {
         width: min(94vw, 380px);
@@ -1033,12 +1068,6 @@
         border-radius: 18px 18px 0 0;
         padding-bottom: env(safe-area-inset-bottom, 0px);
         animation: gaveta-subir 0.25s ease;
-      }
-      #hud-sorteados.pos-bottom {
-        width: min(94vw, 680px);
-      }
-      #hud-sorteados.pos-right {
-        width: 128px;
       }
       #resultado-selo .selo-valor {
         font-size: 44px;
@@ -1171,7 +1200,7 @@
 
   <section id="hud-sorteados" class="pos-bottom" aria-labelledby="hud-titulo" hidden>
     <div class="hud-header">
-      <h2 class="hud-titulo" id="hud-titulo"><span aria-hidden="true">🏆</span> Sorteados <span id="hud-progresso" class="hud-progresso">0</span></h2>
+      <h2 class="hud-titulo" id="hud-titulo"><span aria-hidden="true">🏆</span> <span class="hud-titulo-texto">Sorteados</span> <span id="hud-progresso" class="hud-progresso">0</span></h2>
       <div class="hud-acoes">
         <button type="button" id="btn-posicao-hud" class="btn-icone" title="Mover para a lateral" aria-label="Mover para a lateral">➡️</button>
         <button type="button" id="btn-copiar" class="btn-icone" title="Copiar ordem" aria-label="Copiar ordem dos sorteados">📋</button>
@@ -1882,7 +1911,7 @@
 
       // ---------- Tela cheia ----------
       var raiz = document.documentElement
-      var suportaTelaCheia = !!(raiz.requestFullscreen || raiz.webkitRequestFullscreen)
+      var suportaTelaCheia = !!((raiz.requestFullscreen || raiz.webkitRequestFullscreen) && (document.fullscreenEnabled || document.webkitFullscreenEnabled))
       function emTelaCheia() {
         return !!(document.fullscreenElement || document.webkitFullscreenElement)
       }
@@ -2255,7 +2284,7 @@
         var vv = window.visualViewport
         var viewW = vv && vv.width ? vv.width : window.innerWidth
         var viewH = vv && vv.height ? vv.height : window.innerHeight
-        var ctaReserve = 150
+        var ctaReserve = 206
         try {
           var raw = window.getComputedStyle(palco).getPropertyValue('--cta-reserve')
           if (raw) {
