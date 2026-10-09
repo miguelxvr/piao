@@ -61,10 +61,11 @@
       z-index: 1;
       -webkit-transform-origin: center center;
       transform-origin: center center;
-      -webkit-transform-style: preserve-3d;
-      transform-style: preserve-3d;
     }
 
+    /* Sem transform-style: preserve-3d. A projeção do cilindro é calculada por face no JS
+       (ortográfica: rotação + recorte do trecho atrás do disco), então o navegador não
+       precisa ordenar planos 3D — o que o Safari faz errado com poucas faces. */
     #wrapper {
       width: 400px;
       height: 400px;
@@ -73,8 +74,6 @@
       top: auto;
       margin: 0;
       flex: 0 0 auto;
-      -webkit-transform-style: preserve-3d;
-      transform-style: preserve-3d;
       pointer-events: none;
     }
 
@@ -83,9 +82,8 @@
       top: 65px;
       margin: 0 auto;
       height: 270px;
-      width: 400px; /* contém as faces mais largas (3 faces = 286px); com 165px o WebKit pode recortá-las */
-      -webkit-transform-style: preserve-3d;
-      transform-style: preserve-3d;
+      width: 400px; /* contém as faces mais largas (3 faces = 286px) */
+      z-index: 1;
     }
 
     #piao .numero {
@@ -136,9 +134,7 @@
       top: -45px;
       left: -45px;
       box-sizing: content-box;
-      /* Z moderado: valores altos (ex.: 400) estouram o clipping do WebKit/iOS */
-      -webkit-transform: translateZ(180px);
-      transform: translateZ(180px);
+      z-index: 2;
       box-shadow: var(--moldura-shadow);
     }
 
@@ -151,8 +147,7 @@
       left: -2px;
       background: var(--piao-bg);
       box-shadow: inset 0 0 0 3px rgba(255,255,255,0.08), inset 0 -18px 20px rgba(0,0,0,0.45), 0 0 22px rgba(0,0,0,0.16);
-      -webkit-transform: translateZ(1px);
-      transform: translateZ(1px);
+      z-index: 0;
     }
 
     /* Sombra externa da moldura fora do contexto 3D (lá ela era recortada num retângulo) */
@@ -641,14 +636,17 @@
         return fontSize
       }
 
+      // Geometria de cada face: elemento, ângulo base, raio e largura
+      var facesGeo = []
+      var Z_FUNDO = 1 // o disco de fundo fica no plano z = 1px; o que está atrás dele não aparece
+
       function construirPiao(n) {
         piao.innerHTML = ''
+        facesGeo = []
         anguloAcumulado = 0
-        piao.style.transform = 'rotateY(0deg)'
-        piao.style.webkitTransform = 'rotateY(0deg)'
         if (n === 2) {
           var w2 = 165
-          var r2 = 24 // afastado do plano do fundo (#piao-bg em translateZ(1px)); com 1px o Safari corta a face
+          var r2 = 24
           for (var i2 = 0; i2 < 2; i2++) {
             var num2 = i2 + 1
             var face2 = document.createElement('div')
@@ -659,11 +657,11 @@
             face2.style.left = '50%'
             face2.style.marginLeft = (-w2 / 2) + 'px'
             face2.style.fontSize = calcularFontSize(w2, num2) + 'px'
-            face2.style.transform = 'rotateY(' + (i2 * 180) + 'deg) translateZ(' + r2 + 'px)'
-            face2.style.webkitTransform = face2.style.transform
             piao.appendChild(face2)
+            facesGeo.push({ el: face2, base: i2 * 180, r: r2, w: w2 })
           }
           aplicarForaDaRoda()
+          aplicarRotacao(0)
           return
         }
         var anguloPasso = 360 / n
@@ -680,11 +678,11 @@
           face.style.left = '50%'
           face.style.marginLeft = (-w / 2).toFixed(2) + 'px'
           face.style.fontSize = calcularFontSize(w, num) + 'px'
-          face.style.transform = 'rotateY(' + (i * anguloPasso).toFixed(2) + 'deg) translateZ(' + r.toFixed(2) + 'px)'
-          face.style.webkitTransform = face.style.transform
           piao.appendChild(face)
+          facesGeo.push({ el: face, base: i * anguloPasso, r: r, w: w })
         }
         aplicarForaDaRoda()
+        aplicarRotacao(0)
       }
 
       // ---------- Roda (quem já saiu) ----------
@@ -877,6 +875,9 @@
         atualizarHud()
       }
 
+      // Para testes visuais: posiciona o pião num ângulo
+      window.__piaoDefinirAngulo = function (graus) { aplicarRotacao(-graus) }
+
       // Para depuração e testes: estado atual (somente leitura)
       window.__piaoEstado = function () {
         return { modo: cfg.modo, faces: cfg.faces, rotulos: cfg.rotulos, naoRepetir: cfg.tirarDaRoda, som: cfg.som, girando: girando, sequencia: sequenciaAtiva, emRepouso: emRepouso(), historico: historico.slice(), angulo: anguloAcumulado }
@@ -939,10 +940,37 @@
         }
       }
 
+      // Projeção ortográfica do cilindro, face a face. Um ponto da face na coordenada local u
+      // (−w/2 … w/2) fica na profundidade z(u) = r·cos φ − u·sen φ; o trecho com z < Z_FUNDO
+      // está atrás do disco e é recortado. Faces de costas somem por backface-visibility.
       function aplicarRotacao(angulo) {
         anguloAcumulado = angulo
-        piao.style.transform = 'rotateY(' + angulo + 'deg)'
-        piao.style.webkitTransform = 'rotateY(' + angulo + 'deg)'
+        for (var i = 0; i < facesGeo.length; i++) {
+          var f = facesGeo[i]
+          var phi = angulo + f.base
+          var rad = phi * Math.PI / 180
+          var sen = Math.sin(rad), cos = Math.cos(rad)
+          var meia = f.w / 2
+          var esq = 0, dir = 0 // recorte em px a partir de cada borda da face
+          if (Math.abs(sen) < 1e-6) {
+            if (f.r * cos < Z_FUNDO) esq = f.w
+          } else {
+            var u = (f.r * cos - Z_FUNDO) / sen // ponto em que a face cruza o plano do disco
+            if (sen > 0) dir = Math.min(f.w, Math.max(0, meia - u))
+            else esq = Math.min(f.w, Math.max(0, u + meia))
+          }
+          var transformacao = 'rotateY(' + phi.toFixed(3) + 'deg) translateZ(' + f.r.toFixed(2) + 'px)'
+          f.el.style.transform = transformacao
+          f.el.style.webkitTransform = transformacao
+          if (esq + dir >= f.w - 0.5 || cos <= 0) {
+            f.el.style.visibility = 'hidden'
+          } else {
+            f.el.style.visibility = ''
+            var recorte = (esq > 0 || dir > 0) ? 'inset(0 ' + dir.toFixed(2) + 'px 0 ' + esq.toFixed(2) + 'px)' : ''
+            f.el.style.clipPath = recorte
+            f.el.style.webkitClipPath = recorte
+          }
+        }
       }
 
       function duracaoGiro(forca) {
