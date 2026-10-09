@@ -85,7 +85,7 @@
       z-index: 1;
       /* Perspectiva aplicada a cada face individualmente: dá profundidade ao tambor sem
          precisar de preserve-3d (as faces de frente de um prisma convexo não se sobrepõem) */
-      -webkit-perspective: 900px;
+      -webkit-perspective: 900px; /* = PERSPECTIVA no JS */
       perspective: 900px;
       -webkit-perspective-origin: 50% 50%;
       perspective-origin: 50% 50%;
@@ -652,49 +652,73 @@
         return fontSize
       }
 
-      // Geometria de cada face: elemento, ângulo base, raio e largura
+      // ---------- Dimensionamento do tambor ----------
+      // O tambor é dimensionado para caber sempre no círculo vermelho com a mesma folga: o canto
+      // mais externo visível (já projetado com a perspectiva) fica a DIST_CANTO px do centro,
+      // o mesmo valor do tambor de 6 faces. De 6 faces para cima o raio (165) e a altura (270)
+      // originais já cumprem isso. Abaixo de 6, em vez de alargar a face até virar um quadrado,
+      // ela mantém a proporção da face de 6 (altura = PROPORCAO_FACE × largura) e o raio é
+      // ajustado para o canto cair na mesma distância.
+      var PERSPECTIVA = 900
+      var ALTURA_PADRAO = 270
+      var DIST_CANTO = 180
+      var PROPORCAO_FACE = ALTURA_PADRAO / (2 * RAIO_CILINDRO * Math.sin(Math.PI / 6))
+
+      function cantoMaisExterno(n, R, h) {
+        var maior = 0
+        for (var k = 0; k < n; k++) {
+          var ang = 2 * Math.PI * k / n
+          if (Math.cos(ang) <= 0.02) continue // face de costas
+          for (var lado = -1; lado <= 1; lado += 2) {
+            var a = ang + lado * Math.PI / n
+            var s = PERSPECTIVA / (PERSPECTIVA - (R * Math.cos(a) - R))
+            maior = Math.max(maior, Math.sqrt(Math.pow(R * Math.sin(a) * s, 2) + Math.pow(h / 2 * s, 2)))
+          }
+        }
+        return maior
+      }
+
+      function geometria(n) {
+        if (n === 2) {
+          // duas faces de costas uma para a outra, quase no mesmo plano
+          var w2 = DIST_CANTO / (0.5 * Math.sqrt(1 + PROPORCAO_FACE * PROPORCAO_FACE))
+          return { r: 24, recuo: 24, w: w2, h: PROPORCAO_FACE * w2 }
+        }
+        var R = RAIO_CILINDRO, h = ALTURA_PADRAO
+        if (n < 6) {
+          var lo = 10, hi = 400
+          for (var it = 0; it < 50; it++) {
+            R = (lo + hi) / 2
+            h = PROPORCAO_FACE * 2 * R * Math.sin(Math.PI / n)
+            if (cantoMaisExterno(n, R, h) > DIST_CANTO) hi = R
+            else lo = R
+          }
+        }
+        return { r: R * Math.cos(Math.PI / n), recuo: R, w: 2 * R * Math.sin(Math.PI / n) + 0.6, h: h }
+      }
+
+      // Geometria de cada face: elemento, ângulo base, raio, recuo do tambor e largura
       var facesGeo = []
 
       function construirPiao(n) {
         piao.innerHTML = ''
         facesGeo = []
         anguloAcumulado = 0
-        if (n === 2) {
-          var w2 = 165
-          var r2 = 24
-          for (var i2 = 0; i2 < 2; i2++) {
-            var num2 = i2 + 1
-            var face2 = document.createElement('div')
-            face2.className = 'numero'
-            face2.setAttribute('data-num', String(num2))
-            face2.textContent = rotulo(num2)
-            face2.style.width = w2 + 'px'
-            face2.style.left = '50%'
-            face2.style.marginLeft = (-w2 / 2) + 'px'
-            face2.style.fontSize = calcularFontSize(w2, num2) + 'px'
-            piao.appendChild(face2)
-            facesGeo.push({ el: face2, base: i2 * 180, r: r2, w: w2 })
-          }
-          aplicarForaDaRoda()
-          aplicarRotacao(0)
-          return
-        }
-        var anguloPasso = 360 / n
-        var semiAnguloRad = Math.PI / n
-        var w = 2 * RAIO_CILINDRO * Math.sin(semiAnguloRad) + 0.6
-        var r = RAIO_CILINDRO * Math.cos(semiAnguloRad)
+        var g = geometria(n)
         for (var i = 0; i < n; i++) {
           var num = i + 1
           var face = document.createElement('div')
           face.className = 'numero'
           face.setAttribute('data-num', String(num))
           face.textContent = rotulo(num)
-          face.style.width = w.toFixed(2) + 'px'
+          face.style.width = g.w.toFixed(2) + 'px'
+          face.style.height = g.h.toFixed(2) + 'px'
           face.style.left = '50%'
-          face.style.marginLeft = (-w / 2).toFixed(2) + 'px'
-          face.style.fontSize = calcularFontSize(w, num) + 'px'
+          face.style.top = ((ALTURA_PADRAO - g.h) / 2).toFixed(2) + 'px'
+          face.style.marginLeft = (-g.w / 2).toFixed(2) + 'px'
+          face.style.fontSize = calcularFontSize(g.w, num) + 'px'
           piao.appendChild(face)
-          facesGeo.push({ el: face, base: i * anguloPasso, r: r, w: w })
+          facesGeo.push({ el: face, base: i * 360 / n, r: g.r, recuo: g.recuo, w: g.w })
         }
         aplicarForaDaRoda()
         aplicarRotacao(0)
@@ -956,7 +980,7 @@
       }
 
       // Cada face recebe sua própria transformação; a perspectiva vem do #piao. O tambor é
-      // recuado de RAIO_CILINDRO para a face da frente ficar no plano da tela (tamanho real).
+      // recuado do próprio raio, com o eixo atrás da tela e a face da frente perto do plano dela.
       // Faces de costas ficam ocultas; as laterais escurecem pelo cosseno do ângulo (luz frontal).
       function aplicarRotacao(angulo) {
         anguloAcumulado = angulo
@@ -969,7 +993,7 @@
             continue
           }
           if (f.visivel !== true) { f.el.style.visibility = ''; f.visivel = true }
-          var transformacao = 'translateZ(' + (-RAIO_CILINDRO) + 'px) rotateY(' + phi.toFixed(3) + 'deg) translateZ(' + f.r.toFixed(2) + 'px)'
+          var transformacao = 'translateZ(' + (-f.recuo).toFixed(2) + 'px) rotateY(' + phi.toFixed(3) + 'deg) translateZ(' + f.r.toFixed(2) + 'px)'
           f.el.style.transform = transformacao
           f.el.style.webkitTransform = transformacao
           f.el.style.setProperty('--sombra', (0.82 * Math.pow(1 - cos, 1.15)).toFixed(3))
