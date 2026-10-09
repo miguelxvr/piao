@@ -25,7 +25,7 @@ Made for:
 ### 1. 🌀 Spin the top with your finger (or mouse)
 - **Double-tap** (or double-click) the top: it spins and draws.
 - **Drag** horizontally: the drum follows your finger; on release, the gesture's speed sets the strength and duration of the spin (~1.5 to 6 s). Weak gestures just realign it without drawing.
-- Realistic deceleration that stops exactly on the drawn face.
+- Realistic deceleration that stops exactly on the drawn face; spins last at least ~4 s and never more than 7 s.
 
 ### 2. 🎛️ Icon controls
 A row of icons at the top of the screen, no settings panel (hover over an icon to see what it does):
@@ -34,8 +34,8 @@ A row of icons at the top of the screen, no settings panel (hover over an icon t
 | :--- | :--- |
 | **− 6 +** | Number of faces (2 to 15) |
 | **123 / ABC** | Faces show numbers or letters |
-| **No repeats** | Faces already drawn won't come up again (they are dimmed); when everyone has been drawn, double-tap restarts |
-| **Draw all** | Sequence mode: draws every face, one at a time, without repeats. Tapping it during the sequence stops it |
+| **No repeats** | One-at-a-time mode: faces already drawn won't come up again; when everyone has been drawn, double-tap restarts. In sequence mode it is always on (locked) |
+| **Draw all** | Sequence mode: draws every face, one at a time, without repeats (each spin lasts a random 4–7 s) |
 | **Sound** | Turns the soundtrack on/off |
 | **Fullscreen** | Desktop only |
 
@@ -50,7 +50,7 @@ Nothing is saved: reloading the page always goes back to the initial state (6 fa
 
 ### 4. 🏆 Results on screen
 - A discreet strip below the top shows the results in the order they came out (the latest highlighted).
-- Copy the order, or reset the results.
+- Always visible, with **Stop** (enabled only while spinning: ends the current spin on the drawn face, or stops the sequence), **Copy order** and **Reset**.
 
 ### 5. 🎵 Soundtrack with the Web Audio API
 - The soundtrack is decoded once and played through the Web Audio API, unlocked on the first tap: it plays reliably on every spin, including on iPhone ("playback" audio session, so the silent switch doesn't mute it).
@@ -78,7 +78,7 @@ Then open **`http://localhost:8080`** in the browser.
 | :--- | :--- |
 | **Spin** | Double-tap / double-click the top, **[Enter]** or **[Space]** (hold for more strength) |
 | **Spin with gesture strength** | Drag the top horizontally and release |
-| **Stop the sequence** | Double-tap the top, the **Draw all** icon or **[Esc]** |
+| **Stop** | **Stop** button in the results strip, double-tap the top or **[Esc]** (sequence) |
 | **Sound on / off** | Sound icon or **[S]** |
 | **Fullscreen** | Fullscreen icon or **[F]** (desktop) |
 

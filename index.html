@@ -436,11 +436,6 @@
       100% { box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.35); }
     }
 
-    /* Faces já sorteadas ("não repetir") */
-    #piao .numero.fora {
-      color: rgba(255, 255, 255, 0.22);
-    }
-
     /* ---------- Sorteados ---------- */
     #hud-sorteados {
       position: fixed;
@@ -488,6 +483,10 @@
       overflow-x: auto;
       overflow-y: hidden;
       scrollbar-width: none;
+    }
+
+    .lista-sorteados[hidden] {
+      display: none;
     }
 
     .lista-sorteados::-webkit-scrollbar {
@@ -678,9 +677,10 @@
 
   <div id="anuncio" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
 
-  <section id="hud-sorteados" aria-label="Results" hidden>
+  <section id="hud-sorteados" aria-label="Results">
     <ol id="lista-sorteados" class="lista-sorteados"></ol>
     <div class="hud-acoes">
+      <button type="button" class="icone" id="btn-parar" data-tip="Stop" aria-label="Stop" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>
       <button type="button" class="icone" id="btn-copiar" data-tip="Copy order" aria-label="Copy draw order"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
       <button type="button" class="icone" id="btn-limpar" data-tip="Reset" aria-label="Reset results"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
     </div>
@@ -723,14 +723,13 @@
       var listaSorteados = $('#lista-sorteados')
       var btnCopiar = $('#btn-copiar')
       var btnLimpar = $('#btn-limpar')
+      var btnParar = $('#btn-parar')
       var toast = $('#toast')
       var toastTexto = $('#toast-texto')
       var toastAcao = $('#toast-acao')
 
       var ICONE_SOM = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>'
       var ICONE_MUDO = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6M16 9l6 6"/></svg>'
-      var ICONE_PARAR = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>'
-      var ICONE_TODOS = btnTodos.innerHTML
       var TITULO_BASE = 'Pião — Spinning Draw'
       var RAIO_CILINDRO = 165
       var VEL_BASE = 360 / 0.55 // graus/s
@@ -866,38 +865,34 @@
         var ext = extensao(n, g)
         sombraTambor.style.width = (2 * ext.x * 1.12).toFixed(1) + 'px'
         sombraTambor.style.height = (2 * ext.y * 1.06).toFixed(1) + 'px'
-        aplicarForaDaRoda()
         aplicarRotacao(0)
       }
 
-      // ---------- Roda (quem já saiu) ----------
-      function rodaAtiva() {
-        return cfg.modo === 'unico' && cfg.tirarDaRoda
+      // "No repeats": sempre ativo na sequência; no um por vez, opção do usuário
+      function semRepetirAtivo() {
+        return cfg.modo === 'sequencia' || cfg.tirarDaRoda
       }
 
-      function foraDaRoda() {
-        if (!rodaAtiva()) return []
-        var fora = []
-        for (var i = 0; i < historico.length; i++) {
-          if (fora.indexOf(historico[i]) === -1) fora.push(historico[i])
-        }
-        return fora
-      }
-
-      function restantesNaRoda() {
-        var fora = foraDaRoda()
+      // Faces que ainda não saíram (um por vez com "No repeats")
+      function restantes() {
         var r = []
-        for (var c = 1; c <= cfg.faces; c++) if (fora.indexOf(c) === -1) r.push(c)
+        for (var c = 1; c <= cfg.faces; c++) if (historico.indexOf(c) === -1) r.push(c)
         return r
       }
 
-      function aplicarForaDaRoda() {
-        var fora = foraDaRoda()
-        var faces = piao.querySelectorAll('.numero')
-        for (var i = 0; i < faces.length; i++) {
-          var num = Number(faces[i].getAttribute('data-num'))
-          faces[i].classList.toggle('fora', fora.indexOf(num) !== -1)
-        }
+      function rodaEsgotada() {
+        return cfg.modo === 'unico' && cfg.tirarDaRoda && restantes().length === 0
+      }
+
+      function vencedorForcado() {
+        return (cfg.modo === 'unico' && cfg.tirarDaRoda) ? sortearEntre(restantes()) : undefined
+      }
+
+      function recomecar() {
+        if (!emRepouso()) return
+        limparHistorico()
+        atualizarTudo()
+        mostrarToast('Restarted')
       }
 
       function sortearEntre(lista) {
@@ -1051,17 +1046,11 @@
         btnRotulos.setAttribute('data-tip', letras ? 'Switch to numbers' : 'Switch to letters')
         btnRotulos.setAttribute('aria-label', letras ? 'Faces show letters. Switch to numbers' : 'Faces show numbers. Switch to letters')
         btnRotulos.disabled = !livre
-        btnRoda.setAttribute('aria-pressed', String(cfg.tirarDaRoda))
-        btnRoda.disabled = !livre || cfg.modo !== 'unico'
+        btnRoda.setAttribute('aria-pressed', String(semRepetirAtivo()))
+        btnRoda.disabled = !livre || cfg.modo === 'sequencia'
         btnTodos.setAttribute('aria-pressed', String(cfg.modo === 'sequencia'))
         btnTodos.classList.toggle('rodando', sequenciaAtiva)
-        if (btnTodos.getAttribute('data-icone') !== (sequenciaAtiva ? 'parar' : 'todos')) {
-          btnTodos.innerHTML = sequenciaAtiva ? ICONE_PARAR : ICONE_TODOS
-          btnTodos.setAttribute('data-icone', sequenciaAtiva ? 'parar' : 'todos')
-        }
-        btnTodos.setAttribute('data-tip', sequenciaAtiva ? 'Stop sequence' : 'Draw all in sequence')
-        btnTodos.setAttribute('aria-label', sequenciaAtiva ? 'Stop sequence' : 'Draw all in sequence')
-        btnTodos.disabled = !livre && !sequenciaAtiva
+        btnTodos.disabled = !livre
         atualizarHud()
       }
 
@@ -1070,7 +1059,7 @@
 
       // Para depuração e testes: estado atual (somente leitura)
       window.__piaoEstado = function () {
-        return { modo: cfg.modo, faces: cfg.faces, rotulos: cfg.rotulos, naoRepetir: cfg.tirarDaRoda, som: cfg.som, girando: girando, sequencia: sequenciaAtiva, emRepouso: emRepouso(), historico: historico.slice(), angulo: anguloAcumulado }
+        return { modo: cfg.modo, faces: cfg.faces, rotulos: cfg.rotulos, naoRepetir: semRepetirAtivo(), som: cfg.som, girando: girando, sequencia: sequenciaAtiva, emRepouso: emRepouso(), historico: historico.slice(), angulo: anguloAcumulado }
       }
 
       // ---------- Alterações ----------
@@ -1102,14 +1091,9 @@
       }
 
       function alternarModo() {
-        if (sequenciaAtiva) {
-          encerrarSequencia(false)
-          return
-        }
         if (!emRepouso()) return
         cfg.modo = cfg.modo === 'sequencia' ? 'unico' : 'sequencia'
         zerarSeNecessario()
-        aplicarForaDaRoda()
         atualizarTudo()
         mostrarToast(cfg.modo === 'sequencia' ? 'Draw all in sequence' : 'One at a time')
       }
@@ -1117,7 +1101,6 @@
       function alternarRoda() {
         if (!emRepouso() || cfg.modo !== 'unico') return
         cfg.tirarDaRoda = !cfg.tirarDaRoda
-        aplicarForaDaRoda()
         atualizarTudo()
         mostrarToast(cfg.tirarDaRoda ? 'No repeats' : 'Repeats allowed')
       }
@@ -1174,11 +1157,21 @@
         }
       }
 
+      // Tempos de giro (s): mínimo mais longo e teto de 7 s em qualquer giro
+      var TEMPO_GIRO_MIN = 4, TEMPO_GIRO_MAX = 7
+
       function duracaoGiro(forca) {
         if (reduzirMovimento) return 1.2
-        return 2.2 + 2.0 * forca
+        return TEMPO_GIRO_MIN + (TEMPO_GIRO_MAX - 0.5 - TEMPO_GIRO_MIN) * forca
       }
 
+      // Na sequência, cada giro dura um tempo aleatório entre o mínimo e 7 s
+      function tempoAleatorio() {
+        if (reduzirMovimento) return 1.2
+        return TEMPO_GIRO_MIN + Math.random() * (TEMPO_GIRO_MAX - 0.3 - TEMPO_GIRO_MIN)
+      }
+
+      var concluirGiroAtual = null // termina o giro em andamento na face já sorteada (botão stop)
       var arrasteSentidoPositivo = false // só um giro vindo do arraste pode ir no sentido positivo
 
       function executarDesaceleracaoFisica(n, omega0, T_desejado, callback, forcedWinnerNum) {
@@ -1198,22 +1191,30 @@
         if (diff < 0) diff += 360
         var voltas = Math.round((S_ideal - diff) / 360)
         if (voltas < 1) voltas = 1
+        var tempoDe = function (v) { return p * (v * 360 + diff) / omega0 }
+        if (!reduzirMovimento) {
+          while (voltas > 1 && tempoDe(voltas) > TEMPO_GIRO_MAX) voltas--
+          while (tempoDe(voltas) < T_desejado * 0.9 && tempoDe(voltas + 1) <= TEMPO_GIRO_MAX) voltas++
+        }
         var S_real = voltas * 360 + diff
+        if (!reduzirMovimento && tempoDe(voltas) > TEMPO_GIRO_MAX) omega0 = p * S_real / TEMPO_GIRO_MAX // giro muito lento: acelera
         var anguloFinal = anguloInicial + sentido * S_real
         var duracaoMs = ((p * S_real) / omega0) * 1000
         var tempoInicio = performance.now()
+        function concluir() {
+          pararAnimacaoAtual()
+          concluirGiroAtual = null
+          aplicarRotacao(anguloFinal)
+          girando = false
+          if (!sequenciaAtiva) pararMusica()
+          if (callback) callback(winnerNum)
+        }
+        concluirGiroAtual = concluir
         function frame(agora) {
           var u = Math.min(1, Math.max(0, (agora - tempoInicio) / duracaoMs))
           aplicarRotacao(anguloInicial + sentido * S_real * (1 - Math.pow(1 - u, p)))
-          if (u < 1) {
-            animFrameId = requestAnimationFrame(frame)
-          } else {
-            animFrameId = null
-            aplicarRotacao(anguloFinal)
-            girando = false
-            if (!sequenciaAtiva) pararMusica()
-            if (callback) callback(winnerNum)
-          }
+          if (u < 1) animFrameId = requestAnimationFrame(frame)
+          else concluir()
         }
         animFrameId = requestAnimationFrame(frame)
       }
@@ -1251,8 +1252,9 @@
       }
 
       function atualizarHud() {
-        hud.hidden = historico.length === 0 && !sequenciaAtiva
-        hud.classList.toggle('completo', ultimaSequenciaCompleta || (rodaAtiva() && historico.length > 0 && restantesNaRoda().length === 0))
+        listaSorteados.hidden = historico.length === 0
+        btnParar.disabled = !(girando || sequenciaAtiva || segurando)
+        hud.classList.toggle('completo', ultimaSequenciaCompleta || rodaEsgotada())
         btnLimpar.disabled = sequenciaAtiva || girando || historico.length === 0
         btnCopiar.disabled = historico.length === 0
       }
@@ -1261,7 +1263,6 @@
         historico = []
         ultimaSequenciaCompleta = false
         renderizarHistorico()
-        aplicarForaDaRoda()
         document.title = TITULO_BASE
       }
 
@@ -1383,25 +1384,18 @@
         return Math.min(1, Math.max(0, ms / 1200))
       }
 
-      function vencedorForcado() {
-        return rodaAtiva() ? sortearEntre(restantesNaRoda()) : undefined
-      }
-
       function podeGirarUnico() {
-        return cfg.modo === 'unico' && emRepouso() && !(rodaAtiva() && restantesNaRoda().length === 0)
+        return cfg.modo === 'unico' && emRepouso() && !rodaEsgotada()
       }
 
       function aoTerminarGiroUnico(num) {
         adicionarHistorico(num)
         mostrarResultado(num, 'Drawn')
-        if (rodaAtiva() && restantesNaRoda().length === 0) {
-          mostrarToast('Everyone has been drawn', 'Restart', recomecarRoda, 5000)
-        }
+        if (rodaEsgotada()) mostrarToast('Everyone has been drawn', 'Restart', recomecar, 5000)
         atualizarTudo()
       }
 
       function prepararGiro() {
-        aplicarForaDaRoda()
         atualizarTudo()
       }
 
@@ -1445,18 +1439,12 @@
         atualizarTudo()
       }
 
-      function recomecarRoda() {
-        if (!emRepouso()) return
-        limparHistorico()
-        atualizarTudo()
-        mostrarToast('Restarted')
-      }
-
       // ---------- Sequência ----------
       function iniciarSequencia(primeiroGiro) {
         if (!emRepouso()) return
         var total = cfg.faces
         var n = cfg.faces
+        var semRepetir = true // a sequência nunca repete
         var meuId = ++idSequencia
         sequenciaAtiva = true
         ultimaSequenciaCompleta = false
@@ -1472,15 +1460,18 @@
             encerrarSequencia(true)
             return
           }
-          var disponiveis = []
-          for (var c = 1; c <= n; c++) if (historico.indexOf(c) === -1) disponiveis.push(c)
-          if (!disponiveis.length) {
-            encerrarSequencia(true)
-            return
+          var forcedNum // com repetição: qualquer face
+          if (semRepetir) {
+            var disponiveis = []
+            for (var c = 1; c <= n; c++) if (historico.indexOf(c) === -1) disponiveis.push(c)
+            if (!disponiveis.length) {
+              encerrarSequencia(true)
+              return
+            }
+            forcedNum = sortearEntre(disponiveis)
           }
-          var forcedNum = sortearEntre(disponiveis)
           continuarMusica()
-          var omegaGiro = VEL_BASE, tempoGiro = duracaoGiro(0.5)
+          var omegaGiro = VEL_BASE, tempoGiro = tempoAleatorio()
           if (primeiroGiro) {
             omegaGiro = primeiroGiro.omega
             tempoGiro = primeiroGiro.tempo
@@ -1507,6 +1498,7 @@
         sequenciaAtiva = false
         pararMusica()
         pararAnimacaoAtual()
+        concluirGiroAtual = null
         girando = false
         ultimaSequenciaCompleta = !!completa
         if (estavaAtiva) {
@@ -1523,7 +1515,7 @@
       var JANELA_VELOCIDADE_MS = 100
       var VEL_MIN_SORTEIO = 400   // graus/s: abaixo disso não sorteia, só realinha
       var VEL_MAX = 3000          // graus/s
-      var TEMPO_MIN = 1.5, TEMPO_MAX = 6 // segundos
+      var TEMPO_MIN = TEMPO_GIRO_MIN, TEMPO_MAX = TEMPO_GIRO_MAX - 0.3 // segundos
       var arraste = null
 
       function grausPorPixel() {
@@ -1564,9 +1556,7 @@
       }
 
       function podeArrastar() {
-        if (!emRepouso()) return false
-        if (cfg.modo === 'unico') return !(rodaAtiva() && restantesNaRoda().length === 0)
-        return true
+        return emRepouso() && !rodaEsgotada()
       }
 
       function alinharFaceMaisProxima() {
@@ -1650,8 +1640,8 @@
         if (!emRepouso()) return
         if (cfg.modo !== 'unico') {
           iniciarSequencia()
-        } else if (rodaAtiva() && restantesNaRoda().length === 0) {
-          recomecarRoda()
+        } else if (rodaEsgotada()) {
+          recomecar()
         } else {
           girarUmaVez()
         }
@@ -1750,6 +1740,16 @@
         btnTelaCheia.hidden = true
       }
       btnCopiar.addEventListener('click', copiarOrdem)
+      // Stop: interrompe a sequência ou termina o giro na hora, na face já sorteada
+      btnParar.addEventListener('click', function () {
+        if (sequenciaAtiva) {
+          encerrarSequencia(false)
+        } else {
+          if (segurando) finalizarSegurar()
+          if (concluirGiroAtual) concluirGiroAtual()
+        }
+        atualizarTudo()
+      })
       btnLimpar.addEventListener('click', function () {
         if (!historico.length || !emRepouso()) return
         limparHistorico()
