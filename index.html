@@ -686,7 +686,7 @@
 
       <div class="campo campo-acao">
         <button type="button" id="girar">Girar Pião [Espaço]</button>
-        <div class="dica-espaco" id="dica-espaco">💡 Segure <strong>[Espaço]</strong> para girar e solte para sortear!</div>
+        <div class="dica-espaco" id="dica-espaco">💡 Segure o botão (ou [Espaço]) para girar e solte para sortear!</div>
       </div>
     </div>
   </aside>
@@ -712,10 +712,10 @@
     <div id="piao-bg"></div>
   </div>
 
-  <audio preload="auto" loop="true">
-    <source src="piao-da-casa-propria-soundtrack.mp3" />
-    <source src="piao-da-casa-propria-soundtrack.m4a" />
-    <source src="piao-da-casa-propria-soundtrack.ogg" />
+  <audio id="trilha-piao" preload="auto" loop playsinline webkit-playsinline>
+    <source src="piao-da-casa-propria-soundtrack.mp3" type="audio/mpeg" />
+    <source src="piao-da-casa-propria-soundtrack.m4a" type="audio/mp4" />
+    <source src="piao-da-casa-propria-soundtrack.ogg" type="audio/ogg" />
   </audio>
 
   <div id="decoracao"></div>
@@ -746,6 +746,7 @@
       var botoesRepeticao = document.querySelectorAll('#botoes-repeticao .btn-toggle')
       var sequenciaHabilitada = false
       var permitirRepeticao = false
+      var velMultiplicador = 1
 
       var girarBtn = document.querySelector('#girar')
       var dicaEspaco = document.querySelector('#dica-espaco')
@@ -758,9 +759,10 @@
       var totalSorteadosCont = 0
       var hudPosicao = 'bottom'
 
-      var audio = document.querySelector('audio')
+      var audio = document.querySelector('#trilha-piao') || document.querySelector('audio')
       var toggleSomBtn = document.querySelector('#toggle-som')
       var somHabilitado = true
+      var audioLiberado = false
 
       var girando = false
       var segurandoEspaco = false
@@ -768,6 +770,8 @@
       var anguloAcumulado = 0
       var tempoInicioEspaco = 0
       var RAIO_CILINDRO = 165
+      var animFrameId = null
+      var ponteiroSeguradoNoBotao = false
 
       function clampIntegrantes(n) {
         return Math.min(15, Math.max(2, Math.round(n)))
@@ -790,11 +794,9 @@
         var numCaracteres = rotulo.length
         var base = (width * 0.95) / (numCaracteres > 1 ? 1.6 : 1.0)
         var fontSize = Math.min(240, Math.max(28, Math.round(base)))
-
         if (modoSorteio === 'letras') {
           fontSize = Math.round(fontSize * 0.9)
         }
-
         return fontSize
       }
 
@@ -810,38 +812,6 @@
         winnerFaceEl.classList.add('vencedor')
       }
 
-      function atualizarBotoesModo() {
-        botoesModo.forEach(function (botao) {
-          var ativo = botao.dataset.modo === modoSorteio
-          botao.classList.toggle('ativo', ativo)
-        })
-      }
-
-      function atualizarBotoesRepeticao() {
-        botoesRepeticao.forEach(function (botao) {
-          var ativo = botao.dataset.repetir === (permitirRepeticao ? 'sim' : 'nao')
-          botao.classList.toggle('ativo', ativo)
-        })
-      }
-
-      function atualizarBotoesSequencia() {
-        botoesSequencia.forEach(function (botao) {
-          var ativo = botao.dataset.sequencia === (sequenciaHabilitada ? 'sim' : 'nao')
-          botao.classList.toggle('ativo', ativo)
-        })
-      }
-
-      function atualizarRotuloAcao() {
-        var qtd = obterQtdSorteios()
-        if (sequenciaHabilitada) {
-          girarBtn.textContent = 'Sortear todos [Espaço]'
-          dicaEspaco.innerHTML = '⚡ Vai sortear as <strong>' + qtd + '</strong> faces em sequência automática.'
-        } else {
-          girarBtn.textContent = 'Girar Pião [Espaço]'
-          dicaEspaco.innerHTML = '💡 Segure <strong>[Espaço]</strong> para girar e solte para sortear!'
-        }
-      }
-
       function definirPosicaoHud(pos) {
         hudPosicao = pos
         if (pos === 'right') {
@@ -851,7 +821,7 @@
             btnPosicaoHud.textContent = '⬇️ Base'
             btnPosicaoHud.title = 'Mover painel para a base da tela (horizontal)'
           }
-          hudSorteados.title = 'Clique no painel para mover para a base da tela (horizontal)'
+          hudSorteados.title = 'Toque no painel para mover para a base da tela (horizontal)'
         } else {
           hudSorteados.classList.remove('pos-right')
           hudSorteados.classList.add('pos-bottom')
@@ -859,41 +829,186 @@
             btnPosicaoHud.textContent = '➡️ Lateral'
             btnPosicaoHud.title = 'Mover painel para a lateral direita (vertical)'
           }
-          hudSorteados.title = 'Clique no painel para mover para a lateral direita (vertical)'
+          hudSorteados.title = 'Toque no painel para mover para a lateral direita (vertical)'
         }
       }
 
-      function removerSorteados() {
-        while (listaSorteados.firstChild) {
-          listaSorteados.removeChild(listaSorteados.firstChild)
+      function alternarPosicaoHud() {
+        definirPosicaoHud(hudPosicao === 'bottom' ? 'right' : 'bottom')
+      }
+
+      function adicionarHistorico(rodada, num) {
+        if (!sequenciaAtiva && obterQtdSorteios() <= 1) {
+          hudSorteados.style.display = 'none'
+          return
         }
-        totalSorteadosCont = 0
+
+        hudSorteados.style.display = 'flex'
+        totalSorteadosCont++
         hudContador.textContent = String(totalSorteadosCont)
-      }
 
-      function adicionarBadgeSorteado(item, rec) {
+        var anteriores = listaSorteados.querySelectorAll('.badge-sorteado.recente')
+        for (var i = 0; i < anteriores.length; i++) {
+          anteriores[i].classList.remove('recente')
+        }
+
         var badge = document.createElement('div')
-        badge.className = 'badge-sorteado' + (rec ? ' recente' : '')
-
-        var ordem = document.createElement('span')
-        ordem.className = 'ordem-sorteado'
-        ordem.textContent = String(totalSorteadosCont + 1)
-
-        var numero = document.createElement('span')
-        numero.className = 'numero-sorteado'
-        numero.textContent = String(item)
-
-        badge.appendChild(ordem)
-        badge.appendChild(numero)
+        badge.className = 'badge-sorteado recente'
+        var rotulo = obterRotuloFace(num)
+        badge.innerHTML = '<span class="ordem-sorteado">' + rodada + 'º</span><span class="numero-sorteado">' + rotulo + '</span>'
         listaSorteados.appendChild(badge)
+
+        if (hudPosicao === 'right') {
+          listaSorteados.scrollTop = listaSorteados.scrollHeight
+        } else {
+          listaSorteados.scrollLeft = listaSorteados.scrollWidth
+        }
       }
 
-      function atualizarHudHistorico() {
-        hudContador.textContent = String(totalSorteadosCont)
+      function liberarAudioIOS() {
+        if (!audio || audioLiberado) return
+        audioLiberado = true
+        var estavaMutado = audio.muted
+        var volumeAnterior = audio.volume
+        audio.muted = true
+        audio.volume = 0
+        var promessa = audio.play()
+        if (promessa && typeof promessa.then === 'function') {
+          promessa.then(function () {
+            audio.pause()
+            audio.currentTime = 0
+            audio.muted = estavaMutado
+            audio.volume = volumeAnterior || 1
+          }).catch(function () {
+            audioLiberado = false
+            audio.muted = estavaMutado
+            audio.volume = volumeAnterior || 1
+          })
+        } else {
+          audio.pause()
+          audio.currentTime = 0
+          audio.muted = estavaMutado
+          audio.volume = volumeAnterior || 1
+        }
       }
 
-      function atualizarFacesDoPiao() {
+      function atualizarBotoesSom() {
+        if (!toggleSomBtn) return
+        if (somHabilitado) {
+          toggleSomBtn.className = 'btn-som ativo'
+          toggleSomBtn.textContent = '🔊 Som Ligado'
+        } else {
+          toggleSomBtn.className = 'btn-som mudo'
+          toggleSomBtn.textContent = '🔇 Som Mudo'
+        }
+      }
+
+      function tocarMusica() {
+        if (!somHabilitado || !audio) return
+        liberarAudioIOS()
+        try { audio.currentTime = 0 } catch (e) {}
+        audio.play().catch(function () {})
+      }
+
+      function continuarMusica() {
+        if (!somHabilitado || !audio) return
+        liberarAudioIOS()
+        audio.play().catch(function () {})
+      }
+
+      function pararMusica() {
+        if (!audio) return
+        audio.pause()
+      }
+
+      function alternarSom() {
+        liberarAudioIOS()
+        somHabilitado = !somHabilitado
+        if (!somHabilitado) {
+          pararMusica()
+        } else if (girando || sequenciaAtiva || segurandoEspaco) {
+          continuarMusica()
+        }
+        atualizarBotoesSom()
+      }
+
+      function atualizarBotoesModo() {
+        for (var i = 0; i < botoesModo.length; i++) {
+          var btn = botoesModo[i]
+          btn.classList.toggle('ativo', btn.getAttribute('data-modo') === modoSorteio)
+        }
+        var labelFaces = document.querySelector('label[for="integrantes-input"]')
+        if (labelFaces) {
+          labelFaces.textContent = modoSorteio === 'letras' ? 'Faces / Letras (2 a 15)' : 'Faces (2 a 15)'
+        }
+      }
+
+      function atualizarBotoesSequencia() {
+        for (var i = 0; i < botoesSequencia.length; i++) {
+          var btn = botoesSequencia[i]
+          var ativo = btn.getAttribute('data-sequencia') === (sequenciaHabilitada ? 'sim' : 'nao')
+          btn.classList.toggle('ativo', ativo)
+        }
+      }
+
+      function atualizarBotoesRepeticao() {
+        for (var i = 0; i < botoesRepeticao.length; i++) {
+          var btn = botoesRepeticao[i]
+          var ativo = btn.getAttribute('data-repetir') === (permitirRepeticao ? 'sim' : 'nao')
+          btn.classList.toggle('ativo', ativo)
+        }
+      }
+
+      function atualizarEstadoControles() {
         var n = clampIntegrantes(Number(integrantesInput.value) || 6)
+        if (btnMenosFaces) btnMenosFaces.disabled = (n <= 2)
+        if (btnMaisFaces) btnMaisFaces.disabled = (n >= 15)
+
+        if (sequenciaHabilitada) {
+          girarBtn.textContent = 'Sortear todos'
+          dicaEspaco.innerHTML = '⚡ Vai sortear as <strong>' + n + '</strong> faces em sequência. Toque para iniciar.'
+        } else {
+          girarBtn.textContent = 'Girar Pião'
+          dicaEspaco.innerHTML = '💡 Segure o botão (ou [Espaço]) para girar e solte para sortear!'
+        }
+      }
+
+      function definirPainelAtivo(ativo) {
+        if (btnMenosFaces) btnMenosFaces.disabled = !ativo || Number(integrantesInput.value) <= 2
+        if (btnMaisFaces) btnMaisFaces.disabled = !ativo || Number(integrantesInput.value) >= 15
+        for (var k = 0; k < botoesRepeticao.length; k++) botoesRepeticao[k].disabled = !ativo
+        for (var s = 0; s < botoesSequencia.length; s++) botoesSequencia[s].disabled = !ativo
+        for (var m = 0; m < botoesModo.length; m++) botoesModo[m].disabled = !ativo
+        if (btnResetConfig) btnResetConfig.disabled = !ativo
+        if (ativo) atualizarEstadoControles()
+      }
+
+      function definirModoSorteio(modo) {
+        modoSorteio = (modo === 'letras') ? 'letras' : 'numeros'
+        atualizarBotoesModo()
+        limparDestaque()
+        construirPiao(clampIntegrantes(Number(integrantesInput.value)))
+      }
+
+      function definirSequencia(habilitada) {
+        sequenciaHabilitada = !!habilitada
+        atualizarBotoesSequencia()
+        atualizarEstadoControles()
+      }
+
+      function definirRepeticao(permitir) {
+        permitirRepeticao = !!permitir
+        atualizarBotoesRepeticao()
+      }
+
+      function resetarConfiguracoes() {
+        definirModoSorteio('numeros')
+        definirQuantidadeFaces(6)
+        definirSequencia(false)
+        definirRepeticao(false)
+      }
+
+      function construirPiao(n) {
         piao.innerHTML = ''
         anguloAcumulado = 0
         piao.style.transform = 'rotateY(0deg)'
@@ -942,87 +1057,326 @@
         }
       }
 
-      function aplicarConfigPadrao() {
-        modoSorteio = 'numeros'
-        sequenciaHabilitada = false
-        permitirRepeticao = false
-        integrantesInput.value = '6'
-        atualizarBotoesModo()
-        atualizarBotoesSequencia()
-        atualizarBotoesRepeticao()
-        atualizarFacesDoPiao()
-        atualizarRotuloAcao()
+      function definirQuantidadeFaces(n) {
+        var num = clampIntegrantes(n)
+        integrantesInput.value = num
+        limparDestaque()
+        construirPiao(num)
+        atualizarEstadoControles()
       }
 
-      function resetarConfiguracoes() {
-        aplicarConfigPadrao()
+      function pararAnimacaoAtual() {
+        if (animFrameId) {
+          cancelAnimationFrame(animFrameId)
+          animFrameId = null
+        }
+        piao.style.animation = ''
+        piao.style.webkitAnimation = ''
       }
 
-      function selecionarFaceFinal() {
-        var faces = piao.querySelectorAll('.numero')
-        var faceFinal = null
-        var menorTraslacao = Infinity
+      function aplicarRotacao(angulo) {
+        anguloAcumulado = angulo
+        piao.style.transform = 'rotateY(' + angulo + 'deg)'
+        piao.style.webkitTransform = 'rotateY(' + angulo + 'deg)'
+      }
 
-        for (var i = 0; i < faces.length; i++) {
-          var face = faces[i]
-          var transform = face.style.transform
-          var match = transform.match(/translateZ\(([-\d.]+)px\)/)
-          var z = match ? parseFloat(match[1]) : 0
-          var ang = face.style.transform.match(/rotateY\(([-\d.]+)deg\)/)
-          var angle = ang ? parseFloat(ang[1]) : 0
-          var distancia = Math.abs(((angle % 360) + 360) % 360)
+      function executarDesaceleracaoFisica(n, omega0, callback, forcedWinnerNum) {
+        pararAnimacaoAtual()
+        limparDestaque()
+        girando = true
 
-          if (distancia < menorTraslacao) {
-            menorTraslacao = distancia
-            faceFinal = face
+        var winnerNum = (typeof forcedWinnerNum === 'number') ? forcedWinnerNum : (Math.floor(Math.random() * n) + 1)
+        var winnerIndex = winnerNum - 1
+        var anguloPasso = 360 / n
+        var alvoAngulo = -(winnerIndex * anguloPasso)
+
+        var T_desejado = Math.max(1.5, 3.2 / velMultiplicador)
+        var p = 2.2
+        var S_ideal = (omega0 * T_desejado) / p
+
+        var anguloInicial = anguloAcumulado
+        var diff = (anguloInicial - alvoAngulo) % 360
+        if (diff < 0) diff += 360
+
+        var voltas = Math.round((S_ideal - diff) / 360)
+        if (voltas < 1) voltas = 1
+        var S_real = voltas * 360 + diff
+        var anguloFinal = anguloInicial - S_real
+
+        var T_real = (p * S_real) / omega0
+        var duracaoMs = T_real * 1000
+        var tempoInicio = performance.now()
+
+        function frame(agora) {
+          var decorrido = agora - tempoInicio
+          var u = Math.min(1, Math.max(0, decorrido / duracaoMs))
+          var progresso = 1 - Math.pow(1 - u, p)
+          var anguloAtual = anguloInicial - S_real * progresso
+          aplicarRotacao(anguloAtual)
+
+          if (u < 1) {
+            animFrameId = requestAnimationFrame(frame)
+          } else {
+            animFrameId = null
+            aplicarRotacao(anguloFinal)
+            girando = false
+
+            if (!sequenciaAtiva) {
+              pararMusica()
+            }
+
+            var winnerFaceEl = piao.querySelector('[data-num="' + winnerNum + '"]')
+            destacarVencedor(winnerFaceEl)
+
+            if (callback) callback(winnerNum)
           }
         }
 
-        return faceFinal
+        animFrameId = requestAnimationFrame(frame)
       }
 
-      btnMaisFaces.addEventListener('click', function () {
-        integrantesInput.value = String(clampIntegrantes(Number(integrantesInput.value) + 1))
-        atualizarFacesDoPiao()
-        atualizarRotuloAcao()
-      })
+      function executarGiroUnico(n, duracao, callback, forcedWinnerNum) {
+        var velLoop = 0.55 / velMultiplicador
+        var omega0 = 360 / velLoop
+        if (audio && audio.paused) {
+          tocarMusica()
+        } else {
+          continuarMusica()
+        }
+        executarDesaceleracaoFisica(n, omega0, callback, forcedWinnerNum)
+      }
 
-      btnMenosFaces.addEventListener('click', function () {
-        integrantesInput.value = String(clampIntegrantes(Number(integrantesInput.value) - 1))
-        atualizarFacesDoPiao()
-        atualizarRotuloAcao()
-      })
+      function iniciarSequencia(total) {
+        sequenciaAtiva = true
+        tocarMusica()
+        listaSorteados.innerHTML = ''
+        totalSorteadosCont = 0
+        hudContador.textContent = '0'
+        hudSorteados.style.display = 'flex'
+        definirPainelAtivo(false)
+        girarBtn.classList.add('parar')
+        girarBtn.textContent = 'Parar Sequência'
+        dicaEspaco.innerHTML = '⚡ Rodando sequência de <strong>' + total + '</strong> sorteios... Toque em Parar para interromper.'
 
-      botoesModo.forEach(function (botao) {
-        botao.addEventListener('click', function () {
-          modoSorteio = botao.dataset.modo
-          atualizarBotoesModo()
-          atualizarFacesDoPiao()
+        var rodadaAtual = 1
+        var n = clampIntegrantes(Number(integrantesInput.value))
+        var sorteadosNaSequencia = []
+        var tempoPausa = Math.max(0.4, 1.4 / velMultiplicador) * 1000
+
+        function proximo() {
+          if (!sequenciaAtiva || rodadaAtual > total) {
+            encerrarSequencia()
+            return
+          }
+
+          var forcedNum = null
+          if (!permitirRepeticao) {
+            var disponiveis = []
+            for (var c = 1; c <= n; c++) {
+              if (sorteadosNaSequencia.indexOf(c) === -1) disponiveis.push(c)
+            }
+            if (disponiveis.length === 0) {
+              encerrarSequencia()
+              return
+            }
+            forcedNum = disponiveis[Math.floor(Math.random() * disponiveis.length)]
+          }
+
+          executarGiroUnico(n, 0, function (numSorteado) {
+            if (!sequenciaAtiva) return
+            sorteadosNaSequencia.push(numSorteado)
+            adicionarHistorico(rodadaAtual, numSorteado)
+            rodadaAtual++
+
+            if (rodadaAtual <= total) {
+              window.setTimeout(function () {
+                if (sequenciaAtiva) proximo()
+              }, tempoPausa)
+            } else {
+              window.setTimeout(function () {
+                encerrarSequencia()
+              }, tempoPausa)
+            }
+          }, forcedNum)
+        }
+
+        proximo()
+      }
+
+      function encerrarSequencia() {
+        sequenciaAtiva = false
+        pararMusica()
+        pararAnimacaoAtual()
+        girando = false
+        girarBtn.classList.remove('parar')
+        definirPainelAtivo(true)
+        atualizarEstadoControles()
+      }
+
+      function iniciarSegurarEspaco() {
+        if (girando || segurandoEspaco || sequenciaAtiva) return
+        liberarAudioIOS()
+        pararAnimacaoAtual()
+        segurandoEspaco = true
+        tempoInicioEspaco = performance.now()
+        limparDestaque()
+        girarBtn.classList.add('segurando')
+        girarBtn.textContent = 'Solte para Sortear!'
+        dicaEspaco.innerHTML = '🌀 O pião está girando! <strong>Solte</strong> para desacelerar!'
+
+        tocarMusica()
+
+        var anguloBase = anguloAcumulado
+        var velLoopMs = (0.55 / velMultiplicador) * 1000
+
+        function loopGiro(agora) {
+          if (!segurandoEspaco) return
+          var tempoDecorrido = agora - tempoInicioEspaco
+          var anguloAtual = anguloBase - (tempoDecorrido / velLoopMs) * 360
+          aplicarRotacao(anguloAtual)
+          animFrameId = requestAnimationFrame(loopGiro)
+        }
+
+        animFrameId = requestAnimationFrame(loopGiro)
+      }
+
+      function finalizarSegurarEspaco() {
+        if (!segurandoEspaco) return
+        segurandoEspaco = false
+        girarBtn.classList.remove('segurando')
+        girarBtn.textContent = 'Sorteando...'
+        dicaEspaco.innerHTML = '🎯 Desacelerando para a face vencedora...'
+
+        var velLoop = 0.55 / velMultiplicador
+        var omega0 = 360 / velLoop
+        var n = clampIntegrantes(Number(integrantesInput.value))
+
+        definirPainelAtivo(false)
+        executarDesaceleracaoFisica(n, omega0, function () {
+          definirPainelAtivo(true)
+          atualizarEstadoControles()
         })
-      })
+      }
 
-      botoesSequencia.forEach(function (botao) {
-        botao.addEventListener('click', function () {
-          sequenciaHabilitada = botao.dataset.sequencia === 'sim'
-          atualizarBotoesSequencia()
-          atualizarRotuloAcao()
-        })
-      })
+      function dispararAcao() {
+        liberarAudioIOS()
+        if (sequenciaAtiva) {
+          encerrarSequencia()
+          return
+        }
 
-      botoesRepeticao.forEach(function (botao) {
-        botao.addEventListener('click', function () {
-          permitirRepeticao = botao.dataset.repetir === 'sim'
-          atualizarBotoesRepeticao()
-        })
-      })
-
-      btnResetConfig.addEventListener('click', resetarConfiguracoes)
+        var qtd = obterQtdSorteios()
+        if (qtd > 1) {
+          iniciarSequencia(qtd)
+        } else {
+          var n = clampIntegrantes(Number(integrantesInput.value))
+          definirPainelAtivo(false)
+          girarBtn.textContent = 'Sorteando...'
+          executarGiroUnico(n, 0, function () {
+            definirPainelAtivo(true)
+            atualizarEstadoControles()
+          })
+        }
+      }
 
       function atualizarEstadoConfiguracao() {
         if (painel && btnExpandirDrawer) {
           var estaAberto = painel.style.display !== 'none'
           btnExpandirDrawer.style.display = estaAberto ? 'none' : 'flex'
         }
+      }
+
+      if (toggleSomBtn) {
+        toggleSomBtn.addEventListener('click', function () {
+          liberarAudioIOS()
+          alternarSom()
+        })
+      }
+
+      window.addEventListener('keydown', function (e) {
+        if (e.code !== 'Space') return
+        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON')) return
+        e.preventDefault()
+
+        if (sequenciaAtiva) {
+          encerrarSequencia()
+          return
+        }
+
+        var qtd = obterQtdSorteios()
+        if (qtd > 1) {
+          if (!girando) iniciarSequencia(qtd)
+        } else if (!e.repeat) {
+          iniciarSegurarEspaco()
+        }
+      })
+
+      window.addEventListener('keyup', function (e) {
+        if (e.code !== 'Space') return
+        e.preventDefault()
+        if (segurandoEspaco) finalizarSegurarEspaco()
+      })
+
+      function iniciarPonteiroNoBotao(e) {
+        if (e.pointerType === 'mouse' && e.button !== 0) return
+        liberarAudioIOS()
+        var qtd = obterQtdSorteios()
+        if (qtd === 1 && !sequenciaAtiva && !girando) {
+          ponteiroSeguradoNoBotao = true
+          if (girarBtn.setPointerCapture && e.pointerId != null) {
+            try { girarBtn.setPointerCapture(e.pointerId) } catch (err) {}
+          }
+          iniciarSegurarEspaco()
+        }
+      }
+
+      function finalizarPonteiroNoBotao() {
+        if (!ponteiroSeguradoNoBotao) return
+        ponteiroSeguradoNoBotao = false
+        if (segurandoEspaco) finalizarSegurarEspaco()
+      }
+
+      girarBtn.addEventListener('pointerdown', iniciarPonteiroNoBotao)
+      girarBtn.addEventListener('pointerup', finalizarPonteiroNoBotao)
+      girarBtn.addEventListener('pointercancel', finalizarPonteiroNoBotao)
+      girarBtn.addEventListener('lostpointercapture', finalizarPonteiroNoBotao)
+
+      girarBtn.addEventListener('click', function (e) {
+        // Evita disparo duplo após hold no toque/mouse
+        if (girando || segurandoEspaco || ponteiroSeguradoNoBotao) {
+          e.preventDefault()
+          return
+        }
+        dispararAcao()
+      })
+
+      btnMenosFaces.addEventListener('click', function () {
+        definirQuantidadeFaces(Number(integrantesInput.value) - 1)
+      })
+      btnMaisFaces.addEventListener('click', function () {
+        definirQuantidadeFaces(Number(integrantesInput.value) + 1)
+      })
+
+      for (var m = 0; m < botoesModo.length; m++) {
+        botoesModo[m].addEventListener('click', function () {
+          definirModoSorteio(this.getAttribute('data-modo'))
+        })
+      }
+
+      for (var s = 0; s < botoesSequencia.length; s++) {
+        botoesSequencia[s].addEventListener('click', function () {
+          definirSequencia(this.getAttribute('data-sequencia') === 'sim')
+        })
+      }
+
+      for (var r = 0; r < botoesRepeticao.length; r++) {
+        botoesRepeticao[r].addEventListener('click', function () {
+          definirRepeticao(this.getAttribute('data-repetir') === 'sim')
+        })
+      }
+
+      if (btnResetConfig) {
+        btnResetConfig.addEventListener('click', resetarConfiguracoes)
       }
 
       if (btnRecolher) {
@@ -1039,18 +1393,36 @@
         })
       }
 
-      atualizarEstadoConfiguracao()
+      if (btnPosicaoHud) {
+        btnPosicaoHud.addEventListener('click', function (e) {
+          e.stopPropagation()
+          alternarPosicaoHud()
+        })
+      }
 
-      limparHistoricoBtn.addEventListener('click', removerSorteados)
-      btnPosicaoHud.addEventListener('click', function () {
-        definirPosicaoHud(hudPosicao === 'bottom' ? 'right' : 'bottom')
+      hudSorteados.addEventListener('click', function (e) {
+        if (e.target.closest('#limpar-historico')) return
+        alternarPosicaoHud()
       })
 
-      atualizarFacesDoPiao()
-      atualizarBotoesModo()
-      atualizarBotoesSequencia()
-      atualizarBotoesRepeticao()
-      atualizarRotuloAcao()
+      limparHistoricoBtn.addEventListener('click', function (e) {
+        e.stopPropagation()
+        listaSorteados.innerHTML = ''
+        totalSorteadosCont = 0
+        hudContador.textContent = '0'
+        hudSorteados.style.display = 'none'
+      })
+
+      // Primeiro toque em qualquer controle libera áudio no iOS/Chrome
+      document.addEventListener('pointerdown', function () {
+        liberarAudioIOS()
+      }, { once: true, passive: true })
+
+      definirQuantidadeFaces(6)
+      definirSequencia(false)
+      definirRepeticao(false)
+      atualizarBotoesSom()
+      atualizarEstadoConfiguracao()
       definirPosicaoHud('bottom')
     })()
   </script>
