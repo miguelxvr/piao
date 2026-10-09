@@ -757,16 +757,6 @@
       100% { filter: brightness(1.35); }
     }
 
-    .dica {
-      min-height: 17px;
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.95);
-      text-align: center;
-      line-height: 1.35;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
-      max-width: 100%;
-    }
-
     /* Faces já sorteadas ("tirar da roda") */
     #piao .numero.fora {
       color: rgba(255, 255, 255, 0.22);
@@ -787,7 +777,7 @@
       color: #fff;
       border-radius: 14px;
       transition: border-color 0.25s ease, box-shadow 0.25s ease;
-      bottom: calc(154px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(129px + env(safe-area-inset-bottom, 0px));
       left: 50%;
       transform: translateX(-50%);
       width: max-content;
@@ -951,7 +941,7 @@
     #toast {
       position: fixed;
       left: 50%;
-      bottom: calc(214px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(189px + env(safe-area-inset-bottom, 0px));
       transform: translateX(-50%);
       z-index: 120;
       display: flex;
@@ -988,13 +978,13 @@
     }
 
     #palco {
-      --cta-reserve: calc(214px + env(safe-area-inset-bottom, 0px));
+      --cta-reserve: calc(189px + env(safe-area-inset-bottom, 0px));
     }
 
     /* ---------- Responsivo ---------- */
     @media (max-width: 768px) {
       #palco {
-        --cta-reserve: calc(214px + env(safe-area-inset-bottom, 0px));
+        --cta-reserve: calc(189px + env(safe-area-inset-bottom, 0px));
       }
       #acao-principal {
         width: min(94vw, 380px);
@@ -1018,11 +1008,6 @@
       100% { transform: translateY(0); }
     }
 
-    @media (max-height: 700px) {
-      .dica {
-        font-size: 12px;
-      }
-    }
 
     @media (prefers-reduced-motion: reduce) {
       #girar.parar,
@@ -1111,7 +1096,6 @@
       <button type="button" class="modo-btn" role="radio" data-modo="repeticao" title="Vários giros, pode repetir (3)"><span aria-hidden="true">🔁</span> <span class="modo-rotulo" id="rotulo-repeticao">10 giros</span></button>
     </div>
     <button type="button" id="girar"><span class="girar-texto" id="girar-texto">Girar o Pião</span><span class="forca" id="forca" aria-hidden="true"></span></button>
-    <div class="dica" id="dica"></div>
   </div>
 
   <div id="anuncio" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
@@ -1180,7 +1164,6 @@
       var girarBtn = $('#girar')
       var girarTexto = $('#girar-texto')
       var forcaBar = $('#forca')
-      var dica = $('#dica')
       var anuncio = $('#anuncio')
       var hud = $('#hud-sorteados')
       var hudProgresso = $('#hud-progresso')
@@ -1210,7 +1193,6 @@
       var idSequencia = 0
       var totalSequencia = 0
       var ultimaSequenciaCompleta = false
-      var jaUsou = false
       var anguloAcumulado = 0
       var animFrameId = null
       var ponteiroSegurado = false
@@ -1634,39 +1616,25 @@
 
       function atualizarBotao() {
         var texto
-        var dicaHtml = ''
         girarBtn.classList.toggle('parar', sequenciaAtiva)
         girarBtn.classList.toggle('segurando', segurando)
         girarBtn.classList.toggle('ocupado', girando && !sequenciaAtiva)
         if (sequenciaAtiva) {
           texto = '⏸ Parar sequência'
-          dicaHtml = 'Sorteio <strong>' + Math.min(historico.length + 1, totalSequencia) + '</strong> de ' + totalSequencia + '…'
         } else if (segurando) {
           texto = 'Solte para sortear!'
-          dicaHtml = 'Quanto mais tempo segurar, mais forte o giro'
         } else if (girando) {
           texto = 'Sorteando…'
-          dicaHtml = 'Desacelerando…'
         } else if (cfg.modo === 'sequencia') {
           texto = (ultimaSequenciaCompleta ? 'Sortear de novo' : 'Sortear todos') + ' (' + cfg.faces + ')'
-          dicaHtml = 'Sorteia as ' + cfg.faces + ' faces, uma de cada vez, sem repetir'
         } else if (cfg.modo === 'repeticao') {
           texto = (ultimaSequenciaCompleta ? 'Girar de novo' : 'Girar') + ' ' + cfg.giros + ' vezes'
-          dicaHtml = cfg.giros + ' giros seguidos · a mesma face pode sair de novo'
         } else if (rodaAtiva() && restantesNaRoda().length === 0) {
           texto = 'Recomeçar a roda'
-          dicaHtml = 'Todos já foram sorteados 🎉'
         } else {
           texto = 'Girar o Pião'
-          if (rodaAtiva()) {
-            var r = restantesNaRoda().length
-            dicaHtml = r === 1 ? 'Falta <strong>1</strong> na roda' : 'Faltam <strong>' + r + '</strong> de ' + cfg.faces + ' na roda'
-          } else if (!jaUsou) {
-            dicaHtml = 'Toque para girar · segure para dar mais força'
-          }
         }
         girarTexto.textContent = texto
-        dica.innerHTML = dicaHtml
         atualizarSeletor()
       }
 
@@ -1871,7 +1839,6 @@
       }
 
       function prepararGiro() {
-        jaUsou = true
         aplicarForaDaRoda()
         definirPainelAtivo(false)
       }
@@ -1938,7 +1905,6 @@
         sequenciaAtiva = true
         totalSequencia = total
         ultimaSequenciaCompleta = false
-        jaUsou = true
         esconderToast()
         tocarMusica()
         historico = []
@@ -2195,7 +2161,7 @@
         var vv = window.visualViewport
         var viewW = vv && vv.width ? vv.width : window.innerWidth
         var viewH = vv && vv.height ? vv.height : window.innerHeight
-        var ctaReserve = 214
+        var ctaReserve = 189
         try {
           var raw = window.getComputedStyle(palco).getPropertyValue('--cta-reserve')
           if (raw) {
