@@ -846,6 +846,8 @@
       var toggleSomBtn = document.querySelector('#toggle-som')
       var somHabilitado = true
       var audioLiberado = false
+      var musicaDesejada = false
+      var idSequencia = 0
 
       var girando = false
       var segurandoEspaco = false
@@ -958,8 +960,11 @@
         var promessa = audio.play()
         if (promessa && typeof promessa.then === 'function') {
           promessa.then(function () {
-            audio.pause()
-            audio.currentTime = 0
+            // Se a música foi pedida enquanto o desbloqueio estava pendente, não interrompe
+            if (!musicaDesejada) {
+              audio.pause()
+              audio.currentTime = 0
+            }
             audio.muted = estavaMutado
             audio.volume = volumeAnterior || 1
           }).catch(function () {
@@ -968,8 +973,10 @@
             audio.volume = volumeAnterior || 1
           })
         } else {
-          audio.pause()
-          audio.currentTime = 0
+          if (!musicaDesejada) {
+            audio.pause()
+            audio.currentTime = 0
+          }
           audio.muted = estavaMutado
           audio.volume = volumeAnterior || 1
         }
@@ -988,18 +995,23 @@
 
       function tocarMusica() {
         if (!somHabilitado || !audio) return
+        musicaDesejada = true
         liberarAudioIOS()
         try { audio.currentTime = 0 } catch (e) {}
+        audio.muted = false
         audio.play().catch(function () {})
       }
 
       function continuarMusica() {
         if (!somHabilitado || !audio) return
+        musicaDesejada = true
         liberarAudioIOS()
+        audio.muted = false
         audio.play().catch(function () {})
       }
 
       function pararMusica() {
+        musicaDesejada = false
         if (!audio) return
         audio.pause()
       }
@@ -1231,6 +1243,7 @@
 
       function iniciarSequencia(total) {
         sequenciaAtiva = true
+        var meuId = ++idSequencia
         tocarMusica()
         listaSorteados.innerHTML = ''
         totalSorteadosCont = 0
@@ -1247,6 +1260,7 @@
         var tempoPausa = Math.max(0.4, 1.4 / velMultiplicador) * 1000
 
         function proximo() {
+          if (meuId !== idSequencia) return
           if (!sequenciaAtiva || rodadaAtual > total) {
             encerrarSequencia()
             return
@@ -1266,18 +1280,18 @@
           }
 
           executarGiroUnico(n, 0, function (numSorteado) {
-            if (!sequenciaAtiva) return
+            if (!sequenciaAtiva || meuId !== idSequencia) return
             sorteadosNaSequencia.push(numSorteado)
             adicionarHistorico(rodadaAtual, numSorteado)
             rodadaAtual++
 
             if (rodadaAtual <= total) {
               window.setTimeout(function () {
-                if (sequenciaAtiva) proximo()
+                if (sequenciaAtiva && meuId === idSequencia) proximo()
               }, tempoPausa)
             } else {
               window.setTimeout(function () {
-                encerrarSequencia()
+                if (sequenciaAtiva && meuId === idSequencia) encerrarSequencia()
               }, tempoPausa)
             }
           }, forcedNum)
@@ -1287,6 +1301,7 @@
       }
 
       function encerrarSequencia() {
+        idSequencia++
         sequenciaAtiva = false
         pararMusica()
         pararAnimacaoAtual()
