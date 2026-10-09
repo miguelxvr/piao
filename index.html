@@ -10,7 +10,9 @@
        ------------------------------------------------------------- */
     html {
       height: 100%;
-      background-color: #ffffff;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.04) 18%, transparent 38%),
+        linear-gradient(180deg, #ededeb 0%, #d9d7d1 33%, #b9b3a9 100%);
       overflow: hidden;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
@@ -22,6 +24,7 @@
       margin: 0;
       overflow: hidden;
       user-select: none;
+      background: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.18));
     }
 
     /* -------------------------------------------------------------
@@ -47,17 +50,19 @@
       width: 165px;
       -webkit-transform-style: preserve-3d;
       transform-style: preserve-3d;
+      filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.5));
     }
 
     #piao .numero {
       position: absolute;
       height: 100%;
-      /* Arestas metálicas cromadas / alumínio nas bordas do tambor */
       border: 5px solid #d0d7de;
+      border-radius: 8px;
       box-shadow:
         inset 0 0 0 1px #727a84,
         inset 0 1px 2px rgba(255, 255, 255, 0.85),
-        0 0 0 1px #3c4248;
+        0 0 0 1px #3c4248,
+        0 10px 18px rgba(0, 0, 0, 0.25);
       text-align: center;
       display: flex;
       align-items: center;
@@ -69,12 +74,25 @@
       white-space: nowrap;
       overflow: hidden;
       color: #ffffff;
-      background-color: #050505;
+      text-shadow:
+        0 2px 0 rgba(0,0,0,0.8),
+        0 0 10px rgba(0,0,0,0.35);
+      background:
+        linear-gradient(145deg, #0d0d0f 0%, #050505 35%, #101114 100%);
       box-sizing: border-box;
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
       user-select: none;
       transition: color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #piao .numero::before {
+      content: "";
+      position: absolute;
+      inset: 8px 10px 10px 10px;
+      border-radius: 6px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02), rgba(0,0,0,0.18));
+      pointer-events: none;
     }
 
     #piao .borda-lateral {
@@ -100,14 +118,10 @@
       -webkit-transform: translateZ(400px);
       transform: translateZ(400px);
       box-shadow:
-        /* Radiação suave de luz vermelha projetada sobre as aletas ao redor */
         0 0 28px 4px rgba(220, 15, 25, 0.35),
-        /* Sombra de profundidade física do anel projetada na parede */
         0 18px 48px rgba(0, 0, 0, 0.65),
         0 4px 14px rgba(0, 0, 0, 0.4),
-        /* Profundidade cilíndrica interna do túnel que desce até o tambor */
         inset 0 0 25px 8px rgba(0, 0, 0, 0.9),
-        /* Chanfro de luz cilíndrico na borda superior */
         inset 0 3px 6px rgba(255, 255, 255, 0.4),
         inset 0 -3px 6px rgba(0, 0, 0, 0.45);
     }
@@ -125,7 +139,6 @@
       margin-left: -61px;
       -webkit-transform: translateZ(435px);
       transform: translateZ(435px);
-      /* Amarelo autêntico acetinado suave (redução de saturação e brilho excessivo) */
       background: linear-gradient(180deg, #f0c51d 0%, #e5b914 100%);
       border: 2px solid #222222;
       border-radius: 4px;
@@ -201,7 +214,13 @@
       position: absolute;
       top: -2px;
       left: -2px;
-      background: radial-gradient(circle at 50% 50%, #1a1c18 0%, #080907 100%);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 22%, rgba(0,0,0,0.12) 46%, rgba(0,0,0,0.8) 100%),
+        linear-gradient(180deg, #1d1d1b 0%, #090909 100%);
+      box-shadow:
+        inset 0 0 0 3px rgba(255,255,255,0.08),
+        inset 0 -18px 20px rgba(0,0,0,0.45),
+        0 0 22px rgba(0,0,0,0.16);
       -webkit-transform: translateZ(1px);
       transform: translateZ(1px);
     }
@@ -220,13 +239,10 @@
       overflow: hidden;
       background-color: #1a1d18;
       background-image:
-        /* Sombra projetada do aro vermelho sobre as aletas (profundidade física realista) */
         radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.75) 205px, rgba(0, 0, 0, 0.42) 248px, rgba(0, 0, 0, 0.15) 290px, transparent 360px),
-        /* Iluminação suave de holofote superior de estúdio */
         radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 80%),
-        /* Vinheta sutil nas bordas da tela */
         radial-gradient(circle at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.22) 100%),
-        /* 48 Aletas radiais perfeitamente simétricas com sulcos escuros e chanfro tridimensional */
+        linear-gradient(180deg, rgba(255,219,97,0.04) 0%, rgba(255,219,97,0.0) 30%, rgba(208,13,30,0.04) 100%),
         repeating-conic-gradient(
           from 0deg at 50% 50%,
           #e5eae1 0deg,
