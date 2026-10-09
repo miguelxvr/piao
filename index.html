@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Pião — Sorteio de Apresentação</title>
   <style type="text/css" media="screen">
     :root {
@@ -43,16 +43,31 @@
       color: #111;
     }
 
+    #palco {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: calc(108px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+      pointer-events: none;
+      z-index: 1;
+    }
+
     #wrapper {
       width: 400px;
       height: 400px;
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      margin-left: -200px;
-      margin-top: -200px;
+      position: relative;
+      left: auto;
+      top: auto;
+      margin: 0;
+      flex: 0 0 auto;
       -webkit-transform-style: preserve-3d;
       transform-style: preserve-3d;
+      pointer-events: none;
     }
 
     #piao {
@@ -113,8 +128,9 @@
       top: -45px;
       left: -45px;
       box-sizing: content-box;
-      -webkit-transform: translateZ(400px);
-      transform: translateZ(400px);
+      /* Z moderado: valores altos (ex.: 400) estouram o clipping do WebKit/iOS */
+      -webkit-transform: translateZ(180px);
+      transform: translateZ(180px);
       box-shadow: var(--moldura-shadow);
     }
 
@@ -645,9 +661,10 @@
     }
 
     @media (max-width: 768px) {
-      #wrapper {
-        transform: scale(0.72);
-        margin-top: -36px;
+      /* Nunca usar transform: scale no #wrapper — isso achata o 3D no iOS/Chrome */
+      #palco {
+        bottom: calc(118px + env(safe-area-inset-bottom, 0px));
+        zoom: 0.72;
       }
       #acao-principal {
         width: min(94vw, 360px);
@@ -659,6 +676,12 @@
       #hud-sorteados.pos-bottom {
         width: 92vw;
         bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+      }
+    }
+
+    @media (max-width: 380px) {
+      #palco {
+        zoom: 0.64;
       }
     }
   </style>
@@ -737,10 +760,12 @@
     <div id="lista-sorteados" class="lista-sorteados"></div>
   </section>
 
-  <div id="wrapper">
-    <div id="piao"></div>
-    <div id="moldura"></div>
-    <div id="piao-bg"></div>
+  <div id="palco">
+    <div id="wrapper">
+      <div id="piao"></div>
+      <div id="moldura"></div>
+      <div id="piao-bg"></div>
+    </div>
   </div>
 
   <audio id="trilha-piao" preload="auto" loop playsinline webkit-playsinline>
